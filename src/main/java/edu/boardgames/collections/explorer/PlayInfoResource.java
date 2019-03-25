@@ -3,6 +3,7 @@ package edu.boardgames.collections.explorer;
 import edu.boardgames.collections.explorer.domain.BoardGame;
 import edu.boardgames.collections.explorer.domain.Range;
 import edu.boardgames.collections.explorer.domain.bgg.BoardGameBggXml;
+import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -14,6 +15,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.nio.file.Files;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -24,6 +26,34 @@ import javax.xml.parsers.ParserConfigurationException;
 
 @Path("/playinfo")
 public class PlayInfoResource {
+
+	@GET
+	@Path("/xsl")
+	@Produces(MediaType.TEXT_XML)
+	public String xsl() throws URISyntaxException, IOException {
+		return Files.readString(java.nio.file.Path.of(PlayInfoResource.class.getResource("play-info.xsl").toURI()));
+	}
+
+	@GET
+	@Path("/xml")
+	@Produces(MediaType.TEXT_XML)
+	public String xml() throws URISyntaxException, IOException, InterruptedException {
+		HttpRequest request = HttpRequest.newBuilder()
+				.uri(new URI("https://www.boardgamegeek.com/xmlapi2/thing?type=boardgame&id=249703,245931"))
+				.version(HttpClient.Version.HTTP_2)
+				.GET()
+				.build();
+
+		HttpResponse<String> response = HttpClient
+				.newBuilder()
+				.build().send(request, BodyHandlers.ofString());
+
+		String xsl = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+				"<?xml-stylesheet type=\"text/xsl\" href=\"http://localhost:8080/playinfo/xsl\"?>\n";
+		String result = String.format("%s%n%s", xsl, StringUtils.removeStartIgnoreCase(response.body(), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"));
+		System.out.printf("%s%n", result);
+		return result;
+	}
 
     @GET
     @Produces(MediaType.TEXT_PLAIN)
