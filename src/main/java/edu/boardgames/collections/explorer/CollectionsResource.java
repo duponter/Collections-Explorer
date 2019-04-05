@@ -1,34 +1,23 @@
 package edu.boardgames.collections.explorer;
 
-import com.evanlennick.retry4j.CallExecutor;
-import com.evanlennick.retry4j.CallExecutorBuilder;
-import com.evanlennick.retry4j.Status;
-import com.evanlennick.retry4j.config.RetryConfig;
-import com.evanlennick.retry4j.config.RetryConfigBuilder;
-import edu.boardgames.collections.explorer.domain.BoardGame;
-import edu.boardgames.collections.explorer.domain.Range;
-import edu.boardgames.collections.explorer.domain.bgg.BoardGameBggXml;
-import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
+import net.jodah.failsafe.Failsafe;
+import net.jodah.failsafe.RetryPolicy;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
+import java.net.http.HttpClient.Version;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.file.Files;
 import java.time.temporal.ChronoUnit;
-import java.util.concurrent.Callable;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 
 @Path("/collections")
 public class CollectionsResource {
@@ -41,73 +30,60 @@ public class CollectionsResource {
 	}
 
 	@GET
-	@Path("/xml")
+	@Path("/xml/{username}")
 	@Produces(MediaType.TEXT_PLAIN)
-	public String xml() throws URISyntaxException {
+	public String xml(@PathParam("username") String username) throws URISyntaxException {
+//		HttpRequest request = HttpRequest.newBuilder()
+//				.uri(new URI("http://boardgamegeek.com/login?"))
+//				.version(HttpClient.Version.HTTP_2)
+//				.POST(BodyPublishers.noBody())
+//				.build();
+		/*
+		POST http://boardgamegeek.com/login
+		params: username - password
+		store cookies
+		https://www.baeldung.com/cookies-java
+
+		https://boardgamegeek.com/thread/1112609/xml-api-private-info
+		GET https://boardgamegeek.com/xmlapi2/collection?username=ForumMortsel&subtype=boardgame&own=1&showprivate=1
+		&showprivate=1
+		with stored cookies
+		* */
+
 		HttpRequest request = HttpRequest.newBuilder()
-				.uri(new URI("https://www.boardgamegeek.com/xmlapi2/collection?username=TurtleR6&subtype=boardgame&own=1"))
-				.version(HttpClient.Version.HTTP_2)
+				.uri(new URI(String.format("https://www.boardgamegeek.com/xmlapi2/collection?username=%s&subtype=boardgame&own=1&showprivate=1", username)))
+				.version(Version.HTTP_2)
 				.GET()
 				.build();
 
-		RetryConfig config = new RetryConfigBuilder()
-				.retryOnSpecificExceptions(IllegalStateException.class)
-				.withMaxNumberOfTries(5)
-				.withDelayBetweenTries(1L, ChronoUnit.SECONDS)
-				.withExponentialBackoff()
-				.build();
+		RetryPolicy<HttpResponse<String>> retryPolicy = new RetryPolicy<HttpResponse<String>>()
+				.abortIf(response -> {
+					System.out.printf("abortIf: %d%n", response.statusCode());
+					return response.statusCode() == 200;
+				})
+				.handleResultIf(response -> {
+					System.out.printf("handleResultIf: %d%n", response.statusCode());
+					return response.statusCode() == 202;
+				})
+//				.abortIf((response,throwable) -> {
+//					System.out.printf("status: %d%n", response.statusCode());
+//					return response.statusCode() == 200;
+//				})
+				.onRetry(event -> System.out.printf("onRetry(%s)%n", event))
+				.onAbort(event -> System.out.printf("onAbort(%s)%n", event))
+				.onFailedAttempt(event -> System.out.printf("onFailedAttempt(%s)%n", event))
+				.onRetriesExceeded(event -> System.out.printf("onRetriesExceeded(%s)%n", event))
+				.onFailure(event -> System.out.printf("onFailure(%s)%n", event))
+				.onSuccess(event -> System.out.printf("onSuccess(%s)%n", event))
+				.withBackoff(1L, 100L, ChronoUnit.SECONDS)
+				.withMaxRetries(5);
 
-		Callable<String> callable = () -> {
-			HttpResponse<String> response = HttpClient
-					.newBuilder()
-					.build()
-					.send(request, BodyHandlers.ofString());
-			if (response.statusCode() == 202) {
-				throw new IllegalStateException("Accepted");
-			}
-			return response.body();
-		};
-		CallExecutor<String> executor = new CallExecutorBuilder().config(config)
-				.afterFailedTryListener(status111 -> System.out.printf("afterFailedTryListener.onEvent(%s) called%n%n", status111))
-				.beforeNextTryListener(status11 -> System.out.printf("beforeNextTryListener.onEvent(%s) called%n%n", status11))
-				.onCompletionListener(status11111 -> System.out.printf("onCompletionListener.onEvent(%s) called%n%n", status11111))
-				.onSuccessListener(status1111 -> System.out.printf("onSuccessListener.onEvent(%s) called%n%n", status1111))
-				.onFailureListener(status1 -> System.out.printf("onFailureListener.onEvent(%s) called%n%n", status1))
-				.build();
-		Status<String> status = executor.execute(callable);
+		System.out.printf("Allows Retries: %s%n", retryPolicy.allowsRetries());
 
-
-		return status.getResult();
-	}
-
-    @GET
-    @Produces(MediaType.TEXT_PLAIN)
-    public String hello() throws IOException, InterruptedException, URISyntaxException, ParserConfigurationException, SAXException {
-
-	    HttpRequest request = HttpRequest.newBuilder()
-			    .uri(new URI("https://www.boardgamegeek.com/xmlapi2/thing?type=boardgame&id=249703,245931"))
-			    .version(HttpClient.Version.HTTP_2)
-			    .GET()
-			    .build();
-
-	    HttpResponse<InputStream> response = HttpClient
-			    .newBuilder()
-			    .build().send(request, BodyHandlers.ofInputStream());
-
-
-	    System.out.println(response.statusCode());
-	    System.out.println(response.body());
-
-	    DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-	    Document document = builder.parse(response.body());
-	    return playInfo(new BoardGameBggXml(document));
-    }
-
-	private static String playInfo(BoardGame boardGame) {
-		Range<Integer> communityPlayerCount = boardGame.bestWithPlayerCount()
-				.or(boardGame::recommendedWithPlayerCount)
-				.orElse(boardGame.playerCount().map(Integer::parseInt));
-
-		return String.format("%s (%s) - %s>%sp - %s Min", boardGame.name(), boardGame.year(), boardGame.playerCount().formatted(), communityPlayerCount.formatted(), boardGame.playtime().formatted());
+		HttpResponse<String> response = Failsafe.with(retryPolicy).get(() -> HttpClient
+				.newBuilder()
+				.build()
+				.send(request, BodyHandlers.ofString()));
+		return response.body();
 	}
 }
