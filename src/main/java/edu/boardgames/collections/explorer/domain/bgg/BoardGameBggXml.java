@@ -13,15 +13,21 @@ import javax.xml.xpath.XPathFactory;
 
 public class BoardGameBggXml implements BoardGame {
 	private final Node node;
+	private final String id;
 
-	public BoardGameBggXml(Node node) {
+	public BoardGameBggXml(Node node, String id) {
 		this.node = Objects.requireNonNull(node);
+		this.id = Objects.requireNonNull(id);
 	}
 
 	@Override
 	public String name() {
+		return attributeValue("name[@type='primary']");
+	}
+
+	private String attributeValue(String attribute) {
 		XPath xpath = XPathFactory.newInstance().newXPath();
-		String expression = "//item[@id='245931']/name/@value";
+		String expression = String.format("//item[@id='%s']/%s/@value", id, attribute);
 		try {
 			return (String) xpath.evaluate(expression, node, XPathConstants.STRING);
 		} catch (XPathExpressionException e) {
@@ -31,12 +37,12 @@ public class BoardGameBggXml implements BoardGame {
 
 	@Override
 	public String year() {
-		return "2016";
+		return attributeValue("yearpublished");
 	}
 
 	@Override
 	public Range<String> playerCount() {
-		return Range.of("2", "2");
+		return Range.of(attributeValue("minplayers"), attributeValue("maxplayers"));
 	}
 
 	@Override
@@ -51,6 +57,6 @@ public class BoardGameBggXml implements BoardGame {
 
 	@Override
 	public Range<String> playtime() {
-		return Range.of("60", "60");
+		return Range.of(attributeValue("minplaytime"), attributeValue("maxplaytime"));
 	}
 }
