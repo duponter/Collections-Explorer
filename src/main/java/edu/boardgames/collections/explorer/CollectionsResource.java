@@ -4,15 +4,19 @@ import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 
 import java.io.IOException;
+import java.net.CookieManager;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
+import java.net.http.HttpClient.Redirect;
 import java.net.http.HttpClient.Version;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.file.Files;
 import java.time.temporal.ChronoUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -32,23 +36,21 @@ public class CollectionsResource {
 	@GET
 	@Path("/xml/{username}")
 	@Produces(MediaType.TEXT_PLAIN)
-	public String xml(@PathParam("username") String username) throws URISyntaxException {
-//		HttpRequest request = HttpRequest.newBuilder()
-//				.uri(new URI("http://boardgamegeek.com/login?"))
-//				.version(HttpClient.Version.HTTP_2)
-//				.POST(BodyPublishers.noBody())
-//				.build();
-		/*
-		POST http://boardgamegeek.com/login
-		params: username - password
-		store cookies
-		https://www.baeldung.com/cookies-java
+	public String xml(@PathParam("username") String username) throws URISyntaxException, IOException, InterruptedException {
+		CookieManager cm = new CookieManager();
+		HttpClient httpClient = HttpClient.newBuilder().cookieHandler(cm).followRedirects(Redirect.NORMAL).build();
 
-		https://boardgamegeek.com/thread/1112609/xml-api-private-info
-		GET https://boardgamegeek.com/xmlapi2/collection?username=ForumMortsel&subtype=boardgame&own=1&showprivate=1
-		&showprivate=1
-		with stored cookies
-		* */
+		HttpRequest login = HttpRequest.newBuilder()
+				.uri(new URI("http://boardgamegeek.com/login"))
+				.version(Version.HTTP_2)
+				.POST(HttpRequest.BodyPublishers.ofString("username=ForumMortsel&password=<ENTER PASSWORD HERE>"))
+				.header("Content-Type", "application/x-www-form-urlencoded")
+				.build();
+
+		HttpResponse<String> loginResponse = httpClient.send(login, BodyHandlers.ofString());
+		System.out.printf("Login ended with %s%n", loginResponse.statusCode());
+		System.out.printf("Got cookies:%n");
+		cm.getCookieStore().getCookies().forEach(System.out::println);
 
 		HttpRequest request = HttpRequest.newBuilder()
 				.uri(new URI(String.format("https://www.boardgamegeek.com/xmlapi2/collection?username=%s&subtype=boardgame&own=1&showprivate=1", username)))
@@ -56,7 +58,7 @@ public class CollectionsResource {
 				.GET()
 				.build();
 
-		RetryPolicy<HttpResponse<String>> retryPolicy = new RetryPolicy<HttpResponse<String>>()
+		RetryPolicy<HttpResponse<Stream<String>>> retryPolicy = new RetryPolicy<HttpResponse<Stream<String>>>()
 				.abortIf(response -> {
 					System.out.printf("abortIf: %d%n", response.statusCode());
 					return response.statusCode() == 200;
@@ -65,10 +67,6 @@ public class CollectionsResource {
 					System.out.printf("handleResultIf: %d%n", response.statusCode());
 					return response.statusCode() == 202;
 				})
-//				.abortIf((response,throwable) -> {
-//					System.out.printf("status: %d%n", response.statusCode());
-//					return response.statusCode() == 200;
-//				})
 				.onRetry(event -> System.out.printf("onRetry(%s)%n", event))
 				.onAbort(event -> System.out.printf("onAbort(%s)%n", event))
 				.onFailedAttempt(event -> System.out.printf("onFailedAttempt(%s)%n", event))
@@ -80,10 +78,7 @@ public class CollectionsResource {
 
 		System.out.printf("Allows Retries: %s%n", retryPolicy.allowsRetries());
 
-		HttpResponse<String> response = Failsafe.with(retryPolicy).get(() -> HttpClient
-				.newBuilder()
-				.build()
-				.send(request, BodyHandlers.ofString()));
-		return response.body();
+		HttpResponse<Stream<String>> response = Failsafe.with(retryPolicy).get(() -> httpClient.send(request, BodyHandlers.ofLines()));
+		return response.body().filter(line -> line.contains("privateinfo")).collect(Collectors.joining());
 	}
 }
