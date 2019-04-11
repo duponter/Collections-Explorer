@@ -11,6 +11,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
 import java.net.http.HttpClient.Version;
 import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.file.Files;
@@ -21,6 +22,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 @Path("/collections")
@@ -36,14 +38,18 @@ public class CollectionsResource {
 	@GET
 	@Path("/xml/{username}")
 	@Produces(MediaType.TEXT_PLAIN)
-	public String xml(@PathParam("username") String username) throws URISyntaxException, IOException, InterruptedException {
+	public String xml(@PathParam("username") String username, @QueryParam("password") String password) throws URISyntaxException, IOException, InterruptedException {
 		CookieManager cm = new CookieManager();
 		HttpClient httpClient = HttpClient.newBuilder().cookieHandler(cm).followRedirects(Redirect.NORMAL).build();
+
+//		http://tutorials.jenkov.com/java-cryptography/cipher.html
+//		https://stackoverflow.com/a/43779197/1571325
+//		https://stackoverflow.com/a/18228702/1571325
 
 		HttpRequest login = HttpRequest.newBuilder()
 				.uri(new URI("http://boardgamegeek.com/login"))
 				.version(Version.HTTP_2)
-				.POST(HttpRequest.BodyPublishers.ofString("username=ForumMortsel&password=<ENTER PASSWORD HERE>"))
+				.POST(BodyPublishers.ofString(String.format("username=%s&password=%s", username, password)))
 				.header("Content-Type", "application/x-www-form-urlencoded")
 				.build();
 
