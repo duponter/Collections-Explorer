@@ -13,8 +13,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <surefire-plugin.version>2.22.1</surefire-plugin.version>
-        <quarkus.version>0.13.1</quarkus.version>
-        <commons-lang3.version>3.8.1</commons-lang3.version>
+        <quarkus.version>0.14.0</quarkus.version>
+        <commons-lang3.version>3.9</commons-lang3.version>
         <failsafe.version>2.0.1</failsafe.version>
     </properties>
     <dependencyManagement>
