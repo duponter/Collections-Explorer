@@ -40,7 +40,7 @@ public class PlayInfoResource {
 	@Produces(MediaType.TEXT_XML)
 	public String xml(@PathParam("id") String id) throws URISyntaxException, IOException, InterruptedException {
 		HttpRequest request = HttpRequest.newBuilder()
-				.uri(new URI("https://www.boardgamegeek.com/xmlapi2/thing?type=boardgame&id=" + id))
+				.uri(new URI("https://www.boardgamegeek.com/xmlapi2/thing?type=boardgame&stats=1&id=" + id))
 				.version(HttpClient.Version.HTTP_2)
 				.GET()
 				.build();
@@ -62,7 +62,7 @@ public class PlayInfoResource {
     public String hello(@PathParam("id") String id) throws IOException, InterruptedException, URISyntaxException, ParserConfigurationException, SAXException {
 
 	    HttpRequest request = HttpRequest.newBuilder()
-			    .uri(new URI("https://www.boardgamegeek.com/xmlapi2/thing?type=boardgame&id=" + id))
+			    .uri(new URI("https://www.boardgamegeek.com/xmlapi2/thing?type=boardgame&stats=1&id=" + id))
 			    .version(HttpClient.Version.HTTP_2)
 			    .GET()
 			    .build();
@@ -76,7 +76,7 @@ public class PlayInfoResource {
 	    System.out.println(response.body());
 
 	    DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-	    Document document = builder.parse("https://www.boardgamegeek.com/xmlapi2/thing?type=boardgame&id=" + id);
+	    Document document = builder.parse("https://www.boardgamegeek.com/xmlapi2/thing?type=boardgame&stats=1&id=" + id);
 	    return playInfo(new BoardGameBggXml(document, id));
     }
 

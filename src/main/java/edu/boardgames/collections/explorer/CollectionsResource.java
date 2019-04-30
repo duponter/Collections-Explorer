@@ -37,7 +37,7 @@ public class CollectionsResource {
 
 	@GET
 	@Path("/xml/{username}")
-	@Produces(MediaType.TEXT_PLAIN)
+	@Produces(MediaType.TEXT_XML)
 	public String xml(@PathParam("username") String username, @QueryParam("password") String password) throws URISyntaxException, IOException, InterruptedException {
 		CookieManager cm = new CookieManager();
 		HttpClient httpClient = HttpClient.newBuilder().cookieHandler(cm).followRedirects(Redirect.NORMAL).build();
@@ -85,6 +85,6 @@ public class CollectionsResource {
 		System.out.printf("Allows Retries: %s%n", retryPolicy.allowsRetries());
 
 		HttpResponse<Stream<String>> response = Failsafe.with(retryPolicy).get(() -> httpClient.send(request, BodyHandlers.ofLines()));
-		return response.body().filter(line -> line.contains("privateinfo")).collect(Collectors.joining());
+		return response.body().collect(Collectors.joining());
 	}
 }
