@@ -5,10 +5,10 @@ import edu.boardgames.collections.explorer.domain.Range;
 import edu.boardgames.collections.explorer.domain.bgg.BoardGameBggXml;
 import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
@@ -16,6 +16,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.file.Files;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -59,25 +61,16 @@ public class PlayInfoResource {
     @GET
     @Path("/xml/{id}")
     @Produces(MediaType.TEXT_PLAIN)
-    public String hello(@PathParam("id") String id) throws IOException, InterruptedException, URISyntaxException, ParserConfigurationException, SAXException {
-
-	    HttpRequest request = HttpRequest.newBuilder()
-			    .uri(new URI("https://www.boardgamegeek.com/xmlapi2/thing?type=boardgame&stats=1&id=" + id))
-			    .version(HttpClient.Version.HTTP_2)
-			    .GET()
-			    .build();
-
-	    HttpResponse<InputStream> response = HttpClient
-			    .newBuilder()
-			    .build().send(request, BodyHandlers.ofInputStream());
-
-
-	    System.out.println(response.statusCode());
-	    System.out.println(response.body());
-
+    public String infoByIds(@PathParam("id") String id) throws IOException, ParserConfigurationException, SAXException {
 	    DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
 	    Document document = builder.parse("https://www.boardgamegeek.com/xmlapi2/thing?type=boardgame&stats=1&id=" + id);
-	    return playInfo(new BoardGameBggXml(document, id));
+	    NodeList items = document.getElementsByTagName("item");
+
+	    return IntStream.range(0, items.getLength())
+			    .mapToObj(items::item)
+			    .map(BoardGameBggXml::new)
+			    .map(PlayInfoResource::playInfo)
+			    .collect(Collectors.joining(System.lineSeparator()));
     }
 
 	private static String playInfo(BoardGame boardGame) {
@@ -85,6 +78,6 @@ public class PlayInfoResource {
 				.or(boardGame::recommendedWithPlayerCount)
 				.orElse(boardGame.playerCount().map(Integer::parseInt));
 
-		return String.format("%s (%s) - %s>%sp - %s Min", boardGame.name(), boardGame.year(), boardGame.playerCount().formatted(), communityPlayerCount.formatted(), boardGame.playtime().formatted());
+		return String.format("%s (%s) - %s>%sp - %s Min - %2.1f / 10 - %1.2f / 5", boardGame.name(), boardGame.year(), boardGame.playerCount().formatted(), communityPlayerCount.formatted(), boardGame.playtime().formatted(), boardGame.bggScore(), boardGame.weight());
 	}
 }

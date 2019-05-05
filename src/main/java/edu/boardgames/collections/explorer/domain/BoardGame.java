@@ -7,6 +7,8 @@ public interface BoardGame {
 
 	String year();
 
+	Double bggScore();
+
 	Range<String> playerCount();
 
 	Optional<Range<Integer>> bestWithPlayerCount();
@@ -14,4 +16,6 @@ public interface BoardGame {
 	Optional<Range<Integer>> recommendedWithPlayerCount();
 
 	Range<String> playtime();
+
+	Double weight();
 }
