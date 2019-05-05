@@ -16,6 +16,12 @@ public abstract class XmlNode {
 	private final Node node;
 	private final XPath xpath = XPathFactory.newInstance().newXPath();
 
+	public static Stream<Node> nodes(Node root, String expression) {
+		XmlNode rootNode = new XmlNode(root) {
+		};
+		return rootNode.nodes(expression);
+	}
+
 	protected XmlNode(Node node) {
 		this.node = Objects.requireNonNull(node);
 	}

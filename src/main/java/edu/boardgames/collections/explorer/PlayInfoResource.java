@@ -3,9 +3,9 @@ package edu.boardgames.collections.explorer;
 import edu.boardgames.collections.explorer.domain.BoardGame;
 import edu.boardgames.collections.explorer.domain.Range;
 import edu.boardgames.collections.explorer.domain.bgg.BoardGameBggXml;
+import edu.boardgames.collections.explorer.domain.bgg.XmlNode;
 import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
@@ -17,7 +17,6 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.file.Files;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -64,10 +63,7 @@ public class PlayInfoResource {
     public String infoByIds(@PathParam("id") String id) throws IOException, ParserConfigurationException, SAXException {
 	    DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
 	    Document document = builder.parse("https://www.boardgamegeek.com/xmlapi2/thing?type=boardgame&stats=1&id=" + id);
-	    NodeList items = document.getElementsByTagName("item");
-
-	    return IntStream.range(0, items.getLength())
-			    .mapToObj(items::item)
+	    return XmlNode.nodes(document, "//item")
 			    .map(BoardGameBggXml::new)
 			    .map(PlayInfoResource::playInfo)
 			    .collect(Collectors.joining(System.lineSeparator()));
