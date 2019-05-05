@@ -58,7 +58,7 @@ public class PlayInfoResource {
 	}
 
     @GET
-    @Path("/xml/{id}")
+    @Path("/{id}")
     @Produces(MediaType.TEXT_PLAIN)
     public String infoByIds(@PathParam("id") String id) throws IOException, ParserConfigurationException, SAXException {
 	    DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();

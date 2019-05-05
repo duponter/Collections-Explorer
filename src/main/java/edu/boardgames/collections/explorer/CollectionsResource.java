@@ -16,6 +16,7 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.file.Files;
 import java.time.temporal.ChronoUnit;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.ws.rs.GET;
@@ -60,6 +61,7 @@ public class CollectionsResource {
 
 		HttpRequest request = HttpRequest.newBuilder()
 				.uri(new URI(String.format("https://www.boardgamegeek.com/xmlapi2/collection?username=%s&subtype=boardgame&own=1&showprivate=1", username)))
+//				.uri(new URI(String.format("https://www.boardgamegeek.com/xmlapi2/collection?username=%s&subtype=boardgame&excludesubtype=boardgameexpansion&own=1&showprivate=1", username)))
 				.version(Version.HTTP_2)
 				.GET()
 				.build();
@@ -86,5 +88,28 @@ public class CollectionsResource {
 
 		HttpResponse<Stream<String>> response = Failsafe.with(retryPolicy).get(() -> httpClient.send(request, BodyHandlers.ofLines()));
 		return response.body().collect(Collectors.joining());
+	}
+
+
+	@GET
+	@Path("/users")
+	@Produces(MediaType.TEXT_PLAIN)
+	public String infoByIds(@QueryParam("usernames") String usernames, @QueryParam("firstnames") String firstnames, @QueryParam("playercount]") Integer playercount, @QueryParam("maxtime") Integer maxtime) {
+		return "to implement";
+	}
+
+	private static Map<String, String> users() {
+		return Map.ofEntries(
+				Map.entry("Erwin", "duponter"),
+				Map.entry("Koen", "jarrebesetoert"),
+				Map.entry("Wouter", "WouterAerts"),
+				Map.entry("Bart", "bartie"),
+				Map.entry("Steffen", "de rode baron"),
+				Map.entry("Edouard", "Edou"),
+				Map.entry("Didier", "evildee"),
+				Map.entry("Mortsel", "ForumMortsel"),
+				Map.entry("Sven", "Svennos"),
+				Map.entry("Dirk", "TurtleR6")
+		);
 	}
 }
