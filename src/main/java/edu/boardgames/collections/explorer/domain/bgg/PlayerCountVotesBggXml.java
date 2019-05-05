@@ -1,20 +1,39 @@
 package edu.boardgames.collections.explorer.domain.bgg;
 
-public class PlayerCountVotesBggXml {
+import org.w3c.dom.Node;
+
+public class PlayerCountVotesBggXml extends XmlNode {
+	protected PlayerCountVotesBggXml(Node node) {
+		super(node);
+	}
 
 	public String value() {
-		return null;
+		return this.string("@numplayers");
 	}
 
-	public Integer bestVotes() {
-		return 0;
+	private Integer bestVotes() {
+		return this.number("result[@value='Best']/@numvotes").intValue();
 	}
 
-	public Integer recommendedVotes() {
-		return 0;
+	private Integer recommendedVotes() {
+		return this.number("result[@value='Recommended']/@numvotes").intValue();
 	}
 
-	public Integer notRecommendedVotes() {
-		return 0;
+	private Integer notRecommendedVotes() {
+		return this.number("result[@value='Not Recommended']/@numvotes").intValue();
+	}
+
+	public PlayerCountPoll poll() {
+		Integer best = this.bestVotes();
+		Integer recommended = this.recommendedVotes();
+		Integer notRecommended = this.notRecommendedVotes();
+
+		if (best >= recommended && best >= notRecommended) {
+			return PlayerCountPoll.BEST;
+		} else if (recommended >= notRecommended) {
+			return PlayerCountPoll.RECOMMENDED;
+		} else {
+			return PlayerCountPoll.NOT_RECOMMENDED;
+		}
 	}
 }

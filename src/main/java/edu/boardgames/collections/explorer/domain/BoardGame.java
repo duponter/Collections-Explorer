@@ -17,5 +17,5 @@ public interface BoardGame {
 
 	Range<String> playtime();
 
-	Double weight();
+	Double averageWeight();
 }

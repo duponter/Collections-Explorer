@@ -3,22 +3,15 @@ package edu.boardgames.collections.explorer.domain.bgg;
 import edu.boardgames.collections.explorer.domain.BoardGame;
 import edu.boardgames.collections.explorer.domain.Range;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
-import java.util.Objects;
+import java.util.List;
 import java.util.Optional;
-import javax.xml.namespace.QName;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
-public class BoardGameBggXml implements BoardGame {
-	private final Node node;
-	private final XPath xpath = XPathFactory.newInstance().newXPath();
-
+public class BoardGameBggXml extends XmlNode implements BoardGame {
 	public BoardGameBggXml(Node node) {
-		this.node = Objects.requireNonNull(node);
+		super(node);
 	}
 
 	@Override
@@ -43,14 +36,29 @@ public class BoardGameBggXml implements BoardGame {
 
 	@Override
 	public Optional<Range<Integer>> bestWithPlayerCount() {
-		return Optional.empty();
+		return playerCountAsRange(votes -> votes.poll() == PlayerCountPoll.BEST);
 	}
 
 	@Override
 	public Optional<Range<Integer>> recommendedWithPlayerCount() {
-		NodeList results = (NodeList) this.attributeValue("poll[@name='suggested_numplayers']/results", XPathConstants.NODESET);
-		System.out.printf("recommendedWithPlayerCount: %d%n", results.getLength());
-		return Optional.empty();
+		return playerCountAsRange(votes -> votes.poll() != PlayerCountPoll.NOT_RECOMMENDED);
+	}
+
+	private Optional<Range<Integer>> playerCountAsRange(Predicate<PlayerCountVotesBggXml> playerCountVotesBggXmlPredicate) {
+		List<String> playerCount = this.nodes("poll[@name='suggested_numplayers']/results")
+				.map(PlayerCountVotesBggXml::new)
+				.filter(playerCountVotesBggXmlPredicate)
+				.map(PlayerCountVotesBggXml::value)
+				.collect(Collectors.toList());
+
+		switch (playerCount.size()) {
+			case 0:
+				return Optional.empty();
+			case 1:
+				return Optional.of(Range.of(playerCount.get(0), playerCount.get(0)).map(Integer::parseInt));
+			default:
+				return Optional.of(Range.of(playerCount.get(0), playerCount.get(playerCount.size() - 1)).map(Integer::parseInt));
+		}
 	}
 
 	@Override
@@ -59,23 +67,7 @@ public class BoardGameBggXml implements BoardGame {
 	}
 
 	@Override
-	public Double weight() {
+	public Double averageWeight() {
 		return numericValueAttribute("statistics/ratings/averageweight").doubleValue();
-	}
-
-	private String stringValueAttribute(String attribute) {
-		return (String) this.attributeValue(String.format("%s/@value", attribute), XPathConstants.STRING);
-	}
-
-	private Number numericValueAttribute(String attribute) {
-		return (Number) this.attributeValue(String.format("%s/@value", attribute), XPathConstants.NUMBER);
-	}
-
-	private Object attributeValue(String expression, QName returnType) {
-		try {
-			return xpath.evaluate(expression, node, returnType);
-		} catch (XPathExpressionException e) {
-			throw new IllegalStateException(e);
-		}
 	}
 }
