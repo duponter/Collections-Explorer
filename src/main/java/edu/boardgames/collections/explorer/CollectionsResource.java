@@ -1,7 +1,12 @@
 package edu.boardgames.collections.explorer;
 
+import edu.boardgames.collections.explorer.domain.bgg.XmlNode;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
+import org.apache.commons.lang3.StringUtils;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.xml.sax.SAXException;
 
 import java.io.IOException;
 import java.net.CookieManager;
@@ -13,6 +18,7 @@ import java.net.http.HttpClient.Version;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.file.Files;
 import java.time.temporal.ChronoUnit;
@@ -25,6 +31,9 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 @Path("/collections")
 public class CollectionsResource {
@@ -40,8 +49,35 @@ public class CollectionsResource {
 	@Path("/xml/{username}")
 	@Produces(MediaType.TEXT_XML)
 	public String xml(@PathParam("username") String username, @QueryParam("password") String password) throws URISyntaxException, IOException, InterruptedException {
+		return this.fetchBggUserCollection(BodyHandlers.ofLines(), username, password).body().collect(Collectors.joining());
+	}
+
+	private <T> HttpResponse<T> fetchBggUserCollection(BodyHandler<T> bodyHandler, String username, String password) throws InterruptedException, IOException, URISyntaxException {
+		HttpClient httpClient = loginIntoBgg(username, password);
+
+		HttpRequest request = HttpRequest.newBuilder()
+				.uri(new URI(String.format("https://www.boardgamegeek.com/xmlapi2/collection?username=%s&subtype=boardgame&own=1&showprivate=1", username)))
+//				.uri(new URI(String.format("https://www.boardgamegeek.com/xmlapi2/collection?username=%s&subtype=boardgame&excludesubtype=boardgameexpansion&own=1&showprivate=1", username)))
+				.version(Version.HTTP_2)
+				.GET()
+				.build();
+
+		RetryPolicy<HttpResponse<T>> retryPolicy = new RetryPolicy<HttpResponse<T>>()
+				.abortIf(response -> response.statusCode() == 200)
+				.handleResultIf(response -> response.statusCode() == 202)
+				.withBackoff(1L, 100L, ChronoUnit.SECONDS)
+				.withMaxRetries(5);
+
+		return Failsafe.with(retryPolicy).get(() -> httpClient.send(request, bodyHandler));
+	}
+
+	private HttpClient loginIntoBgg(String username, String password) throws URISyntaxException, IOException, InterruptedException {
 		CookieManager cm = new CookieManager();
 		HttpClient httpClient = HttpClient.newBuilder().cookieHandler(cm).followRedirects(Redirect.NORMAL).build();
+
+		if (StringUtils.isEmpty(username) || StringUtils.isEmpty(password)) {
+			return httpClient;
+		}
 
 //		http://tutorials.jenkov.com/java-cryptography/cipher.html
 //		https://stackoverflow.com/a/43779197/1571325
@@ -58,44 +94,20 @@ public class CollectionsResource {
 		System.out.printf("Login ended with %s%n", loginResponse.statusCode());
 		System.out.printf("Got cookies:%n");
 		cm.getCookieStore().getCookies().forEach(System.out::println);
-
-		HttpRequest request = HttpRequest.newBuilder()
-				.uri(new URI(String.format("https://www.boardgamegeek.com/xmlapi2/collection?username=%s&subtype=boardgame&own=1&showprivate=1", username)))
-//				.uri(new URI(String.format("https://www.boardgamegeek.com/xmlapi2/collection?username=%s&subtype=boardgame&excludesubtype=boardgameexpansion&own=1&showprivate=1", username)))
-				.version(Version.HTTP_2)
-				.GET()
-				.build();
-
-		RetryPolicy<HttpResponse<Stream<String>>> retryPolicy = new RetryPolicy<HttpResponse<Stream<String>>>()
-				.abortIf(response -> {
-					System.out.printf("abortIf: %d%n", response.statusCode());
-					return response.statusCode() == 200;
-				})
-				.handleResultIf(response -> {
-					System.out.printf("handleResultIf: %d%n", response.statusCode());
-					return response.statusCode() == 202;
-				})
-				.onRetry(event -> System.out.printf("onRetry(%s)%n", event))
-				.onAbort(event -> System.out.printf("onAbort(%s)%n", event))
-				.onFailedAttempt(event -> System.out.printf("onFailedAttempt(%s)%n", event))
-				.onRetriesExceeded(event -> System.out.printf("onRetriesExceeded(%s)%n", event))
-				.onFailure(event -> System.out.printf("onFailure(%s)%n", event))
-				.onSuccess(event -> System.out.printf("onSuccess(%s)%n", event))
-				.withBackoff(1L, 100L, ChronoUnit.SECONDS)
-				.withMaxRetries(5);
-
-		System.out.printf("Allows Retries: %s%n", retryPolicy.allowsRetries());
-
-		HttpResponse<Stream<String>> response = Failsafe.with(retryPolicy).get(() -> httpClient.send(request, BodyHandlers.ofLines()));
-		return response.body().collect(Collectors.joining());
+		return httpClient;
 	}
-
 
 	@GET
 	@Path("/users")
 	@Produces(MediaType.TEXT_PLAIN)
-	public String infoByIds(@QueryParam("usernames") String usernames, @QueryParam("firstnames") String firstnames, @QueryParam("playercount]") Integer playercount, @QueryParam("maxtime") Integer maxtime) {
-		return "to implement";
+	public String infoByIds(@QueryParam("usernames") String usernames, @QueryParam("firstnames") String firstnames, @QueryParam("playercount]") Integer playercount, @QueryParam("maxtime") Integer maxtime) throws ParserConfigurationException, InterruptedException, IOException, URISyntaxException, SAXException {
+//		https://www.callicoder.com/java-8-completablefuture-tutorial/
+//		http://tabulator.info/
+		DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+		Document document = builder.parse(this.fetchBggUserCollection(BodyHandlers.ofInputStream(), usernames, null).body());
+		Stream<Node> nodes = XmlNode.nodes(document, "//item");
+
+		return "to implement via 1. CompletableFuture.allOf() and render via http://tabulator.info/";
 	}
 
 	private static Map<String, String> users() {
