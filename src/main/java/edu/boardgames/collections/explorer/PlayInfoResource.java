@@ -39,9 +39,9 @@ public class PlayInfoResource {
 	@GET
 	@Path("/formatted/{id}")
 	@Produces(MediaType.TEXT_XML)
-	public String xml(@PathParam("id") String id) throws URISyntaxException, IOException, InterruptedException {
+	public String xml(@PathParam("id") String id) throws IOException, InterruptedException {
 		HttpRequest request = HttpRequest.newBuilder()
-				.uri(new URI("https://www.boardgamegeek.com/xmlapi2/thing?type=boardgame&stats=1&id=" + id))
+				.uri(URI.create("https://www.boardgamegeek.com/xmlapi2/thing?type=boardgame&stats=1&id=" + id))
 				.version(HttpClient.Version.HTTP_2)
 				.GET()
 				.build();

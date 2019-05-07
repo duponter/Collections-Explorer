@@ -22,22 +22,24 @@ import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.file.Files;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
-import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 @Path("/collections")
 public class CollectionsResource {
-
+//https://google.github.io/flogger/best_practice
 	@GET
 	@Path("/xsl")
 	@Produces(MediaType.TEXT_XML)
@@ -48,16 +50,16 @@ public class CollectionsResource {
 	@GET
 	@Path("/xml/{username}")
 	@Produces(MediaType.TEXT_XML)
-	public String xml(@PathParam("username") String username, @QueryParam("password") String password) throws URISyntaxException, IOException, InterruptedException {
+	public String xml(@PathParam("username") String username, @QueryParam("password") String password) {
 		return this.fetchBggUserCollection(BodyHandlers.ofLines(), username, password).body().collect(Collectors.joining());
 	}
 
-	private <T> HttpResponse<T> fetchBggUserCollection(BodyHandler<T> bodyHandler, String username, String password) throws InterruptedException, IOException, URISyntaxException {
+	private <T> HttpResponse<T> fetchBggUserCollection(BodyHandler<T> bodyHandler, String username, String password) {
 		HttpClient httpClient = loginIntoBgg(username, password);
 
 		HttpRequest request = HttpRequest.newBuilder()
-				.uri(new URI(String.format("https://www.boardgamegeek.com/xmlapi2/collection?username=%s&subtype=boardgame&own=1&showprivate=1", username)))
-//				.uri(new URI(String.format("https://www.boardgamegeek.com/xmlapi2/collection?username=%s&subtype=boardgame&excludesubtype=boardgameexpansion&own=1&showprivate=1", username)))
+//				.uri(URI.create(String.format("https://www.boardgamegeek.com/xmlapi2/collection?username=%s&subtype=boardgame&own=1&showprivate=1", username)))
+				.uri(URI.create(String.format("https://www.boardgamegeek.com/xmlapi2/collection?username=%s&subtype=boardgame&excludesubtype=boardgameexpansion&own=1&showprivate=1", username)))
 				.version(Version.HTTP_2)
 				.GET()
 				.build();
@@ -71,7 +73,7 @@ public class CollectionsResource {
 		return Failsafe.with(retryPolicy).get(() -> httpClient.send(request, bodyHandler));
 	}
 
-	private HttpClient loginIntoBgg(String username, String password) throws URISyntaxException, IOException, InterruptedException {
+	private HttpClient loginIntoBgg(String username, String password) {
 		CookieManager cm = new CookieManager();
 		HttpClient httpClient = HttpClient.newBuilder().cookieHandler(cm).followRedirects(Redirect.NORMAL).build();
 
@@ -84,13 +86,13 @@ public class CollectionsResource {
 //		https://stackoverflow.com/a/18228702/1571325
 
 		HttpRequest login = HttpRequest.newBuilder()
-				.uri(new URI("http://boardgamegeek.com/login"))
+				.uri(URI.create("http://boardgamegeek.com/login"))
 				.version(Version.HTTP_2)
 				.POST(BodyPublishers.ofString(String.format("username=%s&password=%s", username, password)))
 				.header("Content-Type", "application/x-www-form-urlencoded")
 				.build();
 
-		HttpResponse<String> loginResponse = httpClient.send(login, BodyHandlers.ofString());
+		HttpResponse<String> loginResponse = Failsafe.with().get(() -> httpClient.send(login, BodyHandlers.ofString()));
 		System.out.printf("Login ended with %s%n", loginResponse.statusCode());
 		System.out.printf("Got cookies:%n");
 		cm.getCookieStore().getCookies().forEach(System.out::println);
@@ -100,14 +102,27 @@ public class CollectionsResource {
 	@GET
 	@Path("/users")
 	@Produces(MediaType.TEXT_PLAIN)
-	public String infoByIds(@QueryParam("usernames") String usernames, @QueryParam("firstnames") String firstnames, @QueryParam("playercount]") Integer playercount, @QueryParam("maxtime") Integer maxtime) throws ParserConfigurationException, InterruptedException, IOException, URISyntaxException, SAXException {
+	public String infoByIds(@QueryParam("usernames") String usernames, @QueryParam("firstnames") String firstnames, @QueryParam("playercount]") Integer playercount, @QueryParam("maxtime") Integer maxtime) throws ExecutionException, InterruptedException {
 //		https://www.callicoder.com/java-8-completablefuture-tutorial/
 //		http://tabulator.info/
-		DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-		Document document = builder.parse(this.fetchBggUserCollection(BodyHandlers.ofInputStream(), usernames, null).body());
-		Stream<Node> nodes = XmlNode.nodes(document, "//item");
+		List<CompletableFuture<Document>> documentFutures = Arrays.stream(StringUtils.split(usernames, ","))
+				.map(username -> CompletableFuture.supplyAsync(() -> this.fetchBggUserCollection(BodyHandlers.ofInputStream(), username, null).body()))
+				.map(inputstreamFuture -> inputstreamFuture.thenApply(inputStream -> {
+					try {
+						return DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(inputStream);
+					} catch (ParserConfigurationException | SAXException | IOException e) {
+						throw new IllegalArgumentException(e);
+					}
+				}))
+				.collect(Collectors.toList());
 
-		return "to implement via 1. CompletableFuture.allOf() and render via http://tabulator.info/";
+		CompletableFuture<Void> allFutures = CompletableFuture.allOf(documentFutures.toArray(new CompletableFuture[0]));
+		CompletableFuture<List<String>> allCollectionsFuture = allFutures.thenApply(v -> documentFutures.stream()
+				.map(CompletableFuture::join)
+				.map(document -> XmlNode.nodes(document, "//item/@objectid").map(Node::getNodeValue).collect(Collectors.joining(",")))
+				.collect(Collectors.toList()));
+
+		return "to implement via 1. CompletableFuture.allOf() and render via http://tabulator.info/\nids:\n"+ StringUtils.join(allCollectionsFuture.get(), "\n");
 	}
 
 	private static Map<String, String> users() {
