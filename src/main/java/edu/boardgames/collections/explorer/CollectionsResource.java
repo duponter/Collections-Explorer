@@ -1,6 +1,6 @@
 package edu.boardgames.collections.explorer;
 
-import edu.boardgames.collections.explorer.domain.bgg.XmlNode;
+import edu.boardgames.collections.explorer.infrastructure.bgg.XmlNode;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 import org.apache.commons.lang3.StringUtils;

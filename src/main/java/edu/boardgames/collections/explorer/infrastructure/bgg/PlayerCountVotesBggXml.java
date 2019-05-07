@@ -1,4 +1,4 @@
-package edu.boardgames.collections.explorer.domain.bgg;
+package edu.boardgames.collections.explorer.infrastructure.bgg;
 
 import org.w3c.dom.Node;
 

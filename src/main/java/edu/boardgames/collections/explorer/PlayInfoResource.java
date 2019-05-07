@@ -2,8 +2,8 @@ package edu.boardgames.collections.explorer;
 
 import edu.boardgames.collections.explorer.domain.BoardGame;
 import edu.boardgames.collections.explorer.domain.Range;
-import edu.boardgames.collections.explorer.domain.bgg.BoardGameBggXml;
-import edu.boardgames.collections.explorer.domain.bgg.XmlNode;
+import edu.boardgames.collections.explorer.infrastructure.bgg.BoardGameBggXml;
+import edu.boardgames.collections.explorer.infrastructure.bgg.XmlNode;
 import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
