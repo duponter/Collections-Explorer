@@ -1,12 +1,11 @@
 package edu.boardgames.collections.explorer;
 
-import edu.boardgames.collections.explorer.infrastructure.bgg.XmlNode;
+import edu.boardgames.collections.explorer.infrastructure.xml.XmlInput;
+import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 import org.apache.commons.lang3.StringUtils;
-import org.w3c.dom.Document;
 import org.w3c.dom.Node;
-import org.xml.sax.SAXException;
 
 import java.io.IOException;
 import java.net.CookieManager;
@@ -34,8 +33,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 
 @Path("/collections")
 public class CollectionsResource {
@@ -105,15 +102,9 @@ public class CollectionsResource {
 	public String infoByIds(@QueryParam("usernames") String usernames, @QueryParam("firstnames") String firstnames, @QueryParam("playercount]") Integer playercount, @QueryParam("maxtime") Integer maxtime) throws ExecutionException, InterruptedException {
 //		https://www.callicoder.com/java-8-completablefuture-tutorial/
 //		http://tabulator.info/
-		List<CompletableFuture<Document>> documentFutures = Arrays.stream(StringUtils.split(usernames, ","))
+		List<CompletableFuture<Node>> documentFutures = Arrays.stream(StringUtils.split(usernames, ","))
 				.map(username -> CompletableFuture.supplyAsync(() -> this.fetchBggUserCollection(BodyHandlers.ofInputStream(), username, null).body()))
-				.map(inputstreamFuture -> inputstreamFuture.thenApply(inputStream -> {
-					try {
-						return DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(inputStream);
-					} catch (ParserConfigurationException | SAXException | IOException e) {
-						throw new IllegalArgumentException(e);
-					}
-				}))
+				.map(inputstreamFuture -> inputstreamFuture.thenApply(new XmlInput()::read))
 				.collect(Collectors.toList());
 
 		CompletableFuture<Void> allFutures = CompletableFuture.allOf(documentFutures.toArray(new CompletableFuture[0]));

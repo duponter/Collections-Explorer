@@ -3,10 +3,9 @@ package edu.boardgames.collections.explorer;
 import edu.boardgames.collections.explorer.domain.BoardGame;
 import edu.boardgames.collections.explorer.domain.Range;
 import edu.boardgames.collections.explorer.infrastructure.bgg.BoardGameBggXml;
-import edu.boardgames.collections.explorer.infrastructure.bgg.XmlNode;
+import edu.boardgames.collections.explorer.infrastructure.xml.XmlInput;
+import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
 import org.apache.commons.lang3.StringUtils;
-import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
 
 import java.io.IOException;
 import java.net.URI;
@@ -22,9 +21,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 
 @Path("/playinfo")
 public class PlayInfoResource {
@@ -60,10 +56,8 @@ public class PlayInfoResource {
     @GET
     @Path("/{id}")
     @Produces(MediaType.TEXT_PLAIN)
-    public String infoByIds(@PathParam("id") String id) throws IOException, ParserConfigurationException, SAXException {
-	    DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-	    Document document = builder.parse("https://www.boardgamegeek.com/xmlapi2/thing?type=boardgame&stats=1&id=" + id);
-	    return XmlNode.nodes(document, "//item")
+    public String infoByIds(@PathParam("id") String id) {
+	    return XmlNode.nodes(new XmlInput().read(URI.create("https://www.boardgamegeek.com/xmlapi2/thing?type=boardgame&stats=1&id=" + id)), "//item")
 			    .map(BoardGameBggXml::new)
 			    .map(PlayInfoResource::playInfo)
 			    .collect(Collectors.joining(System.lineSeparator()));

@@ -1,4 +1,4 @@
-package edu.boardgames.collections.explorer.infrastructure.bgg;
+package edu.boardgames.collections.explorer.infrastructure.xml;
 
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -13,8 +13,8 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 public abstract class XmlNode {
-	private final Node node;
 	private final XPath xpath = XPathFactory.newInstance().newXPath();
+	private final Node node;
 
 	public static Stream<Node> nodes(Node root, String expression) {
 		XmlNode rootNode = new XmlNode(root) {

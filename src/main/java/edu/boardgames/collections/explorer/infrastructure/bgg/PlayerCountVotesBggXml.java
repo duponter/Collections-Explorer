@@ -1,5 +1,6 @@
 package edu.boardgames.collections.explorer.infrastructure.bgg;
 
+import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
 import org.w3c.dom.Node;
 
 public class PlayerCountVotesBggXml extends XmlNode {

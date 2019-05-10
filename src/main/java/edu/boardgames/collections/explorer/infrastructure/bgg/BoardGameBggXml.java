@@ -2,6 +2,7 @@ package edu.boardgames.collections.explorer.infrastructure.bgg;
 
 import edu.boardgames.collections.explorer.domain.BoardGame;
 import edu.boardgames.collections.explorer.domain.Range;
+import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
 import org.w3c.dom.Node;
 
 import java.util.List;
