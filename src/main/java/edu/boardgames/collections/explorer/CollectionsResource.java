@@ -1,20 +1,25 @@
 package edu.boardgames.collections.explorer;
 
+import edu.boardgames.collections.explorer.infrastructure.Async;
 import edu.boardgames.collections.explorer.infrastructure.bgg.CollectionRequest;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlInput;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.w3c.dom.Node;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -24,7 +29,7 @@ import javax.ws.rs.core.MediaType;
 
 @Path("/collections")
 public class CollectionsResource {
-//https://google.github.io/flogger/best_practice
+	//https://google.github.io/flogger/best_practice
 	@GET
 	@Path("/xsl")
 	@Produces(MediaType.TEXT_XML)
@@ -45,18 +50,21 @@ public class CollectionsResource {
 	public String infoByIds(@QueryParam("usernames") String usernames, @QueryParam("firstnames") String firstnames, @QueryParam("playercount]") Integer playercount, @QueryParam("maxtime") Integer maxtime) throws ExecutionException, InterruptedException {
 //		https://www.callicoder.com/java-8-completablefuture-tutorial/
 //		http://tabulator.info/
-		List<CompletableFuture<Node>> documentFutures = Arrays.stream(StringUtils.split(usernames, ","))
-				.map(username -> CompletableFuture.supplyAsync(() -> new CollectionRequest(username).owned().withoutExpansions().asInputStream()))
-				.map(inputstreamFuture -> inputstreamFuture.thenApply(new XmlInput()::read))
-				.collect(Collectors.toList());
 
-		CompletableFuture<Void> allFutures = CompletableFuture.allOf(documentFutures.toArray(new CompletableFuture[0]));
-		CompletableFuture<List<String>> allCollectionsFuture = allFutures.thenApply(v -> documentFutures.stream()
-				.map(CompletableFuture::join)
-				.map(document -> XmlNode.nodes(document, "//item/name[@sortindex='1']/text()").map(Node::getNodeValue).collect(Collectors.joining(",")))
-				.collect(Collectors.toList()));
+		Function<String, Pair<String, String>> toPair = username -> Pair.of(username, username);
+		Function<String, InputStream> mapper = username -> new CollectionRequest(username).owned().withoutExpansions().asInputStream();
+		Function<String, Stream<String>> nameStringExtractor = mapper.andThen(new XmlInput()::read)
+				.andThen(document -> XmlNode.nodes(document, "//item/name[@sortindex='1']/text()").map(Node::getNodeValue));
 
-		return "to implement via 1. CompletableFuture.allOf() and render via http://tabulator.info/\nids:\n"+ StringUtils.join(allCollectionsFuture.get(), "\n");
+		Set<String> collectedNames = Async.map(Arrays.stream(StringUtils.split(usernames, ",")), toPair.andThen(pair -> mapRight(pair, nameStringExtractor)))
+				.flatMap(pair -> pair.getRight().map(game -> String.format("%s (%s)", game, pair.getLeft())))
+				.collect(Collectors.toCollection(TreeSet::new));
+
+		return "to implement via 1. CompletableFuture.allOf() and render via http://tabulator.info/\nids:\n" + StringUtils.join(collectedNames, "\n");
+	}
+
+	private static <T, U, R> Pair<T, R> mapRight(Pair<T, U> pair, Function<U, R> mapper) {
+		return Pair.of(pair.getLeft(), mapper.apply(pair.getRight()));
 	}
 
 	private static Map<String, String> users() {
