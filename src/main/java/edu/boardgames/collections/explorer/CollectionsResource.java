@@ -1,12 +1,12 @@
 package edu.boardgames.collections.explorer;
 
 import edu.boardgames.collections.explorer.infrastructure.Async;
+import edu.boardgames.collections.explorer.infrastructure.bgg.CollectionBoardGameBggXml;
 import edu.boardgames.collections.explorer.infrastructure.bgg.CollectionRequest;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlInput;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.w3c.dom.Node;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -52,9 +52,9 @@ public class CollectionsResource {
 //		http://tabulator.info/
 
 		Function<String, Pair<String, String>> toPair = username -> Pair.of(username, username);
-		Function<String, InputStream> mapper = username -> new CollectionRequest(username).owned().withoutExpansions().asInputStream();
+		Function<String, InputStream> mapper = username -> new CollectionRequest(username).owned().withStats().withoutExpansions().asInputStream();
 		Function<String, Stream<String>> nameStringExtractor = mapper.andThen(new XmlInput()::read)
-				.andThen(document -> XmlNode.nodes(document, "//item/name[@sortindex='1']/text()").map(Node::getNodeValue));
+				.andThen(document -> XmlNode.nodes(document, "//item").map(CollectionBoardGameBggXml::new).map(PlayInfoResource::playInfo));
 
 		Set<String> collectedNames = Async.map(Arrays.stream(StringUtils.split(usernames, ",")), toPair.andThen(pair -> mapRight(pair, nameStringExtractor)))
 				.flatMap(pair -> pair.getRight().map(game -> String.format("%s (%s)", game, pair.getLeft())))

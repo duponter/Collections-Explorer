@@ -63,7 +63,7 @@ public class PlayInfoResource {
 			    .collect(Collectors.joining(System.lineSeparator()));
     }
 
-	private static String playInfo(BoardGame boardGame) {
+	static String playInfo(BoardGame boardGame) {
 		Range<Integer> communityPlayerCount = boardGame.bestWithPlayerCount()
 				.or(boardGame::recommendedWithPlayerCount)
 				.orElse(boardGame.playerCount().map(Integer::parseInt));
