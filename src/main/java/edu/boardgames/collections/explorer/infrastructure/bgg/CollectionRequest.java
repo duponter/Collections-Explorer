@@ -6,12 +6,14 @@ import org.apache.commons.lang3.BooleanUtils;
 
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Version;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.nio.charset.Charset;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
@@ -56,7 +58,7 @@ public class CollectionRequest {
 	}
 
 	private CollectionRequest addOption(String name, String value) {
-		this.options.put(name, value);
+		this.options.put(name, URLEncoder.encode(value, Charset.defaultCharset()));
 		return this;
 	}
 
