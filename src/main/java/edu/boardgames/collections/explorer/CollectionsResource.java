@@ -5,8 +5,10 @@ import edu.boardgames.collections.explorer.infrastructure.bgg.CollectionBoardGam
 import edu.boardgames.collections.explorer.infrastructure.bgg.CollectionRequest;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlInput;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
+import io.reactivex.Flowable;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.reactivestreams.Publisher;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,6 +44,24 @@ public class CollectionsResource {
 	@Produces(MediaType.TEXT_XML)
 	public String xml(@PathParam("username") String username, @QueryParam("password") String password) {
 		return new CollectionRequest(username, password).owned().asLines().collect(Collectors.joining());
+	}
+
+	@GET
+	@Path("/stream")
+	@Produces(MediaType.SERVER_SENT_EVENTS)
+	public Publisher<String> publishers() {
+		Function<String, Pair<String, String>> toPair = username -> Pair.of(username, username);
+		Function<String, InputStream> mapper = username -> new CollectionRequest(username).owned().withStats().withoutExpansions().asInputStream();
+		Function<String, Stream<String>> nameStringExtractor = mapper.andThen(new XmlInput()::read)
+				.andThen(document -> XmlNode.nodes(document, "//item").map(CollectionBoardGameBggXml::new).map(BoardGameRender::playInfo));
+
+//		List<Flowable<Pair<String, Stream<String>>>> flowables = Async.mapToFutures(users().values().stream(), toPair.andThen(pair -> mapRight(pair, nameStringExtractor))).stream().map(Flowable::fromFuture).collect(Collectors.toList());
+//		return Flowable
+//				.concat(flowables)
+//				.flatMap(pair -> Flowable.fromIterable(pair.getRight().map(game -> String.format("%s (%s)", game, pair.getLeft())).collect(Collectors.toList())));
+		return Flowable.fromIterable(users().values())
+				.map(username -> toPair.andThen(pair -> mapRight(pair, nameStringExtractor)).apply(username))
+				.flatMap(pair -> Flowable.fromIterable(pair.getRight().map(game -> String.format("%s (%s)", game, pair.getLeft())).collect(Collectors.toList())));
 	}
 
 	@GET
