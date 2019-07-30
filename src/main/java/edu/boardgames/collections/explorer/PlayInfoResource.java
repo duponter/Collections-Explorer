@@ -1,7 +1,5 @@
 package edu.boardgames.collections.explorer;
 
-import edu.boardgames.collections.explorer.domain.BoardGame;
-import edu.boardgames.collections.explorer.domain.Range;
 import edu.boardgames.collections.explorer.infrastructure.bgg.BoardGameBggXml;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlInput;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
@@ -59,15 +57,7 @@ public class PlayInfoResource {
     public String infoByIds(@PathParam("id") String id) {
 	    return XmlNode.nodes(new XmlInput().read(URI.create("https://www.boardgamegeek.com/xmlapi2/thing?type=boardgame&stats=1&id=" + id)), "//item")
 			    .map(BoardGameBggXml::new)
-			    .map(PlayInfoResource::playInfo)
+			    .map(BoardGameRender::playInfo)
 			    .collect(Collectors.joining(System.lineSeparator()));
     }
-
-	static String playInfo(BoardGame boardGame) {
-		Range<Integer> communityPlayerCount = boardGame.bestWithPlayerCount()
-				.or(boardGame::recommendedWithPlayerCount)
-				.orElse(boardGame.playerCount().map(Integer::parseInt));
-
-		return String.format("%s (%s) - %s>%sp - %s Min - %2.1f / 10 - %1.2f / 5", boardGame.name(), boardGame.year(), boardGame.playerCount().formatted(), communityPlayerCount.formatted(), boardGame.playtime().formatted(), boardGame.bggScore(), boardGame.averageWeight());
-	}
 }
