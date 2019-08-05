@@ -9,6 +9,8 @@ import io.reactivex.Flowable;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.reactivestreams.Publisher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,6 +32,16 @@ import javax.ws.rs.core.MediaType;
 
 @Path("/collections")
 public class CollectionsResource {
+	private static final Logger LOGGER = LoggerFactory.getLogger(CollectionsResource.class);
+
+	@GET
+	@Path("/{geekbuddy}/wanttoplay")
+	@Produces(MediaType.TEXT_PLAIN)
+	public String infoByIds(@PathParam("geekbuddy") String geekbuddy, @QueryParam("bestWith") Integer bestWithFilter) {
+		LOGGER.info("Search collections of all geekbuddies for best with {} want-to-play games of {}", bestWithFilter, geekbuddy);
+		return String.format("Search collections of all geekbuddies for best with %d want-to-play games of %s", bestWithFilter, geekbuddy);
+	}
+
 	//https://google.github.io/flogger/best_practice
 	@GET
 	@Path("/xsl")
