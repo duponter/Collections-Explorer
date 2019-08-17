@@ -47,7 +47,7 @@ public abstract class XmlNode {
 		return IntStream.range(0, nodeList.getLength()).mapToObj(nodeList::item);
 	}
 
-	protected Object data(String expression, QName returnType) {
+	private Object data(String expression, QName returnType) {
 		try {
 			return xpath.evaluate(expression, node, returnType);
 		} catch (XPathExpressionException e) {
