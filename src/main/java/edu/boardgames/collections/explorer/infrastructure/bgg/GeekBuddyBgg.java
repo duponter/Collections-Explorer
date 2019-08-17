@@ -1,9 +1,15 @@
 package edu.boardgames.collections.explorer.infrastructure.bgg;
 
+import edu.boardgames.collections.explorer.domain.BoardGame;
 import edu.boardgames.collections.explorer.domain.GeekBuddy;
+import edu.boardgames.collections.explorer.infrastructure.xml.XmlInput;
+import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
 
+import java.io.InputStream;
+import java.util.List;
 import java.util.Objects;
 import java.util.StringJoiner;
+import java.util.stream.Collectors;
 
 public class GeekBuddyBgg implements GeekBuddy {
 	private final String username;
@@ -22,6 +28,22 @@ public class GeekBuddyBgg implements GeekBuddy {
 	@Override
 	public String name() {
 		return name;
+	}
+
+	@Override
+	public List<BoardGame> ownedCollection() {
+		return this.fromInputStream(new CollectionRequest(username).owned().withStats().withoutExpansions().asInputStream());
+	}
+
+	@Override
+	public List<BoardGame> wantToPlayCollection() {
+		return this.fromInputStream(new CollectionRequest(username).wantToPlay().withStats().withoutExpansions().asInputStream());
+	}
+
+	private List<BoardGame> fromInputStream(InputStream inputStream) {
+		return XmlNode.nodes(new XmlInput().read(inputStream), "//item")
+				.map(CollectionBoardGameBggXml::new)
+				.collect(Collectors.toList());
 	}
 
 	@Override

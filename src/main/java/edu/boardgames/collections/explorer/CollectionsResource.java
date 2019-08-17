@@ -39,9 +39,13 @@ public class CollectionsResource {
 	@GET
 	@Path("/{geekbuddy}/wanttoplay")
 	@Produces(MediaType.TEXT_PLAIN)
-	public String infoByIds(@PathParam("geekbuddy") String geekbuddy, @QueryParam("bestWith") Integer bestWithFilter) {
+	public String wantToPlay(@PathParam("geekbuddy") String geekbuddy, @QueryParam("bestWith") Integer bestWithFilter) {
 		LOGGER.info("Search collections of all geekbuddies for best with {} want-to-play games of {}", bestWithFilter, geekbuddy);
-		return String.format("Search collections of all geekbuddies for best with %d want-to-play games of %s", bestWithFilter, geekbuddy);
+		String wantToPlay = geekBuddies().withUsername(geekbuddy).stream()
+				.flatMap(buddy -> buddy.wantToPlayCollection().stream())
+				.map(BoardGameRender::playInfo)
+				.collect(Collectors.joining("\n"));
+		return String.format("Search collections of all geekbuddies for best with %d want-to-play games of %s%n%n%s", bestWithFilter, geekbuddy, wantToPlay);
 	}
 
 	//https://google.github.io/flogger/best_practice
