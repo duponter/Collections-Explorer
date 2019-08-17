@@ -1,8 +1,11 @@
 package edu.boardgames.collections.explorer;
 
+import edu.boardgames.collections.explorer.domain.GeekBuddies;
+import edu.boardgames.collections.explorer.domain.GeekBuddy;
 import edu.boardgames.collections.explorer.infrastructure.Async;
 import edu.boardgames.collections.explorer.infrastructure.bgg.CollectionBoardGameBggXml;
 import edu.boardgames.collections.explorer.infrastructure.bgg.CollectionRequest;
+import edu.boardgames.collections.explorer.infrastructure.bgg.GeekBuddiesBggInMemory;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlInput;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
 import io.reactivex.Flowable;
@@ -17,7 +20,6 @@ import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Function;
@@ -70,7 +72,8 @@ public class CollectionsResource {
 //		return Flowable
 //				.concat(flowables)
 //				.flatMap(pair -> Flowable.fromIterable(pair.getRight().map(game -> String.format("%s (%s)", game, pair.getLeft())).collect(Collectors.toList())));
-		return Flowable.fromIterable(users().values())
+		return Flowable.fromIterable(geekBuddies().all())
+				.map(GeekBuddy::username)
 				.map(username -> toPair.andThen(pair -> mapRight(pair, nameStringExtractor)).apply(username))
 				.flatMap(pair -> Flowable.fromIterable(pair.getRight().map(game -> String.format("%s (%s)", game, pair.getLeft())).collect(Collectors.toList())));
 	}
@@ -98,18 +101,7 @@ public class CollectionsResource {
 		return Pair.of(pair.getLeft(), mapper.apply(pair.getRight()));
 	}
 
-	private static Map<String, String> users() {
-		return Map.ofEntries(
-				Map.entry("Erwin", "duponter"),
-				Map.entry("Koen", "jarrebesetoert"),
-				Map.entry("Wouter", "WouterAerts"),
-				Map.entry("Bart", "bartie"),
-				Map.entry("Steffen", "de rode baron"),
-				Map.entry("Edouard", "Edou"),
-				Map.entry("Didier", "evildee"),
-				Map.entry("Mortsel", "ForumMortsel"),
-				Map.entry("Sven", "Svennos"),
-				Map.entry("Dirk", "TurtleR6")
-		);
+	private GeekBuddies geekBuddies() {
+		return new GeekBuddiesBggInMemory();
 	}
 }
