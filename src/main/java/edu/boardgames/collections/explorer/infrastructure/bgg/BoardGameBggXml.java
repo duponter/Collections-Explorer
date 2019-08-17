@@ -16,6 +16,11 @@ public class BoardGameBggXml extends XmlNode implements BoardGame {
 	}
 
 	@Override
+	public String id() {
+		return string("@id");
+	}
+
+	@Override
 	public String name() {
 		return stringValueAttribute("name[@type='primary']");
 	}

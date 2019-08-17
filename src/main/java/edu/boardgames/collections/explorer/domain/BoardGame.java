@@ -3,6 +3,8 @@ package edu.boardgames.collections.explorer.domain;
 import java.util.Optional;
 
 public interface BoardGame {
+	String id();
+
 	String name();
 
 	String year();

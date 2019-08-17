@@ -14,6 +14,11 @@ public class CollectionBoardGameBggXml extends XmlNode implements BoardGame {
 	}
 
 	@Override
+	public String id() {
+		return string("@objectid");
+	}
+
+	@Override
 	public String name() {
 		return string("name[@sortindex]");
 	}
@@ -58,12 +63,11 @@ public class CollectionBoardGameBggXml extends XmlNode implements BoardGame {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 		CollectionBoardGameBggXml that = (CollectionBoardGameBggXml) o;
-		return name().equals(that.name()) &&
-				year().equals(that.year());
+		return id().equals(that.id());
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(name(), year());
+		return Objects.hash(id());
 	}
 }

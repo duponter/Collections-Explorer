@@ -48,7 +48,16 @@ public class ShelvesResource {
 	@Produces(MediaType.TEXT_PLAIN)
 	public String lookup(@PathParam("bgId") String boardGameId) {
 		LOGGER.info("Search collections of all geekbuddies for game {}", boardGameId);
-		return String.format("Search collections of all geekbuddies for game %s", boardGameId);
+		Function<GeekBuddy, List<Copy>> owned = geekBuddy -> Copy.from(geekBuddy, geekBuddy.ownedCollection());
+		String copies = Async.map(geekBuddies().all().stream(), owned)
+				.flatMap(List::stream)
+				.filter(copy -> StringUtils.equals(copy.boardGame().id(), boardGameId))
+				.collect(Collectors.groupingBy(Copy::boardGame, Collectors.mapping(Copy::owner, Collectors.mapping(GeekBuddy::name, Collectors.joining(", ")))))
+				.entrySet().stream()
+				.map(entry -> String.format("%s (%s) owned by %s", entry.getKey().name(), entry.getKey().year(), entry.getValue()))
+				.sorted()
+				.collect(Collectors.joining("\n"));
+		return String.format("Search collections of all geekbuddies for game %s%n%n%s", boardGameId, copies);
 	}
 
 	private GeekBuddies geekBuddies() {

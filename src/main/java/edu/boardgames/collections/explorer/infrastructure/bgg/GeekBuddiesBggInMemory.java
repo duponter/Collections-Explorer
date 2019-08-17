@@ -11,16 +11,19 @@ public class GeekBuddiesBggInMemory implements GeekBuddies {
 	@Override
 	public List<GeekBuddy> all() {
 		return List.of(
-				new GeekBuddyBgg("duponter", "Erwin"),
-				new GeekBuddyBgg("jarrebesetoert", "Koen"),
-				new GeekBuddyBgg("WouterAerts", "Wouter"),
-				new GeekBuddyBgg("bartie", "Bart"),
-				new GeekBuddyBgg("de rode baron", "Steffen"),
-				new GeekBuddyBgg("Edou", "Edouard"),
-				new GeekBuddyBgg("evildee", "Didier"),
-				new GeekBuddyBgg("ForumMortsel", "Mortsel"),
-				new GeekBuddyBgg("Svennos", "Sven"),
-				new GeekBuddyBgg("TurtleR6", "Dirk")
+				new GeekBuddyBgg("duponter", "Erwin Dupont"),
+				new GeekBuddyBgg("jarrebesetoert", "Koen Lostrie"),
+				new GeekBuddyBgg("WouterAerts", "Wouter Aerts"),
+				new GeekBuddyBgg("bartie", "Bart De Vré"),
+				new GeekBuddyBgg("de rode baron", "Steffen Wendelen"),
+				new GeekBuddyBgg("Edou", "Edouard Van Belle"),
+				new GeekBuddyBgg("evildee", "Didier De Breuck"),
+				new GeekBuddyBgg("ForumMortsel", "FORUM Mortsel"),
+				new GeekBuddyBgg("Svennos", "Sven Talboom"),
+				new GeekBuddyBgg("TurtleR6", "Dirk Frederickx"),
+				new GeekBuddyBgg("engelwi", "Wim Engels"),
+				new GeekBuddyBgg("wallofshame", "Johan Drubbel"),
+				new GeekBuddyBgg("leys", "Pieter Leys")
 		);
 	}
 
