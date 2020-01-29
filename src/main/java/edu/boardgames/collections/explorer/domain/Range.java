@@ -1,5 +1,7 @@
 package edu.boardgames.collections.explorer.domain;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -12,7 +14,7 @@ public class Range<T> {
 			return new Range<>(lowerBound, upperBound) {
 				@Override
 				public String formatted() {
-					return lowerBound.toString();
+					return StringUtils.defaultIfEmpty(lowerBound.toString(), "0");
 				}
 			};
 		} else {
