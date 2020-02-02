@@ -1,5 +1,6 @@
 package edu.boardgames.collections.explorer;
 
+import edu.boardgames.collections.explorer.domain.BoardGame;
 import edu.boardgames.collections.explorer.domain.Copy;
 import edu.boardgames.collections.explorer.domain.GeekBuddies;
 import edu.boardgames.collections.explorer.domain.GeekBuddy;
@@ -12,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.ws.rs.GET;
@@ -32,10 +34,7 @@ public class ShelvesResource {
 		String[] usernames = StringUtils.split(geekbuddies, ",");
 		Integer bestWith = ObjectUtils.defaultIfNull(bestWithFilter, usernames.length);
 		LOGGER.info("Search collections of {} to play a best with {} game", usernames, bestWith);
-		Function<GeekBuddy, List<Copy>> owned = geekBuddy -> Copy.from(geekBuddy, geekBuddy.ownedCollection());
-		String collections = Async.map(geekBuddies().withUsername(usernames).stream(), owned)
-				.flatMap(List::stream)
-				.collect(Collectors.groupingBy(Copy::boardGame, Collectors.mapping(Copy::owner, Collectors.mapping(GeekBuddy::name, Collectors.joining(", ")))))
+		String collections = fetchAvailableCollections(geekBuddies().withUsername(usernames))
 				.entrySet().stream()
 				.map(entry -> String.format("%s (%s) owned by %s", entry.getKey().name(), entry.getKey().year(), entry.getValue()))
 				.sorted()
@@ -44,16 +43,41 @@ public class ShelvesResource {
 	}
 
 	@GET
+	@Path("/wanttoplay/{geekbuddy}")
+	@Produces(MediaType.TEXT_PLAIN)
+	public String wantToPlay(@PathParam("geekbuddy") String geekbuddy, @QueryParam("bestWith") Integer bestWith) {
+		LOGGER.info("Search collections of all geekbuddies for {}'s want-to-play best with {} games", geekbuddy, bestWith);
+
+		List<BoardGame> wantToPlay = geekBuddies().one(geekbuddy).wantToPlayCollection();
+
+		Map<BoardGame, String> availableCollections = fetchAvailableCollections(geekBuddies().all());
+		String copies = wantToPlay.stream()
+				.map(boardGame -> {
+					String owners = availableCollections.getOrDefault(boardGame, "nobody");
+					return String.format("%s (%s) owned by %s", boardGame.name(), boardGame.year(), owners);
+				})
+				.filter(line -> !line.endsWith("nobody"))
+				.sorted()
+				.collect(Collectors.joining("\n"));
+		return String.format("Search collections of all geekbuddies for %s's want-to-play best with %d games%n%n%s", geekbuddy, bestWith, copies);
+	}
+
+	private Map<BoardGame, String> fetchAvailableCollections(List<GeekBuddy> all) {
+		Function<GeekBuddy, List<Copy>> owned = geekBuddy -> Copy.from(geekBuddy, geekBuddy.ownedCollection());
+		return Async.map(all.stream(), owned)
+				.flatMap(List::stream)
+				.collect(Collectors.groupingBy(Copy::boardGame, Collectors.mapping(Copy::owner, Collectors.mapping(GeekBuddy::name, Collectors.joining(", ")))));
+	}
+
+	@GET
 	@Path("/lookup/{bgId}")
 	@Produces(MediaType.TEXT_PLAIN)
 	public String lookup(@PathParam("bgId") String boardGameId) {
 		LOGGER.info("Search collections of all geekbuddies for game {}", boardGameId);
-		Function<GeekBuddy, List<Copy>> owned = geekBuddy -> Copy.from(geekBuddy, geekBuddy.ownedCollection());
-		String copies = Async.map(geekBuddies().all().stream(), owned)
-				.flatMap(List::stream)
-				.filter(copy -> StringUtils.equals(copy.boardGame().id(), boardGameId))
-				.collect(Collectors.groupingBy(Copy::boardGame, Collectors.mapping(Copy::owner, Collectors.mapping(GeekBuddy::name, Collectors.joining(", ")))))
+
+		String copies = fetchAvailableCollections(geekBuddies().all())
 				.entrySet().stream()
+				.filter(entry -> StringUtils.equals(entry.getKey().id(), boardGameId))
 				.map(entry -> String.format("%s (%s) owned by %s", entry.getKey().name(), entry.getKey().year(), entry.getValue()))
 				.sorted()
 				.collect(Collectors.joining("\n"));
