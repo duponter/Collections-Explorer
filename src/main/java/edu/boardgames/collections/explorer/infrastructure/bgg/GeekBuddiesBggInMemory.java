@@ -28,9 +28,14 @@ public class GeekBuddiesBggInMemory implements GeekBuddies {
 	}
 
 	@Override
+	public GeekBuddy one(String username) {
+		return new GeekBuddyBgg(username, username);
+	}
+
+	@Override
 	public List<GeekBuddy> withUsername(String... usernames) {
 		return Arrays.stream(usernames)
-				.map(username -> new GeekBuddyBgg(username, username))
+				.map(this::one)
 				.collect(Collectors.toList());
 	}
 }
