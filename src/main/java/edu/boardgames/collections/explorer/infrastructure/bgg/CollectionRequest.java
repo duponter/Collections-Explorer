@@ -3,6 +3,8 @@ package edu.boardgames.collections.explorer.infrastructure.bgg;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 import org.apache.commons.lang3.BooleanUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -23,6 +25,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class CollectionRequest {
+	private static final Logger LOGGER = LoggerFactory.getLogger(CollectionRequest.class);
+
 	private final Supplier<HttpClient> httpClientSupplier;
 	private final Map<String, String> options = new HashMap<>();
 
@@ -99,7 +103,11 @@ public class CollectionRequest {
 				.abortIf(response -> response.statusCode() == 200)
 				.handleResultIf(response -> response.statusCode() == 202)
 				.withBackoff(1L, 100L, ChronoUnit.SECONDS)
-				.withMaxRetries(5);
+				.withMaxRetries(5)
+				.onFailedAttempt(e -> LOGGER.warn("Failed to get a response from {}", request.uri()))
+				.onRetry(e -> LOGGER.warn("Retrying to get a response from {}", request.uri()))
+				.onSuccess(e -> LOGGER.info("Got response from {}", request.uri()))
+				.onFailure(e -> LOGGER.info("Failed to get response from {}", request.uri()));
 
 		return Failsafe.with(retryPolicy).get(() -> httpClientSupplier.get().send(request, bodyHandler)).body();
 	}
