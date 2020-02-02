@@ -19,6 +19,7 @@ public class GeekBuddiesBggInMemory implements GeekBuddies {
 				new GeekBuddyBgg("Edou", "Edouard Van Belle"),
 				new GeekBuddyBgg("evildee", "Didier De Breuck"),
 				new GeekBuddyBgg("ForumMortsel", "FORUM Mortsel"),
+				new GeekBuddyBgg("FFED", "FORUM Federatie"),
 				new GeekBuddyBgg("Svennos", "Sven Talboom"),
 				new GeekBuddyBgg("TurtleR6", "Dirk Frederickx"),
 				new GeekBuddyBgg("engelwi", "Wim Engels"),
