@@ -36,7 +36,7 @@ public class ShelvesResource {
 		LOGGER.info("Search collections of {} to play a best with {} game", usernames, bestWith);
 		String collections = fetchAvailableCollections(geekBuddies().withUsername(usernames))
 				.entrySet().stream()
-				.map(entry -> String.format("%s (%s) owned by %s", entry.getKey().name(), entry.getKey().year(), entry.getValue()))
+				.map(entry -> BoardGameRender.playInfo(entry.getKey(), entry.getValue()))
 				.sorted()
 				.collect(Collectors.joining("\n"));
 		return String.format("Search collections of %s to play a best with %d game%n%n%s", Arrays.toString(usernames), bestWith, collections);
@@ -54,7 +54,7 @@ public class ShelvesResource {
 		String copies = wantToPlay.stream()
 				.map(boardGame -> {
 					String owners = availableCollections.getOrDefault(boardGame, "nobody");
-					return String.format("%s (%s) owned by %s", boardGame.name(), boardGame.year(), owners);
+					return BoardGameRender.playInfo(boardGame, owners);
 				})
 				.filter(line -> !line.endsWith("nobody"))
 				.sorted()
@@ -78,7 +78,7 @@ public class ShelvesResource {
 		String copies = fetchAvailableCollections(geekBuddies().all())
 				.entrySet().stream()
 				.filter(entry -> StringUtils.equals(entry.getKey().id(), boardGameId))
-				.map(entry -> String.format("%s (%s) owned by %s", entry.getKey().name(), entry.getKey().year(), entry.getValue()))
+				.map(entry -> BoardGameRender.playInfo(entry.getKey(), entry.getValue()))
 				.sorted()
 				.collect(Collectors.joining("\n"));
 		return String.format("Search collections of all geekbuddies for game %s%n%n%s", boardGameId, copies);
