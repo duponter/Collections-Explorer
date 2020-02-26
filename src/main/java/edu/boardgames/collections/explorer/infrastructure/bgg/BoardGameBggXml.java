@@ -41,16 +41,16 @@ public class BoardGameBggXml extends XmlNode implements BoardGame {
 	}
 
 	@Override
-	public Optional<Range<Integer>> bestWithPlayerCount() {
+	public Optional<Range<String>> bestWithPlayerCount() {
 		return playerCountAsRange(votes -> votes.poll() == PlayerCountPoll.BEST);
 	}
 
 	@Override
-	public Optional<Range<Integer>> recommendedWithPlayerCount() {
+	public Optional<Range<String>> recommendedWithPlayerCount() {
 		return playerCountAsRange(votes -> votes.poll() != PlayerCountPoll.NOT_RECOMMENDED);
 	}
 
-	private Optional<Range<Integer>> playerCountAsRange(Predicate<PlayerCountVotesBggXml> playerCountVotesBggXmlPredicate) {
+	private Optional<Range<String>> playerCountAsRange(Predicate<PlayerCountVotesBggXml> playerCountVotesBggXmlPredicate) {
 		List<String> playerCount = this.nodes("poll[@name='suggested_numplayers']/results")
 				.map(PlayerCountVotesBggXml::new)
 				.filter(playerCountVotesBggXmlPredicate)
@@ -61,9 +61,9 @@ public class BoardGameBggXml extends XmlNode implements BoardGame {
 			case 0:
 				return Optional.empty();
 			case 1:
-				return Optional.of(Range.of(playerCount.get(0), playerCount.get(0)).map(Integer::parseInt));
+				return Optional.of(Range.of(playerCount.get(0), playerCount.get(0)));
 			default:
-				return Optional.of(Range.of(playerCount.get(0), playerCount.get(playerCount.size() - 1)).map(Integer::parseInt));
+				return Optional.of(Range.of(playerCount.get(0), playerCount.get(playerCount.size() - 1)));
 		}
 	}
 

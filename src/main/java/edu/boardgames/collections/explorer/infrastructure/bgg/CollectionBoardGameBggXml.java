@@ -39,12 +39,12 @@ public class CollectionBoardGameBggXml extends XmlNode implements BoardGame {
 	}
 
 	@Override
-	public Optional<Range<Integer>> bestWithPlayerCount() {
+	public Optional<Range<String>> bestWithPlayerCount() {
 		return Optional.empty();
 	}
 
 	@Override
-	public Optional<Range<Integer>> recommendedWithPlayerCount() {
+	public Optional<Range<String>> recommendedWithPlayerCount() {
 		return Optional.empty();
 	}
 

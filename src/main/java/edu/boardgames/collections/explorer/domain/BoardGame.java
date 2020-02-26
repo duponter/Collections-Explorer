@@ -13,9 +13,9 @@ public interface BoardGame {
 
 	Range<String> playerCount();
 
-	Optional<Range<Integer>> bestWithPlayerCount();
+	Optional<Range<String>> bestWithPlayerCount();
 
-	Optional<Range<Integer>> recommendedWithPlayerCount();
+	Optional<Range<String>> recommendedWithPlayerCount();
 
 	Range<String> playtime();
 
