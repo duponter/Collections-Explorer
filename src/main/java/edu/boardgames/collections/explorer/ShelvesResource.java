@@ -49,8 +49,10 @@ public class ShelvesResource {
 		LOGGER.info("Search collections of all geekbuddies for {}'s want-to-play best with {} games", geekbuddy, bestWith);
 
 		List<BoardGame> wantToPlay = geekBuddies().one(geekbuddy).wantToPlayCollection();
+		LOGGER.info("Collection fetched: {} wants to play {} boardgames.", geekbuddy, wantToPlay.size());
 
 		Map<BoardGame, String> availableCollections = fetchAvailableCollections(geekBuddies().all());
+		LOGGER.info("All owned collections fetched group per boardgame: {}", availableCollections.size());
 		String copies = wantToPlay.stream()
 				.map(boardGame -> {
 					String owners = availableCollections.getOrDefault(boardGame, "nobody");
@@ -59,6 +61,7 @@ public class ShelvesResource {
 				.filter(line -> !line.endsWith("nobody"))
 				.sorted()
 				.collect(Collectors.joining("\n"));
+		LOGGER.info("All owned collections matched against want to play collection");
 		return String.format("Search collections of all geekbuddies for %s's want-to-play best with %d games%n%n%s", geekbuddy, bestWith, copies);
 	}
 
