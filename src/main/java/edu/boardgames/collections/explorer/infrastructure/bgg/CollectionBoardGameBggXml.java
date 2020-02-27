@@ -9,8 +9,11 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class CollectionBoardGameBggXml extends XmlNode implements BoardGame {
+	private final String id;
+
 	public CollectionBoardGameBggXml(Node node) {
 		super(node);
+		this.id = id();
 	}
 
 	@Override
@@ -63,11 +66,11 @@ public class CollectionBoardGameBggXml extends XmlNode implements BoardGame {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 		CollectionBoardGameBggXml that = (CollectionBoardGameBggXml) o;
-		return id().equals(that.id());
+		return id.equals(that.id);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id());
+		return Objects.hash(id);
 	}
 }
