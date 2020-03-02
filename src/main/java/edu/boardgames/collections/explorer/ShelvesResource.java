@@ -5,7 +5,11 @@ import edu.boardgames.collections.explorer.domain.Copy;
 import edu.boardgames.collections.explorer.domain.GeekBuddies;
 import edu.boardgames.collections.explorer.domain.GeekBuddy;
 import edu.boardgames.collections.explorer.infrastructure.Async;
+import edu.boardgames.collections.explorer.infrastructure.bgg.BoardGameBggXml;
 import edu.boardgames.collections.explorer.infrastructure.bgg.GeekBuddiesBggInMemory;
+import edu.boardgames.collections.explorer.infrastructure.bgg.ThingRequest;
+import edu.boardgames.collections.explorer.infrastructure.xml.XmlInput;
+import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -14,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.ws.rs.GET;
@@ -48,14 +53,22 @@ public class ShelvesResource {
 	public String wantToPlay(@PathParam("geekbuddy") String geekbuddy, @QueryParam("bestWith") Integer bestWith) {
 		LOGGER.info("Search collections of all geekbuddies for {}'s want-to-play best with {} games", geekbuddy, bestWith);
 
-		List<BoardGame> wantToPlay = geekBuddies().one(geekbuddy).wantToPlayCollection();
+		String wantToPlayIds = geekBuddies().one(geekbuddy).wantToPlayCollection().stream()
+				.map(BoardGame::id)
+				.collect(Collectors.joining(","));
+		List<BoardGame> wantToPlay =
+				XmlNode.nodes(new XmlInput().read(new ThingRequest().withStats().forIds(wantToPlayIds).asInputStream()), "//item")
+						.map(BoardGameBggXml::new)
+						.collect(Collectors.toList());
 		LOGGER.info("Collection fetched: {} wants to play {} boardgames.", geekbuddy, wantToPlay.size());
 
-		Map<BoardGame, String> availableCollections = fetchAvailableCollections(geekBuddies().all());
+		Map<String, String> availableCollections = fetchAvailableCollections(geekBuddies().all()).entrySet().stream()
+				.map(entry -> Map.entry(entry.getKey().id(), entry.getValue()))
+				.collect(Collectors.toMap(Entry::getKey, Entry::getValue));
 		LOGGER.info("All owned collections fetched group per boardgame: {}", availableCollections.size());
 		String copies = wantToPlay.stream()
 				.map(boardGame -> {
-					String owners = availableCollections.getOrDefault(boardGame, "nobody");
+					String owners = availableCollections.getOrDefault(boardGame.id(), "nobody");
 					return BoardGameRender.playInfo(boardGame, owners);
 				})
 				.filter(line -> !line.endsWith("nobody"))

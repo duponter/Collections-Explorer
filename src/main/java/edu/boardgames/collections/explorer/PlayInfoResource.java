@@ -4,12 +4,12 @@ import edu.boardgames.collections.explorer.infrastructure.bgg.BoardGameBggXml;
 import edu.boardgames.collections.explorer.infrastructure.bgg.ThingRequest;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlInput;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -30,13 +30,11 @@ public class PlayInfoResource {
 	@Path("/formatted/{id}")
 	@Produces(MediaType.TEXT_XML)
 	public String xml(@PathParam("id") String id) {
-		String result = Stream.concat(
-				Stream.of(
-						"<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
-						"<?xml-stylesheet type=\"text/xsl\" href=\"http://localhost:8080/playinfo/xsl\"?>"
-				),
-				new ThingRequest().withStats().forIds(id).asLines().skip(1)
-		).collect(Collectors.joining());
+		String response = new ThingRequest().withStats().forIds(id).asLines().collect(Collectors.joining());
+
+		String xsl = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+				"<?xml-stylesheet type=\"text/xsl\" href=\"http://localhost:8080/playinfo/xsl\"?>\n";
+		String result = String.format("%s%n%s", xsl, StringUtils.removeStartIgnoreCase(response, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"));
 		System.out.printf("%s%n", result);
 		return result;
 	}

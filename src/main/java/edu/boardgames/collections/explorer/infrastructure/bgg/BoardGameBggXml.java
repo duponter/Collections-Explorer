@@ -6,13 +6,17 @@ import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
 import org.w3c.dom.Node;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class BoardGameBggXml extends XmlNode implements BoardGame {
+	private final String id;
+
 	public BoardGameBggXml(Node node) {
 		super(node);
+		this.id = id();
 	}
 
 	@Override
@@ -75,5 +79,18 @@ public class BoardGameBggXml extends XmlNode implements BoardGame {
 	@Override
 	public Double averageWeight() {
 		return numericValueAttribute("statistics/ratings/averageweight").doubleValue();
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		BoardGameBggXml that = (BoardGameBggXml) o;
+		return id.equals(that.id);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(id);
 	}
 }
