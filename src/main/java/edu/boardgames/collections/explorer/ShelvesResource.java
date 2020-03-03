@@ -4,6 +4,7 @@ import edu.boardgames.collections.explorer.domain.BoardGame;
 import edu.boardgames.collections.explorer.domain.Copy;
 import edu.boardgames.collections.explorer.domain.GeekBuddies;
 import edu.boardgames.collections.explorer.domain.GeekBuddy;
+import edu.boardgames.collections.explorer.domain.PlayerCount;
 import edu.boardgames.collections.explorer.infrastructure.Async;
 import edu.boardgames.collections.explorer.infrastructure.bgg.BoardGameBggXml;
 import edu.boardgames.collections.explorer.infrastructure.bgg.GeekBuddiesBggInMemory;
@@ -62,11 +63,13 @@ public class ShelvesResource {
 						.collect(Collectors.toList());
 		LOGGER.info("Collection fetched: {} wants to play {} boardgames.", geekbuddy, wantToPlay.size());
 
-		Map<String, String> availableCollections = fetchAvailableCollections(geekBuddies().all()).entrySet().stream()
+		Map<String, String> availableCollections = fetchAvailableCollections(geekBuddies().withUsername("evildee", "svennos")).entrySet().stream()
 				.map(entry -> Map.entry(entry.getKey().id(), entry.getValue()))
 				.collect(Collectors.toMap(Entry::getKey, Entry::getValue));
 		LOGGER.info("All owned collections fetched group per boardgame: {}", availableCollections.size());
+
 		String copies = wantToPlay.stream()
+				.filter(bestWith == null ? always -> true : new PlayerCount(bestWith)::recommendedOnly)
 				.map(boardGame -> {
 					String owners = availableCollections.getOrDefault(boardGame.id(), "nobody");
 					return BoardGameRender.playInfo(boardGame, owners);
@@ -91,7 +94,7 @@ public class ShelvesResource {
 	public String lookup(@PathParam("bgId") String boardGameId) {
 		LOGGER.info("Search collections of all geekbuddies for game {}", boardGameId);
 
-		String copies = fetchAvailableCollections(geekBuddies().all())
+		String copies = fetchAvailableCollections(geekBuddies().withUsername("evildee", "svennos"))
 				.entrySet().stream()
 				.filter(entry -> StringUtils.equals(entry.getKey().id(), boardGameId))
 				.map(entry -> BoardGameRender.playInfo(entry.getKey(), entry.getValue()))
