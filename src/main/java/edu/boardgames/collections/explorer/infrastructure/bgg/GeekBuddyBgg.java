@@ -1,11 +1,14 @@
 package edu.boardgames.collections.explorer.infrastructure.bgg;
 
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import edu.boardgames.collections.explorer.domain.BoardGame;
 import edu.boardgames.collections.explorer.domain.GeekBuddy;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlInput;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
 
 import java.io.InputStream;
+import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.StringJoiner;
@@ -37,10 +40,10 @@ public class GeekBuddyBgg implements GeekBuddy {
 
 	@Override
 	public List<BoardGame> wantToPlayCollection() {
-		return this.fromInputStream(new CollectionRequest(username).wantToPlay().withStats().withoutExpansions().asInputStream());
+		return fromInputStream(new CollectionRequest(username).wantToPlay().withStats().withoutExpansions().asInputStream());
 	}
 
-	private List<BoardGame> fromInputStream(InputStream inputStream) {
+	private static List<BoardGame> fromInputStream(InputStream inputStream) {
 		return XmlNode.nodes(new XmlInput().read(inputStream), "//item")
 				.map(CollectionBoardGameBggXml::new)
 				.collect(Collectors.toList());
