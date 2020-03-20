@@ -1,18 +1,11 @@
 package edu.boardgames.collections.explorer.infrastructure.bgg;
 
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.LoadingCache;
 import edu.boardgames.collections.explorer.domain.BoardGame;
 import edu.boardgames.collections.explorer.domain.GeekBuddy;
-import edu.boardgames.collections.explorer.infrastructure.xml.XmlInput;
-import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
 
-import java.io.InputStream;
-import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.StringJoiner;
-import java.util.stream.Collectors;
 
 public class GeekBuddyBgg implements GeekBuddy {
 	private final String username;
@@ -35,18 +28,12 @@ public class GeekBuddyBgg implements GeekBuddy {
 
 	@Override
 	public List<BoardGame> ownedCollection() {
-		return this.fromInputStream(new CollectionRequest(username).owned().withStats().withoutExpansions().asInputStream());
+		return BggInit.get().collections().owned(this).boardGames();
 	}
 
 	@Override
 	public List<BoardGame> wantToPlayCollection() {
-		return fromInputStream(new CollectionRequest(username).wantToPlay().withStats().withoutExpansions().asInputStream());
-	}
-
-	private static List<BoardGame> fromInputStream(InputStream inputStream) {
-		return XmlNode.nodes(new XmlInput().read(inputStream), "//item")
-				.map(CollectionBoardGameBggXml::new)
-				.collect(Collectors.toList());
+		return BggInit.get().collections().wantToPlay(this).boardGames();
 	}
 
 	@Override
