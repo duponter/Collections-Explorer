@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Table } from 'antd';
+import { Avatar, Table } from 'antd';
 
 class BoardGameOverview extends React.Component {
 
@@ -7,37 +7,42 @@ class BoardGameOverview extends React.Component {
         const dataSource = [
             {
                 key: '1',
-                name: 'Mike',
-                age: 32,
-                address: '10 Downing Street',
+                img: 'https://cf.geekdo-images.com/itemrep/img/xfyi8wC0xQFtW8Ku2uuxWDNxGTI=/fit-in/246x300/pic145204.jpg',
+                title: 'Ur',
+                year: 2006,
             },
             {
                 key: '2',
-                name: 'John',
-                age: 42,
-                address: '10 Downing Street',
+                img: 'https://cf.geekdo-images.com/itemrep/img/RrR24v4sWcGbp7bCzzn6nlHjzg4=/fit-in/246x300/pic4892981.jpg',
+                title: 'Nemo\'s War (Second Edition)',
+                year: 2017,
             },
         ];
 
         const columns = [
             {
-                title: 'Name',
-                dataIndex: 'name',
-                key: 'name',
+                title: '',
+                dataIndex: 'img',
+                key: 'img',
+                render: (text: string, record: any, index: number) => <Avatar size={64} icon={<img alt={record.title} src={text} />} />
             },
             {
-                title: 'Age',
-                dataIndex: 'age',
-                key: 'age',
+                title: 'Title',
+                dataIndex: 'title',
+                key: 'title',
             },
             {
-                title: 'Address',
-                dataIndex: 'address',
-                key: 'address',
+                title: 'Year',
+                dataIndex: 'year',
+                key: 'year',
             },
         ];
 
-        return (<Table dataSource={dataSource} columns={columns} />);
+        return (
+            <>
+
+                <Table dataSource={dataSource} columns={columns} />
+            </>);
     }
 }
 
