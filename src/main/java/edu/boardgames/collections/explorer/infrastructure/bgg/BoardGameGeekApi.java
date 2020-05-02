@@ -4,6 +4,7 @@ import edu.boardgames.collections.explorer.domain.BoardGameCollections;
 import edu.boardgames.collections.explorer.domain.BoardGameGeek;
 import edu.boardgames.collections.explorer.domain.BoardGames;
 import edu.boardgames.collections.explorer.domain.GeekBuddies;
+import edu.boardgames.collections.explorer.domain.GeekLists;
 
 public class BoardGameGeekApi implements BoardGameGeek {
 	@Override
@@ -19,5 +20,10 @@ public class BoardGameGeekApi implements BoardGameGeek {
 	@Override
 	public BoardGames boardGames() {
 		return new BggBoardGames();
+	}
+
+	@Override
+	public GeekLists geekLists() {
+		return new BggGeekLists();
 	}
 }

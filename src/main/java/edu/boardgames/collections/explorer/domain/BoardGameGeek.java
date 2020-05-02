@@ -6,4 +6,6 @@ public interface BoardGameGeek {
 	GeekBuddies geekBuddies();
 
 	BoardGames boardGames();
+
+	GeekLists geekLists();
 }

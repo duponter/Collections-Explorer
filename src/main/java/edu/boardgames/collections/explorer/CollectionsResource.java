@@ -2,13 +2,13 @@ package edu.boardgames.collections.explorer;
 
 import edu.boardgames.collections.explorer.domain.GeekBuddies;
 import edu.boardgames.collections.explorer.domain.GeekBuddy;
+import edu.boardgames.collections.explorer.domain.GeekList;
 import edu.boardgames.collections.explorer.domain.PlayerCount;
 import edu.boardgames.collections.explorer.infrastructure.Async;
+import edu.boardgames.collections.explorer.infrastructure.bgg.BggInit;
 import edu.boardgames.collections.explorer.infrastructure.bgg.CollectionBoardGameBggXml;
 import edu.boardgames.collections.explorer.infrastructure.bgg.CollectionRequest;
 import edu.boardgames.collections.explorer.infrastructure.bgg.GeekBuddiesBggInMemory;
-import edu.boardgames.collections.explorer.infrastructure.bgg.GeekListBggXml;
-import edu.boardgames.collections.explorer.infrastructure.bgg.GeekListRequest;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlInput;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
 import io.reactivex.Flowable;
@@ -23,7 +23,6 @@ import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Function;
@@ -45,16 +44,13 @@ public class CollectionsResource {
 	@Produces(MediaType.TEXT_PLAIN)
 	public String geeklist(@PathParam("geeklist") String geeklistId, @QueryParam("bestWith") Integer bestWith) {
 		LOGGER.info("Lookup boardgames in geeklist {} for best with {}", geeklistId, bestWith);
-		Optional<GeekListBggXml> geeklist = XmlNode.nodes(new XmlInput().read(new GeekListRequest(geeklistId).asInputStream()), "//geeklist")
-				.map(GeekListBggXml::new)
-				.findFirst();
+		GeekList geeklist = BggInit.get().geekLists().withId(geeklistId);
 
-		String boardGames = geeklist.stream()
-				.flatMap(found -> found.boardGames().stream())
+		String boardGames = geeklist.boardGames().stream()
 				.filter(bestWith == null ? always -> true : new PlayerCount(bestWith)::recommendedOnly)
 				.map(BoardGameRender::playInfo)
 				.collect(Collectors.joining("\n"));
-		return String.format("Search all board games for best with %d of geeklist %s%n%n%s", bestWith, geeklist.map(GeekListBggXml::name).orElseGet(() -> String.format("%s not found", geeklistId)), boardGames);
+		return String.format("Search all board games for best with %d of geeklist %s%n%n%s", bestWith, geeklist.name(), boardGames);
 	}
 
 	@GET
