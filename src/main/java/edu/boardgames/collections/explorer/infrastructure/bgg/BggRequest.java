@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
-import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Version;
@@ -28,16 +27,16 @@ abstract class BggRequest<R extends BggRequest<R>> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(BggRequest.class);
 
 	private final Supplier<HttpClient> httpClientSupplier;
-	private final String subpath;
+	private final BggUrlFactory urlFactory;
 	private final Map<String, String> options = new HashMap<>();
 
-	BggRequest(String subpath) {
-		this(subpath, () -> HttpClient.newBuilder().build());
+	BggRequest(BggUrlFactory urlFactory) {
+		this(urlFactory, () -> HttpClient.newBuilder().build());
 	}
 
-	BggRequest(String subpath, Supplier<HttpClient> httpClientSupplier) {
+	BggRequest(BggUrlFactory urlFactory, Supplier<HttpClient> httpClientSupplier) {
 		this.httpClientSupplier = httpClientSupplier;
-		this.subpath = subpath;
+		this.urlFactory = urlFactory;
 	}
 
 	abstract R self();
@@ -75,7 +74,7 @@ abstract class BggRequest<R extends BggRequest<R>> {
 
 	private <T> T send(BodyHandler<T> bodyHandler) {
 		HttpRequest request = HttpRequest.newBuilder()
-				.uri(URI.create(String.format("https://www.boardgamegeek.com/xmlapi2/%s?%s", subpath, buildQueryString())))
+				.uri(this.urlFactory.create(buildQueryString()))
 				.version(Version.HTTP_2)
 				.GET()
 				.build();

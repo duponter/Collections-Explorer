@@ -2,7 +2,7 @@ package edu.boardgames.collections.explorer.infrastructure.bgg;
 
 public class ThingRequest extends BggRequest<ThingRequest> {
 	public ThingRequest() {
-		super("thing");
+		super(BggApi.V2.create("thing"));
 		this.addOption("type", "boardgame");
 	}
 

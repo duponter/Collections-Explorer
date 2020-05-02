@@ -14,7 +14,7 @@ public class CollectionRequest extends BggRequest<CollectionRequest> {
 	}
 
 	private CollectionRequest(String username, Supplier<HttpClient> httpClientSupplier) {
-		super("collection", httpClientSupplier);
+		super(BggApi.V2.create("collection"), httpClientSupplier);
 		this.addOption("username", username);
 		this.addOption("subtype", "boardgame");
 	}
