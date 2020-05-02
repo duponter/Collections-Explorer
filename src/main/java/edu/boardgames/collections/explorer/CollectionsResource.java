@@ -1,5 +1,6 @@
 package edu.boardgames.collections.explorer;
 
+import edu.boardgames.collections.explorer.domain.BoardGame;
 import edu.boardgames.collections.explorer.domain.GeekBuddies;
 import edu.boardgames.collections.explorer.domain.GeekBuddy;
 import edu.boardgames.collections.explorer.domain.GeekList;
@@ -23,6 +24,7 @@ import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Function;
@@ -45,9 +47,11 @@ public class CollectionsResource {
 	public String geeklist(@PathParam("geeklist") String geeklistId, @QueryParam("bestWith") Integer bestWith) {
 		LOGGER.info("Lookup boardgames in geeklist {} for best with {}", geeklistId, bestWith);
 		GeekList geeklist = BggInit.get().geekLists().withId(geeklistId);
+		LOGGER.info("Geeklist fetched, processing best with filter");
 
 		String boardGames = geeklist.boardGames().stream()
 				.filter(bestWith == null ? always -> true : new PlayerCount(bestWith)::recommendedOnly)
+				.sorted(Comparator.comparing(BoardGame::name).thenComparing(BoardGame::year))
 				.map(BoardGameRender::playInfo)
 				.collect(Collectors.joining("\n"));
 		return String.format("Search all board games for best with %d of geeklist %s%n%n%s", bestWith, geeklist.name(), boardGames);

@@ -1,15 +1,14 @@
 package edu.boardgames.collections.explorer;
 
-import edu.boardgames.collections.explorer.infrastructure.bgg.BoardGameBggXml;
+import edu.boardgames.collections.explorer.infrastructure.bgg.BggInit;
 import edu.boardgames.collections.explorer.infrastructure.bgg.ThingRequest;
-import edu.boardgames.collections.explorer.infrastructure.xml.XmlInput;
-import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -43,8 +42,7 @@ public class PlayInfoResource {
     @Path("/{id}")
     @Produces(MediaType.TEXT_PLAIN)
     public String infoByIds(@PathParam("id") String id) {
-	    return XmlNode.nodes(new XmlInput().read(new ThingRequest().withStats().forIds(id).asInputStream()), "//item")
-			    .map(BoardGameBggXml::new)
+		return BggInit.get().boardGames().withIds(Stream.of(id)).stream()
 			    .map(BoardGameRender::playInfo)
 			    .collect(Collectors.joining(System.lineSeparator()));
     }

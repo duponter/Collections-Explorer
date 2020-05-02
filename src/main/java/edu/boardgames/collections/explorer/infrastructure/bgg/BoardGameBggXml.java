@@ -3,8 +3,10 @@ package edu.boardgames.collections.explorer.infrastructure.bgg;
 import edu.boardgames.collections.explorer.domain.BoardGame;
 import edu.boardgames.collections.explorer.domain.Range;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
+import io.vavr.Lazy;
 import org.w3c.dom.Node;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -13,10 +15,16 @@ import java.util.stream.Collectors;
 
 public class BoardGameBggXml extends XmlNode implements BoardGame {
 	private final String id;
+	private final Lazy<List<PlayerCountVotesBggXml>> playerCountVotes;
 
 	public BoardGameBggXml(Node node) {
 		super(node);
 		this.id = id();
+		this.playerCountVotes = Lazy.of(() -> this.nodes("poll[@name='suggested_numplayers']/results")
+				.map(PlayerCountVotesBggXml::new)
+				.sorted(Comparator.comparing(PlayerCountVotesBggXml::value))
+				.collect(Collectors.toList())
+		);
 	}
 
 	@Override
@@ -55,20 +63,12 @@ public class BoardGameBggXml extends XmlNode implements BoardGame {
 	}
 
 	private Optional<Range<String>> playerCountAsRange(Predicate<PlayerCountVotesBggXml> playerCountVotesBggXmlPredicate) {
-		List<String> playerCount = this.nodes("poll[@name='suggested_numplayers']/results")
-				.map(PlayerCountVotesBggXml::new)
-				.filter(playerCountVotesBggXmlPredicate)
-				.map(PlayerCountVotesBggXml::value)
-				.collect(Collectors.toList());
-
-		switch (playerCount.size()) {
-			case 0:
-				return Optional.empty();
-			case 1:
-				return Optional.of(Range.of(playerCount.get(0), playerCount.get(0)));
-			default:
-				return Optional.of(Range.of(playerCount.get(0), playerCount.get(playerCount.size() - 1)));
-		}
+		return Range.of(
+				this.playerCountVotes.get().stream()
+						.filter(playerCountVotesBggXmlPredicate)
+						.map(PlayerCountVotesBggXml::value)
+						.collect(Collectors.toList())
+		);
 	}
 
 	@Override
