@@ -9,9 +9,8 @@ import edu.boardgames.collections.explorer.infrastructure.Async;
 import edu.boardgames.collections.explorer.infrastructure.bgg.BggInit;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import java.lang.System.Logger.Level;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +27,7 @@ import javax.ws.rs.core.MediaType;
 
 @Path("/shelves")
 public class ShelvesResource {
-	private static final Logger LOGGER = LoggerFactory.getLogger(ShelvesResource.class);
+	private static final System.Logger LOGGER = System.getLogger(ShelvesResource.class.getName());
 
 	@GET
 	@Path("/play")
@@ -36,7 +35,7 @@ public class ShelvesResource {
 	public String play(@QueryParam("geekbuddies") String geekbuddies, @QueryParam("bestWith") Integer bestWithFilter) {
 		String[] usernames = StringUtils.split(geekbuddies, ",");
 		Integer bestWith = ObjectUtils.defaultIfNull(bestWithFilter, usernames.length);
-		LOGGER.info("Search collections of {} to play a best with {} game", usernames, bestWith);
+		LOGGER.log(Level.INFO, "Search collections of %s to play a best with %s game", usernames, bestWith);
 		String collections = fetchAvailableCollections(BggInit.get().geekBuddies().withUsername(usernames))
 				.entrySet().stream()
 				.map(entry -> BoardGameRender.playInfo(entry.getKey(), entry.getValue()))
@@ -49,17 +48,17 @@ public class ShelvesResource {
 	@Path("/wanttoplay/{geekbuddy}")
 	@Produces(MediaType.TEXT_PLAIN)
 	public String wantToPlay(@PathParam("geekbuddy") String geekbuddy, @QueryParam("bestWith") Integer bestWith) {
-		LOGGER.info("Search collections of all geekbuddies for {}'s want-to-play best with {} games", geekbuddy, bestWith);
+		LOGGER.log(Level.INFO, "Search collections of all geekbuddies for %s's want-to-play best with %s games", geekbuddy, bestWith);
 
 		BoardGameGeek bgg = BggInit.get();
 		Stream<String> wantToPlayIds = bgg.geekBuddies().one(geekbuddy).wantToPlayCollection().stream().map(BoardGame::id);
 		List<BoardGame> wantToPlay = bgg.boardGames().withIds(wantToPlayIds);
-		LOGGER.info("Collection fetched: {} wants to play {} boardgames.", geekbuddy, wantToPlay.size());
+		LOGGER.log(Level.INFO, "Collection fetched: %s wants to play %d boardgames.", geekbuddy, wantToPlay.size());
 
 		Map<String, String> availableCollections = fetchAvailableCollections(bgg.geekBuddies().all()).entrySet().stream()
 				.map(entry -> Map.entry(entry.getKey().id(), entry.getValue()))
 				.collect(Collectors.toMap(Entry::getKey, Entry::getValue));
-		LOGGER.info("All owned collections fetched group per boardgame: {}", availableCollections.size());
+		LOGGER.log(Level.INFO, "All owned collections fetched group per boardgame: %d", availableCollections.size());
 
 		String copies = wantToPlay.stream()
 				.filter(bestWith == null ? always -> true : new PlayerCount(bestWith)::recommendedOnly)
@@ -70,7 +69,7 @@ public class ShelvesResource {
 				.filter(line -> !line.endsWith("nobody"))
 				.sorted()
 				.collect(Collectors.joining("\n"));
-		LOGGER.info("All owned collections matched against want to play collection");
+		LOGGER.log(Level.INFO, "All owned collections matched against want to play collection");
 		return String.format("Search collections of all geekbuddies for %s's want-to-play best with %d games%n%n%s", geekbuddy, bestWith, copies);
 	}
 
@@ -84,7 +83,7 @@ public class ShelvesResource {
 		List<Copy> list = Async.map(all.stream(), owned)
 				.flatMap(List::stream)
 				.collect(Collectors.toList());
-		LOGGER.info("All owned collections merged: {}", list.size());
+		LOGGER.log(Level.INFO, "All owned collections merged: %d", list.size());
 		return list;
 	}
 
@@ -92,7 +91,7 @@ public class ShelvesResource {
 	@Path("/lookup/{bgId}")
 	@Produces(MediaType.TEXT_PLAIN)
 	public String lookup(@PathParam("bgId") String boardGameId) {
-		LOGGER.info("Search collections of all geekbuddies for game {}", boardGameId);
+		LOGGER.log(Level.INFO, "Search collections of all geekbuddies for game %s", boardGameId);
 
 		String copies = fetchOwnedBoardGames(BggInit.get().geekBuddies().all())
 				.stream()

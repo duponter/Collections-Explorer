@@ -2,11 +2,11 @@ package edu.boardgames.collections.explorer;
 
 import edu.boardgames.collections.explorer.domain.BoardGame;
 import edu.boardgames.collections.explorer.domain.Range;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import java.lang.System.Logger.Level;
 
 public final class BoardGameRender {
-	private static final Logger LOGGER = LoggerFactory.getLogger(BoardGameRender.class);
+	private static final System.Logger LOGGER = System.getLogger(BoardGameRender.class.getName());
 
 	/**
 	 * Private constructor to prevent this static class from being instantiated.
@@ -16,7 +16,7 @@ public final class BoardGameRender {
 	}
 
 	static String playInfo(BoardGame boardGame) {
-		LOGGER.info("Rendering BoardGame {}", boardGame.name());
+		LOGGER.log(Level.INFO, "Rendering BoardGame %s", boardGame.name());
 		Range<String> communityPlayerCount = boardGame.bestWithPlayerCount()
 				.or(boardGame::recommendedWithPlayerCount)
 				.orElseGet(boardGame::playerCount);

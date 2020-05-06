@@ -16,11 +16,10 @@ import io.reactivex.Flowable;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.reactivestreams.Publisher;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.System.Logger.Level;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.util.Arrays;
@@ -39,15 +38,15 @@ import javax.ws.rs.core.MediaType;
 
 @Path("/collections")
 public class CollectionsResource {
-	private static final Logger LOGGER = LoggerFactory.getLogger(CollectionsResource.class);
+	private static final System.Logger LOGGER = System.getLogger(CollectionsResource.class.getName());
 
 	@GET
 	@Path("/geeklist/{geeklist}")
 	@Produces(MediaType.TEXT_PLAIN)
 	public String geeklist(@PathParam("geeklist") String geeklistId, @QueryParam("bestWith") Integer bestWith) {
-		LOGGER.info("Lookup boardgames in geeklist {} for best with {}", geeklistId, bestWith);
+		LOGGER.log(Level.INFO, "Lookup boardgames in geeklist %s for best with %s", geeklistId, bestWith);
 		GeekList geeklist = BggInit.get().geekLists().withId(geeklistId);
-		LOGGER.info("Geeklist fetched, processing best with filter");
+		LOGGER.log(Level.INFO, "Geeklist fetched, processing best with filter");
 
 		String boardGames = geeklist.boardGames().stream()
 				.filter(bestWith == null ? always -> true : new PlayerCount(bestWith)::recommendedOnly)
@@ -61,7 +60,7 @@ public class CollectionsResource {
 	@Path("/{geekbuddy}/wanttoplay")
 	@Produces(MediaType.TEXT_PLAIN)
 	public String wantToPlay(@PathParam("geekbuddy") String geekbuddy, @QueryParam("bestWith") Integer bestWithFilter) {
-		LOGGER.info("Search collections of all geekbuddies for best with {} want-to-play games of {}", bestWithFilter, geekbuddy);
+		LOGGER.log(Level.INFO, "Search collections of all geekbuddies for best with %s want-to-play games of %s", bestWithFilter, geekbuddy);
 		String wantToPlay = geekBuddies().withUsername(geekbuddy).stream()
 				.flatMap(buddy -> buddy.wantToPlayCollection().stream())
 				.map(BoardGameRender::playInfo)
