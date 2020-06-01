@@ -44,7 +44,7 @@ public class CollectionsResource {
 	@Path("/geeklist/{geeklist}")
 	@Produces(MediaType.TEXT_PLAIN)
 	public String geeklist(@PathParam("geeklist") String geeklistId, @QueryParam("bestWith") Integer bestWith) {
-		LOGGER.log(Level.INFO, "Lookup boardgames in geeklist %s for best with %s", geeklistId, bestWith);
+		LOGGER.log(Level.INFO, String.format("Lookup boardgames in geeklist %s for best with %s", geeklistId, bestWith));
 		GeekList geeklist = BggInit.get().geekLists().withId(geeklistId);
 		LOGGER.log(Level.INFO, "Geeklist fetched, processing best with filter");
 
@@ -60,7 +60,7 @@ public class CollectionsResource {
 	@Path("/{geekbuddy}/wanttoplay")
 	@Produces(MediaType.TEXT_PLAIN)
 	public String wantToPlay(@PathParam("geekbuddy") String geekbuddy, @QueryParam("bestWith") Integer bestWithFilter) {
-		LOGGER.log(Level.INFO, "Search collections of all geekbuddies for best with %s want-to-play games of %s", bestWithFilter, geekbuddy);
+		LOGGER.log(Level.INFO, String.format("Search collections of all geekbuddies for best with %s want-to-play games of %s", bestWithFilter, geekbuddy));
 		String wantToPlay = geekBuddies().withUsername(geekbuddy).stream()
 				.flatMap(buddy -> buddy.wantToPlayCollection().stream())
 				.map(BoardGameRender::playInfo)

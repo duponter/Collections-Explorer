@@ -16,7 +16,7 @@ public final class BoardGameRender {
 	}
 
 	static String playInfo(BoardGame boardGame) {
-		LOGGER.log(Level.INFO, "Rendering BoardGame %s", boardGame.name());
+		LOGGER.log(Level.INFO, String.format("Rendering BoardGame %s", boardGame.name()));
 		Range<String> communityPlayerCount = boardGame.bestWithPlayerCount()
 				.or(boardGame::recommendedWithPlayerCount)
 				.orElseGet(boardGame::playerCount);

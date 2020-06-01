@@ -83,10 +83,10 @@ abstract class BggRequest<R extends BggRequest<R>> {
 				.handleResultIf(response -> response.statusCode() == 202)
 				.withBackoff(1L, 100L, ChronoUnit.SECONDS)
 				.withMaxRetries(5)
-				.onFailedAttempt(e -> LOGGER.log(Level.WARNING, "Failed to get a response from %s", request.uri()))
-				.onRetry(e -> LOGGER.log(Level.WARNING, "Retrying to get a response from %s", request.uri()))
-				.onSuccess(e -> LOGGER.log(Level.INFO, "Got response from %s", request.uri()))
-				.onFailure(e -> LOGGER.log(Level.INFO, "Failed to get response from %s", request.uri()));
+				.onFailedAttempt(e -> LOGGER.log(Level.WARNING, String.format("Failed to get a response from %s", request.uri())))
+				.onRetry(e -> LOGGER.log(Level.WARNING, String.format("Retrying to get a response from %s", request.uri())))
+				.onSuccess(e -> LOGGER.log(Level.INFO, String.format("Got response from %s", request.uri())))
+				.onFailure(e -> LOGGER.log(Level.INFO, String.format("Failed to get response from %s", request.uri())));
 
 		return Failsafe.with(retryPolicy).get(() -> httpClientSupplier.get().send(request, bodyHandler)).body();
 	}
