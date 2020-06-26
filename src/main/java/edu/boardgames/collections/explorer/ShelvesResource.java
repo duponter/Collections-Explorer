@@ -17,7 +17,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -36,8 +35,11 @@ public class ShelvesResource {
 		String[] usernames = StringUtils.split(geekbuddies, ",");
 		Integer bestWith = ObjectUtils.defaultIfNull(bestWithFilter, usernames.length);
 		LOGGER.log(Level.INFO, String.format("Search collections of %s to play a best with %s game", Arrays.toString(usernames), bestWith));
-		String collections = fetchAvailableCollections(BggInit.get().geekBuddies().withUsername(usernames))
-				.entrySet().stream()
+		String collections = fetchAvailableCollections(BggInit.get()
+		                                                      .geekBuddies()
+		                                                      .withUsername(usernames))
+				.entrySet()
+				.stream()
 				.map(entry -> BoardGameRender.playInfo(entry.getKey(), entry.getValue()))
 				.sorted()
 				.collect(Collectors.joining("\n"));
@@ -51,21 +53,16 @@ public class ShelvesResource {
 		LOGGER.log(Level.INFO, String.format("Search collections of all geekbuddies for %s's want-to-play best with %s games", geekbuddy, bestWith));
 
 		BoardGameGeek bgg = BggInit.get();
-		Stream<String> wantToPlayIds = bgg.geekBuddies()
-		                                  .one(geekbuddy)
-		                                  .wantToPlayCollection()
-		                                  .stream()
-		                                  .map(BoardGame::id);
-		List<BoardGame> wantToPlay = bgg.boardGames()
-		                                .withIds(wantToPlayIds);
+		List<BoardGame> wantToPlay = bgg.geekBuddies()
+		                                .one(geekbuddy)
+		                                .wantToPlayCollection();
 		LOGGER.log(Level.INFO, String.format("Collection fetched: %s wants to play %d boardgames.", geekbuddy, wantToPlay.size()));
 
-		Map<String, String> availableCollections = fetchAvailableCollections(bgg.geekBuddies()
-		                                                                        .all()).entrySet()
-		                                                                               .stream()
-		                                                                               .map(entry -> Map.entry(entry.getKey()
-		                                                                                                            .id(), entry.getValue()))
-		                                                                               .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+		Map<String, String> availableCollections = fetchAvailableCollections(bgg.geekBuddies().all())
+				.entrySet()
+				.stream()
+				.map(entry -> Map.entry(entry.getKey().id(), entry.getValue()))
+				.collect(Collectors.toMap(Entry::getKey, Entry::getValue));
 		LOGGER.log(Level.INFO, String.format("All owned collections fetched group per boardgame: %d", availableCollections.size()));
 
 		String copies = wantToPlay.stream()

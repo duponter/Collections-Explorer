@@ -32,6 +32,10 @@ public class CollectionRequest extends BggRequest<CollectionRequest> {
 		return this.enableOption("wanttoplay");
 	}
 
+	public CollectionRequest abbreviatedResults() {
+		return this.enableOption("brief");
+	}
+
 	public CollectionRequest withStats() {
 		return this.enableOption("stats");
 	}
