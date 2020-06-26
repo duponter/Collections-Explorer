@@ -51,38 +51,46 @@ public class ShelvesResource {
 		LOGGER.log(Level.INFO, String.format("Search collections of all geekbuddies for %s's want-to-play best with %s games", geekbuddy, bestWith));
 
 		BoardGameGeek bgg = BggInit.get();
-		Stream<String> wantToPlayIds = bgg.geekBuddies().one(geekbuddy).wantToPlayCollection().stream().map(BoardGame::id);
-		List<BoardGame> wantToPlay = bgg.boardGames().withIds(wantToPlayIds);
+		Stream<String> wantToPlayIds = bgg.geekBuddies()
+		                                  .one(geekbuddy)
+		                                  .wantToPlayCollection()
+		                                  .stream()
+		                                  .map(BoardGame::id);
+		List<BoardGame> wantToPlay = bgg.boardGames()
+		                                .withIds(wantToPlayIds);
 		LOGGER.log(Level.INFO, String.format("Collection fetched: %s wants to play %d boardgames.", geekbuddy, wantToPlay.size()));
 
-		Map<String, String> availableCollections = fetchAvailableCollections(bgg.geekBuddies().all()).entrySet().stream()
-				.map(entry -> Map.entry(entry.getKey().id(), entry.getValue()))
-				.collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+		Map<String, String> availableCollections = fetchAvailableCollections(bgg.geekBuddies()
+		                                                                        .all()).entrySet()
+		                                                                               .stream()
+		                                                                               .map(entry -> Map.entry(entry.getKey()
+		                                                                                                            .id(), entry.getValue()))
+		                                                                               .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
 		LOGGER.log(Level.INFO, String.format("All owned collections fetched group per boardgame: %d", availableCollections.size()));
 
 		String copies = wantToPlay.stream()
-				.filter(bestWith == null ? always -> true : new PlayerCount(bestWith)::recommendedOnly)
-				.map(boardGame -> {
-					String owners = availableCollections.getOrDefault(boardGame.id(), "nobody");
-					return BoardGameRender.playInfo(boardGame, owners);
-				})
-				.filter(line -> !line.endsWith("nobody"))
-				.sorted()
-				.collect(Collectors.joining("\n"));
+		                          .filter(bestWith == null ? always -> true : new PlayerCount(bestWith)::recommendedOnly)
+		                          .map(boardGame -> {
+			                          String owners = availableCollections.getOrDefault(boardGame.id(), "nobody");
+			                          return BoardGameRender.playInfo(boardGame, owners);
+		                          })
+		                          .filter(line -> !line.endsWith("nobody"))
+		                          .sorted()
+		                          .collect(Collectors.joining("\n"));
 		LOGGER.log(Level.INFO, "All owned collections matched against want to play collection");
 		return String.format("Search collections of all geekbuddies for %s's want-to-play best with %d games%n%n%s", geekbuddy, bestWith, copies);
 	}
 
 	private Map<BoardGame, String> fetchAvailableCollections(List<GeekBuddy> all) {
 		return fetchOwnedBoardGames(all).stream()
-				.collect(Collectors.groupingBy(Copy::boardGame, Collectors.mapping(Copy::owner, Collectors.mapping(GeekBuddy::name, Collectors.joining(", ")))));
+		                                .collect(Collectors.groupingBy(Copy::boardGame, Collectors.mapping(Copy::owner, Collectors.mapping(GeekBuddy::name, Collectors.joining(", ")))));
 	}
 
 	private List<Copy> fetchOwnedBoardGames(List<GeekBuddy> all) {
 		Function<GeekBuddy, List<Copy>> owned = geekBuddy -> Copy.from(geekBuddy, geekBuddy.ownedCollection());
 		List<Copy> list = Async.map(all.stream(), owned)
-				.flatMap(List::stream)
-				.collect(Collectors.toList());
+		                       .flatMap(List::stream)
+		                       .collect(Collectors.toList());
 		LOGGER.log(Level.INFO, String.format("All owned collections merged: %d", list.size()));
 		return list;
 	}
@@ -93,13 +101,17 @@ public class ShelvesResource {
 	public String lookup(@PathParam("bgId") String boardGameId) {
 		LOGGER.log(Level.INFO, String.format("Search collections of all geekbuddies for game %s", boardGameId));
 
-		String copies = fetchOwnedBoardGames(BggInit.get().geekBuddies().all())
+		String copies = fetchOwnedBoardGames(BggInit.get()
+		                                            .geekBuddies()
+		                                            .all())
 				.stream()
-				.filter(copy -> StringUtils.equals(copy.boardGame().id(), boardGameId))
+				.filter(copy -> StringUtils.equals(copy.boardGame()
+				                                       .id(), boardGameId))
 //				.collect(Collectors.groupingBy(Copy::boardGame, Collectors.mapping(Copy::owner, Collectors.mapping(GeekBuddy::name, Collectors.joining(", ")))))
 //				.entrySet().stream()
 //				.map(entry -> BoardGameRender.playInfo(entry.getKey(), entry.getValue()))
-				.map(copy -> BoardGameRender.playInfo(copy.boardGame(), copy.owner().name()))
+				.map(copy -> BoardGameRender.playInfo(copy.boardGame(), copy.owner()
+				                                                            .name()))
 				.sorted()
 				.collect(Collectors.joining("\n"));
 		return String.format("Search collections of all geekbuddies for game %s%n%n%s", boardGameId, copies);
