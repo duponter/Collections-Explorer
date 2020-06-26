@@ -2,6 +2,8 @@ package edu.boardgames.collections.explorer.domain;
 
 import org.apache.commons.lang3.Validate;
 
+import java.util.StringJoiner;
+
 public class PlayerCount {
 	private final int count;
 
@@ -28,5 +30,12 @@ public class PlayerCount {
 
 	private boolean inRange(Range<String> range) {
 		return range.contains(Integer.toString(count));
+	}
+
+	@Override
+	public String toString() {
+		return new StringJoiner(", ", PlayerCount.class.getSimpleName() + "[", "]")
+				.add(String.format("count=%s", count))
+				.toString();
 	}
 }
