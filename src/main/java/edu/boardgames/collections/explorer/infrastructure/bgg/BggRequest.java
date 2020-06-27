@@ -40,6 +40,14 @@ abstract class BggRequest<R extends BggRequest<R>> {
 
 	abstract R self();
 
+	R copy(Supplier<R> constructor) {
+		R newInstance = constructor.get();
+		BggRequest<?> request = newInstance;
+		request.options.clear();
+		request.options.putAll(this.options);
+		return newInstance;
+	}
+
 	R addOption(String name, String value) {
 		this.options.put(name, URLEncoder.encode(value, Charset.defaultCharset()));
 		return this.self();

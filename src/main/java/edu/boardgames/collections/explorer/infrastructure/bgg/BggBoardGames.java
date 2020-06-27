@@ -12,8 +12,9 @@ import java.util.stream.Stream;
 public class BggBoardGames implements BoardGames {
 	@Override
 	public List<BoardGame> withIds(Stream<String> ids) {
-		return XmlNode.nodes(new XmlInput().read(new ThingRequest().withStats().forIds(ids.collect(Collectors.joining(","))).asInputStream()), "//item")
-				.map(BoardGameBggXml::new)
-				.collect(Collectors.toList());
+		return new ThingRequest().withStats().forIds(ids.collect(Collectors.toList())).asInputStreams()
+		                  .flatMap(is -> XmlNode.nodes(new XmlInput().read(is), "//item"))
+		                  .map(BoardGameBggXml::new)
+		                  .collect(Collectors.toList());
 	}
 }

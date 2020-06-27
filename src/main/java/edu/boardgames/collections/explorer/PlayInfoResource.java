@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.ws.rs.GET;
@@ -29,7 +30,7 @@ public class PlayInfoResource {
 	@Path("/formatted/{id}")
 	@Produces(MediaType.TEXT_XML)
 	public String xml(@PathParam("id") String id) {
-		String response = new ThingRequest().withStats().forIds(id).asLines().collect(Collectors.joining());
+		String response = new ThingRequest().withStats().forIds(Arrays.asList(id.split("\\s*,\\s*"))).asLines().collect(Collectors.joining());
 
 		String xsl = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
 				"<?xml-stylesheet type=\"text/xsl\" href=\"http://localhost:8080/playinfo/xsl\"?>\n";
