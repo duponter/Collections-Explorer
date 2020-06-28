@@ -4,10 +4,14 @@ import edu.boardgames.collections.explorer.domain.BoardGame;
 import edu.boardgames.collections.explorer.domain.Range;
 import io.vavr.Lazy;
 
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.util.Objects;
 import java.util.Optional;
 
 public class LazyBoardGame implements BoardGame {
+	private static final Logger LOGGER = System.getLogger(LazyBoardGame.class.getName());
+
 	private final Lazy<String> id;
 	private final Lazy<String> name;
 	private final Lazy<String> year;
@@ -52,16 +56,19 @@ public class LazyBoardGame implements BoardGame {
 
 	@Override
 	public Range<String> playerCount() {
+		LOGGER.log(Level.DEBUG, String.format("[%s] Getting playerCount %s", this.name(), this.playerCount.get()));
 		return this.playerCount.get();
 	}
 
 	@Override
 	public Optional<Range<String>> bestWithPlayerCount() {
+		LOGGER.log(Level.DEBUG, String.format("[%s] Getting bestWithPlayerCount %s", this.name(), this.bestWithPlayerCount.get()));
 		return this.bestWithPlayerCount.get();
 	}
 
 	@Override
 	public Optional<Range<String>> recommendedWithPlayerCount() {
+		LOGGER.log(Level.DEBUG, String.format("[%s] Getting recommendedWithPlayerCount %s", this.name(), this.recommendedWithPlayerCount.get()));
 		return this.recommendedWithPlayerCount.get();
 	}
 

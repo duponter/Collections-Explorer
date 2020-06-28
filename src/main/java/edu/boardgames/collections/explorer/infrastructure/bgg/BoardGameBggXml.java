@@ -4,26 +4,24 @@ import edu.boardgames.collections.explorer.domain.BoardGame;
 import edu.boardgames.collections.explorer.domain.Range;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
 import io.vavr.Lazy;
+import io.vavr.collection.Stream;
 import org.w3c.dom.Node;
 
 import java.util.Comparator;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 public class BoardGameBggXml extends XmlNode implements BoardGame {
 	private final String id;
-	private final Lazy<List<PlayerCountVotesBggXml>> playerCountVotes;
+	private final Lazy<Stream<PlayerCountVotesBggXml>> playerCountVotes;
 
 	public BoardGameBggXml(Node node) {
 		super(node);
 		this.id = id();
-		this.playerCountVotes = Lazy.of(() -> this.nodes("poll[@name='suggested_numplayers']/results")
+		this.playerCountVotes = Lazy.of(() -> Stream.ofAll(this.nodes("poll[@name='suggested_numplayers']/results")
 				.map(PlayerCountVotesBggXml::new)
-				.sorted(Comparator.comparing(PlayerCountVotesBggXml::value))
-				.collect(Collectors.toList())
+				.sorted(Comparator.comparing(PlayerCountVotesBggXml::value)))
 		);
 	}
 
@@ -49,7 +47,7 @@ public class BoardGameBggXml extends XmlNode implements BoardGame {
 
 	@Override
 	public Range<String> playerCount() {
-		return Range.of(stringValueAttribute("minplayers"), stringValueAttribute("maxplayers"));
+		return new Range<>(stringValueAttribute("minplayers"), stringValueAttribute("maxplayers"));
 	}
 
 	@Override
@@ -63,17 +61,15 @@ public class BoardGameBggXml extends XmlNode implements BoardGame {
 	}
 
 	private Optional<Range<String>> playerCountAsRange(Predicate<PlayerCountVotesBggXml> playerCountVotesBggXmlPredicate) {
-		return Range.of(
-				this.playerCountVotes.get().stream()
-						.filter(playerCountVotesBggXmlPredicate)
-						.map(PlayerCountVotesBggXml::value)
-						.collect(Collectors.toList())
-		);
+		Stream<PlayerCountVotesBggXml> votes = this.playerCountVotes.get().filter(playerCountVotesBggXmlPredicate);
+		return votes.headOption()
+				.map(head -> new Range<>(head.value(), votes.last().value()))
+				.toJavaOptional();
 	}
 
 	@Override
 	public Range<String> playtime() {
-		return Range.of(stringValueAttribute("minplaytime"), stringValueAttribute("maxplaytime"));
+		return new Range<>(stringValueAttribute("minplaytime"), stringValueAttribute("maxplaytime"));
 	}
 
 	@Override

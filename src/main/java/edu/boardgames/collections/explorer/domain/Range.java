@@ -14,30 +14,12 @@ public class Range<T extends Comparable<T>> {
 
 	public static <V extends Comparable<V>> Optional<Range<V>> of(List<V> bounds) {
 		io.vavr.collection.List<V> sorted = io.vavr.collection.List.ofAll(bounds).sorted();
-		switch (sorted.size()) {
-			case 0:
-				return Optional.empty();
-			case 1:
-				return Optional.of(Range.of(sorted.head(), sorted.head()));
-			default:
-				return Optional.of(Range.of(sorted.head(), sorted.last()));
-		}
+		return sorted.headOption()
+				.map(head -> new Range<>(head, sorted.last()))
+				.toJavaOptional();
 	}
 
-	public static <V extends Comparable<V>> Range<V> of(V lowerBound, V upperBound) {
-		if (lowerBound.equals(upperBound)) {
-			return new Range<>(lowerBound, upperBound) {
-				@Override
-				public String formatted() {
-					return StringUtils.defaultIfEmpty(lowerBound.toString(), "0");
-				}
-			};
-		} else {
-			return new Range<>(lowerBound, upperBound);
-		}
-	}
-
-	private Range(T lowerBound, T upperBound) {
+	public Range(T lowerBound, T upperBound) {
 		this.lowerBound = Objects.requireNonNull(lowerBound);
 		this.upperBound = Objects.requireNonNull(upperBound);
 	}
@@ -50,11 +32,15 @@ public class Range<T extends Comparable<T>> {
 	}
 
 	public <R extends Comparable<R>> Range<R> map(Function<T, R> mapper) {
-		return Range.of(mapper.apply(lowerBound), mapper.apply(upperBound));
+		return new Range<>(mapper.apply(lowerBound), mapper.apply(upperBound));
 	}
 
 	public String formatted() {
-		return String.format("%s-%s", lowerBound, upperBound);
+		if (lowerBound.equals(upperBound)) {
+			return StringUtils.defaultIfEmpty(lowerBound.toString(), "0");
+		} else {
+			return String.format("%s-%s", lowerBound, upperBound);
+		}
 	}
 
 	@Override

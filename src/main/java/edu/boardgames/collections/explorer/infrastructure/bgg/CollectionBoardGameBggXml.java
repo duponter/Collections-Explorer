@@ -38,7 +38,7 @@ public class CollectionBoardGameBggXml extends XmlNode implements BoardGame {
 
 	@Override
 	public Range<String> playerCount() {
-		return Range.of(string("stats/@minplayers"), string("stats/@maxplayers"));
+		return new Range<>(string("stats/@minplayers"), string("stats/@maxplayers"));
 	}
 
 	@Override
@@ -53,7 +53,7 @@ public class CollectionBoardGameBggXml extends XmlNode implements BoardGame {
 
 	@Override
 	public Range<String> playtime() {
-		return Range.of(string("stats/@minplaytime"), string("stats/@maxplaytime"));
+		return new Range<>(string("stats/@minplaytime"), string("stats/@maxplaytime"));
 	}
 
 	@Override
