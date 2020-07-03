@@ -18,9 +18,15 @@ public final class BoardGameRender {
 	static String playInfo(BoardGame boardGame) {
 		LOGGER.log(Level.DEBUG, String.format("Rendering BoardGame %s", boardGame.name()));
 		Range<String> communityPlayerCount = boardGame.bestWithPlayerCount()
-				.or(boardGame::recommendedWithPlayerCount)
-				.orElseGet(boardGame::playerCount);
+		                                              .or(boardGame::recommendedWithPlayerCount)
+		                                              .orElseGet(boardGame::playerCount);
 		return String.format("%s (%s) - %s>%sp - %s Min - %2.1f / 10 - %1.2f / 5", boardGame.name(), boardGame.year(), boardGame.playerCount().formatted(), communityPlayerCount.formatted(), boardGame.playtime().formatted(), boardGame.bggScore(), boardGame.averageWeight());
+	}
+
+	static String slimInfo(BoardGame boardGame) {
+		String formatted = String.format("%s (%s) - %2.1f / 10", boardGame.name(), boardGame.year(), boardGame.bggScore());
+		LOGGER.log(Level.DEBUG, String.format("[Render] %s", formatted));
+		return formatted;
 	}
 
 	static String playInfo(BoardGame boardGame, String owners) {

@@ -22,8 +22,4 @@ public class PlayerCountVotesBggXml extends XmlNode implements PlayerCountVotes 
 	public int voteCount() {
 		return this.number("@numvotes").intValue();
 	}
-
-	public String render() {
-		return String.format("numplayers=\"%s\"; value=\"%s\"; numvotes=%d", this.numberOfPlayers(), this.poll(), this.voteCount());
-	}
 }
