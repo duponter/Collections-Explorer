@@ -19,7 +19,15 @@ public abstract class XmlNode {
 	public static Stream<Node> nodes(Node root, String expression) {
 		XmlNode rootNode = new XmlNode(root) {
 		};
-		return rootNode.nodes(expression);
+		return rootNode.nodes(expression).map(XmlNode::detach);
+	}
+
+	private static Node detach(Node node) {
+		//https://stackoverflow.com/questions/3782618/xpath-evaluate-performance-slows-down-absurdly-over-multiple-calls
+		if (node.getParentNode() != null) {
+			node.getParentNode().removeChild(node);
+		}
+		return node;
 	}
 
 	protected XmlNode(Node node) {
