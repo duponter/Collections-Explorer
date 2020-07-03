@@ -11,17 +11,23 @@ import java.util.regex.Pattern;
 public final class NumberOfPlayers implements Comparable<NumberOfPlayers> {
 	private static final Pattern PATTERN = Pattern.compile("(\\d+)(.*)");
 
+	private final String input;
 	private final int count;
 	private final Suffix suffix;
 
 	public NumberOfPlayers(String input) {
 		Matcher matcher = PATTERN.matcher(input);
 		if (matcher.matches()) {
+			this.input = input;
 			this.count = Integer.parseInt(matcher.group(1));
 			this.suffix = Suffix.parse(matcher.group(2));
 		} else {
 			throw new IllegalArgumentException(String.format("Input [%s] is not supported as number of players", input));
 		}
+	}
+
+	public String value() {
+		return this.input;
 	}
 
 	@Override

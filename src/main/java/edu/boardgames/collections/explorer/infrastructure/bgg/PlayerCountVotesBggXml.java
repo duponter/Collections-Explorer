@@ -1,40 +1,29 @@
 package edu.boardgames.collections.explorer.infrastructure.bgg;
 
+import edu.boardgames.collections.explorer.domain.NumberOfPlayers;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
 import org.w3c.dom.Node;
 
-public class PlayerCountVotesBggXml extends XmlNode {
+public class PlayerCountVotesBggXml extends XmlNode implements PlayerCountVotes {
 	protected PlayerCountVotesBggXml(Node node) {
 		super(node);
 	}
 
-	public String value() {
-		return this.string("@numplayers");
+	@Override
+	public NumberOfPlayers numberOfPlayers() {
+		return new NumberOfPlayers(this.string("../@numplayers"));
 	}
 
-	private Integer bestVotes() {
-		return this.number("result[@value='Best']/@numvotes").intValue();
+	@Override
+	public String poll() {
+		return this.string("@value");
 	}
 
-	private Integer recommendedVotes() {
-		return this.number("result[@value='Recommended']/@numvotes").intValue();
+	public int voteCount() {
+		return this.number("@numvotes").intValue();
 	}
 
-	private Integer notRecommendedVotes() {
-		return this.number("result[@value='Not Recommended']/@numvotes").intValue();
-	}
-
-	public PlayerCountPoll poll() {
-		Integer best = this.bestVotes();
-		Integer recommended = this.recommendedVotes();
-		Integer notRecommended = this.notRecommendedVotes();
-
-		if (best >= recommended && best >= notRecommended) {
-			return PlayerCountPoll.BEST;
-		} else if (recommended >= notRecommended) {
-			return PlayerCountPoll.RECOMMENDED;
-		} else {
-			return PlayerCountPoll.NOT_RECOMMENDED;
-		}
+	public String render() {
+		return String.format("numplayers=\"%s\"; value=\"%s\"; numvotes=%d", this.numberOfPlayers(), this.poll(), this.voteCount());
 	}
 }
