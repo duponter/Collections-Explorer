@@ -1,11 +1,5 @@
 package edu.boardgames.collections.explorer.domain;
 
-import java.util.List;
-
-public interface GeekList {
+public interface GeekList extends BoardGameCollection {
 	String id();
-
-	String name();
-
-	List<BoardGame> boardGames();
 }

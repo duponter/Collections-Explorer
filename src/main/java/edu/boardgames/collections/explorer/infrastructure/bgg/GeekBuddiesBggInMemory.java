@@ -7,6 +7,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/*
+GeekBuddy groups:
+borrowed - geeklist - 274761 - Borrowed Board Games
+
+fmlimited
+bareelstraat
+sirplayalot
+mine: duponter + borrowed
+ */
 public class GeekBuddiesBggInMemory implements GeekBuddies {
 	@Override
 	public List<GeekBuddy> all() {

@@ -3,18 +3,19 @@ package edu.boardgames.collections.explorer.infrastructure.cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import edu.boardgames.collections.explorer.domain.BoardGameCollection;
-import edu.boardgames.collections.explorer.domain.BoardGameCollections;
 import edu.boardgames.collections.explorer.domain.GeekBuddy;
+import edu.boardgames.collections.explorer.domain.GeekBuddyCollection;
+import edu.boardgames.collections.explorer.domain.GeekBuddyCollections;
 
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 
-public class CollectionsCache implements BoardGameCollections {
+public class GeekBuddyCollectionsCache implements GeekBuddyCollections {
 	private final LoadingCache<GeekBuddy, BoardGameCollection> ownedCollections;
 	private final LoadingCache<GeekBuddy, BoardGameCollection> wantToPlayCollections;
 
-	public CollectionsCache(BoardGameCollections delegate) {
+	public GeekBuddyCollectionsCache(GeekBuddyCollections delegate) {
 		Objects.requireNonNull(delegate);
 		this.ownedCollections = Caffeine.newBuilder()
 				.refreshAfterWrite(Duration.ofMinutes(5))
@@ -35,6 +36,6 @@ public class CollectionsCache implements BoardGameCollections {
 	}
 
 	private BoardGameCollection emptyCollection(GeekBuddy geekBuddy) {
-		return new BoardGameCollection(geekBuddy, List.of());
+		return new GeekBuddyCollection(geekBuddy, List.of());
 	}
 }

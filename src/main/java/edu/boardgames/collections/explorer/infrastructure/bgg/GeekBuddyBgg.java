@@ -28,12 +28,12 @@ public class GeekBuddyBgg implements GeekBuddy {
 
 	@Override
 	public List<BoardGame> ownedCollection() {
-		return BggInit.get().collections().owned(this).boardGames();
+		return BggInit.get().geekBuddyCollections().owned(this).boardGames();
 	}
 
 	@Override
 	public List<BoardGame> wantToPlayCollection() {
-		return BggInit.get().collections().wantToPlay(this).boardGames();
+		return BggInit.get().geekBuddyCollections().wantToPlay(this).boardGames();
 	}
 
 	@Override
