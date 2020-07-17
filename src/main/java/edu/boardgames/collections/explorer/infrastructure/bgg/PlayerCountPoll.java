@@ -21,9 +21,9 @@ public class PlayerCountPoll {
 	}
 
 	public PlayerCountPollChoice result() {
-		if (bestVotes >= recommendedVotes && bestVotes >= notRecommendedVotes) {
+		if (bestVotes >= 5 && bestVotes >= recommendedVotes && bestVotes >= notRecommendedVotes) {
 			return PlayerCountPollChoice.BEST;
-		} else if (recommendedVotes >= notRecommendedVotes) {
+		} else if (recommendedVotes >= 5 && recommendedVotes >= notRecommendedVotes) {
 			return PlayerCountPollChoice.RECOMMENDED;
 		} else {
 			return PlayerCountPollChoice.NOT_RECOMMENDED;
