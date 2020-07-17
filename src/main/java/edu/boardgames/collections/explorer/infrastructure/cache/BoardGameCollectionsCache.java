@@ -20,8 +20,8 @@ public class BoardGameCollectionsCache implements BoardGameCollections {
 		geekLists.all().forEach(geekList -> collections.put(geekList.id(), new LazyBoardGameCollection(geekList.id(), geekList.name(), Lazy.of(geekList::boardGames))));
 
 		collections.put("mine", this.asGroup("mine", "duponter", "274761"));
-		collections.put("bareelstraat", this.asGroup("bareelstraat", "duponter", "WouterAerts", "jarrebesetoert"));
-		collections.put("fmlimited", this.asGroup("fmlimited", "duponter", "bartie", "de rode baron", "Edou", "evildee", "Svennos", "TurtleR6"));
+		collections.put("bareelstraat", this.asGroup("bareelstraat", "mine", "WouterAerts", "jarrebesetoert"));
+		collections.put("fmlimited", this.asGroup("fmlimited", "mine", "bartie", "de rode baron", "Edou", "evildee", "Svennos", "TurtleR6"));
 		collections.put("sirplayalot", this.asGroup("sirplayalot", "wallofshame", "leys"));
 		collections.put("forum", this.asGroup("forum", "ForumMortsel", "FFED"));
 	}
