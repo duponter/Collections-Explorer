@@ -1,7 +1,9 @@
 package edu.boardgames.collections.explorer.domain;
 
 public interface BoardGameCollections {
-	BoardGameCollection owned(GeekBuddy geekBuddy);
+	BoardGameCollection all();
 
-	BoardGameCollection wantToPlay(GeekBuddy geekBuddy);
+	BoardGameCollection one(String name);
+
+	BoardGameCollection withNames(String... names);
 }

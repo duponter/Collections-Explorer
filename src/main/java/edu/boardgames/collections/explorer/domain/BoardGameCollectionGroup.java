@@ -16,6 +16,11 @@ public final class BoardGameCollectionGroup implements BoardGameCollection {
 	}
 
 	@Override
+	public String id() {
+		return String.format("GROUP[%s]", name);
+	}
+
+	@Override
 	public String name() {
 		return name;
 	}
@@ -24,6 +29,14 @@ public final class BoardGameCollectionGroup implements BoardGameCollection {
 	public List<BoardGame> boardGames() {
 		return Arrays.stream(this.groupedCollections)
 		             .map(BoardGameCollection::boardGames)
+		             .flatMap(Collection::stream)
+		             .collect(Collectors.toList());
+	}
+
+	@Override
+	public List<Copy> boardGameCopies() {
+		return Arrays.stream(this.groupedCollections)
+		             .map(BoardGameCollection::boardGameCopies)
 		             .flatMap(Collection::stream)
 		             .collect(Collectors.toList());
 	}

@@ -13,6 +13,11 @@ public final class GeekBuddyCollection implements BoardGameCollection {
 	}
 
 	@Override
+	public String id() {
+		return owner.username();
+	}
+
+	@Override
 	public String name() {
 		return owner.name();
 	}

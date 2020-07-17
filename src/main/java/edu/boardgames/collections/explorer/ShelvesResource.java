@@ -1,9 +1,11 @@
 package edu.boardgames.collections.explorer;
 
 import edu.boardgames.collections.explorer.domain.BoardGame;
+import edu.boardgames.collections.explorer.domain.BoardGameCollection;
 import edu.boardgames.collections.explorer.domain.BoardGameGeek;
 import edu.boardgames.collections.explorer.domain.Copy;
 import edu.boardgames.collections.explorer.domain.GeekBuddy;
+import edu.boardgames.collections.explorer.domain.GeekBuddyCollection;
 import edu.boardgames.collections.explorer.domain.PlayerCount;
 import edu.boardgames.collections.explorer.infrastructure.Async;
 import edu.boardgames.collections.explorer.infrastructure.bgg.BggInit;
@@ -39,10 +41,29 @@ public class ShelvesResource {
 		LOGGER.log(Level.INFO, String.format("Search collections of %s to play a best with %s game", Arrays.toString(usernames), bestWith));
 		String collections = streamOwnedBoardGames(BggInit.get().geekBuddies().withUsername(usernames))
 				.filter(copy -> bestWithFilter.test(copy.boardGame()))
-				.map(copy -> BoardGameRender.playInfo(copy.boardGame(), copy.owner().name()))
+				.map(copy -> BoardGameRender.playInfo(copy.boardGame(), copy.collection().name()))
 				.sorted()
 				.collect(Collectors.joining("\n"));
 		return String.format("Search collections of %s to play a best with %d game%n%n%s", Arrays.toString(usernames), bestWith, collections);
+	}
+
+	@GET
+	@Path("/current")
+	@Produces(MediaType.TEXT_PLAIN)
+	public String current(@QueryParam("collections") String collections, @QueryParam("bestWith") Integer bestWith) {
+		String[] collectionNames = StringUtils.split(collections, ",");
+		Predicate<BoardGame> bestWithFilter = bestWith != null ? new PlayerCount(bestWith)::bestOnly : bg -> true;
+		LOGGER.log(Level.INFO, String.format("Search currently playable collections of %s to play a best with %s game", Arrays.toString(collectionNames), bestWith));
+
+		BoardGameCollection playableCollection = BggInit.get()
+		                                                 .collections()
+		                                                 .withNames(collectionNames);
+		String boardGames = playableCollection.boardGameCopies().stream()
+				.filter(copy -> bestWithFilter.test(copy.boardGame()))
+				.map(copy -> BoardGameRender.playInfo(copy.boardGame(), copy.collection().name()))
+				.sorted()
+				.collect(Collectors.joining("\n"));
+		return String.format("Search collections of %s to play a best with %d game%n%n%s", Arrays.toString(collectionNames), bestWith, boardGames);
 	}
 
 	@GET
@@ -78,7 +99,7 @@ public class ShelvesResource {
 	}
 
 	private Map<BoardGame, String> fetchAvailableCollections(List<GeekBuddy> all) {
-		return streamOwnedBoardGames(all).collect(Collectors.groupingBy(Copy::boardGame, Collectors.mapping(Copy::owner, Collectors.mapping(GeekBuddy::name, Collectors.joining(", ")))));
+		return streamOwnedBoardGames(all).collect(Collectors.groupingBy(Copy::boardGame, Collectors.mapping(Copy::collection, Collectors.mapping(BoardGameCollection::name, Collectors.joining(", ")))));
 	}
 
 	private Stream<Copy> streamOwnedBoardGames(List<GeekBuddy> geekBuddies) {
@@ -87,7 +108,7 @@ public class ShelvesResource {
 			List<BoardGame> ownedCollection = geekBuddy.ownedCollection();
 			LOGGER.log(Level.DEBUG, String.format("Size owned collection %s: %d", geekBuddy.name(), ownedCollection.size()));
 			mergedCollectionsSize.updateAndGet(prev -> prev += ownedCollection.size());
-			return Copy.from(geekBuddy, ownedCollection);
+			return new GeekBuddyCollection(geekBuddy, ownedCollection).boardGameCopies();
 		};
 		Stream<Copy> copies = Async.map(geekBuddies.stream(), owned).flatMap(List::stream);
 		LOGGER.log(Level.INFO, String.format("All owned collections merged: %d", mergedCollectionsSize.get()));
@@ -108,8 +129,7 @@ public class ShelvesResource {
 //				.collect(Collectors.groupingBy(Copy::boardGame, Collectors.mapping(Copy::owner, Collectors.mapping(GeekBuddy::name, Collectors.joining(", ")))))
 //				.entrySet().stream()
 //				.map(entry -> BoardGameRender.playInfo(entry.getKey(), entry.getValue()))
-				.map(copy -> BoardGameRender.playInfo(copy.boardGame(), copy.owner()
-				                                                            .name()))
+				.map(copy -> BoardGameRender.playInfo(copy.boardGame(), copy.collection().name()))
 				.sorted()
 				.collect(Collectors.joining("\n"));
 		return String.format("Search collections of all geekbuddies for game %s%n%n%s", boardGameId, copies);

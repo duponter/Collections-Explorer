@@ -10,7 +10,7 @@ import edu.boardgames.collections.explorer.domain.GeekLists;
 public class BoardGameGeekApi implements BoardGameGeek {
 	@Override
 	public BoardGameCollections collections() {
-		return null;
+		throw new UnsupportedOperationException("BoardGameGeekApi.collections");
 	}
 
 	@Override

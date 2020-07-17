@@ -18,11 +18,11 @@ public class BoardGameGeekCache implements BoardGameGeek {
 
 	public BoardGameGeekCache(BoardGameGeek delegate) {
 		Objects.requireNonNull(delegate);
-		this.collections = delegate.collections();
 		this.geekBuddyCollections = new GeekBuddyCollectionsCache(delegate.geekBuddyCollections());
 		this.geekBuddies = delegate.geekBuddies();
 		this.boardGames = new BoardGamesCache(delegate.boardGames());
 		this.geekLists = new GeekListsCache(delegate.geekLists());
+		this.collections = new BoardGameCollectionsCache(this.geekBuddies, this.geekLists);
 	}
 
 	@Override
