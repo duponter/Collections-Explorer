@@ -1,6 +1,8 @@
 package edu.boardgames.collections.explorer;
 
+import edu.boardgames.collections.explorer.domain.Play;
 import edu.boardgames.collections.explorer.infrastructure.bgg.BggInit;
+import edu.boardgames.collections.explorer.infrastructure.bgg.PlayBggXml;
 import edu.boardgames.collections.explorer.infrastructure.bgg.PlaysRequest;
 import edu.boardgames.collections.explorer.infrastructure.bgg.ThingRequest;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlInput;
@@ -12,7 +14,15 @@ import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
+import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.ws.rs.GET;
@@ -62,13 +72,50 @@ public class PlayInfoResource {
 		                         .asInputStreams()
 		                         .map(new XmlInput()::read)
 		                         .flatMap(root -> XmlNode.nodes(root, "//play"))
-		                         .map(node -> new XmlNode(node) {
-			                         public String render() {
-				                         return String.format("Id: %s - Date: %s - Location: %s", this.string("@id"), this.string("@date"), this.string("@location"));
-			                         }
-		                         })
-		                         .map(xmlNode -> xmlNode.render())
-		                         .sorted()
+		                         .map(PlayBggXml::new)
+		                         .collect(Collectors.groupingBy(Play::boardGameId, new PlayStatsCollector()))
+		                         .entrySet().stream()
+		                         .map(play -> String.format("Game: %s - Last: %s - Times: %d", play.getKey(), play.getValue().lastPlayed, play.getValue().timesPlayed))
 		                         .collect(Collectors.joining(System.lineSeparator()));
+	}
+
+	private static class PlayStats {
+		private LocalDate lastPlayed;
+		private int timesPlayed;
+	}
+
+	private static class PlayStatsCollector implements Collector<Play, PlayStats, PlayStats> {
+		@Override
+		public Supplier<PlayStats> supplier() {
+			return PlayStats::new;
+		}
+
+		@Override
+		public BiConsumer<PlayStats, Play> accumulator() {
+			return (stats, play) -> processNext(stats, play.date(), play.quantity());
+		}
+
+		@Override
+		public BinaryOperator<PlayStats> combiner() {
+			return (current, other) -> processNext(current, other.lastPlayed, other.timesPlayed);
+		}
+
+		private PlayStats processNext(PlayStats stats, LocalDate lastPlayed, int timesPlayed) {
+			stats.timesPlayed += timesPlayed;
+			if (stats.lastPlayed == null || lastPlayed.isAfter(stats.lastPlayed)) {
+				stats.lastPlayed = lastPlayed;
+			}
+			return stats;
+		}
+
+		@Override
+		public Function<PlayStats, PlayStats> finisher() {
+			return Function.identity();
+		}
+
+		@Override
+		public Set<Characteristics> characteristics() {
+			return EnumSet.of(Collector.Characteristics.IDENTITY_FINISH);
+		}
 	}
 }

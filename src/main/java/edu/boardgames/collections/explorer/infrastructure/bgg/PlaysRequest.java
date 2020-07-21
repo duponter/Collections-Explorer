@@ -3,6 +3,7 @@ package edu.boardgames.collections.explorer.infrastructure.bgg;
 import edu.boardgames.collections.explorer.infrastructure.Async;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlInput;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
+import org.w3c.dom.Node;
 
 import java.io.InputStream;
 import java.lang.System.Logger;
@@ -80,18 +81,23 @@ public class PlaysRequest extends BggRequest<PlaysRequest> {
 			LOGGER.log(Level.DEBUG, "No page defined, fetching total number of plays", this.page);
 			Integer total = XmlNode.nodes(new XmlInput().read(this.superAsInputStream()), "/plays")
 			                         .findFirst()
-			                         .map(node -> new XmlNode(node) {
-				                         public int total() {
-					                         return super.number("@total")
-					                                     .intValue();
-				                         }
-			                         })
-			                         .map(xmlNode -> xmlNode.total())
+			                         .map(TotalPlaysBggXml::new)
+			                         .map(TotalPlaysBggXml::total)
 			                         .orElse(0);
 			int pages = (total / 100) + 1;
 			LOGGER.log(Level.DEBUG, "Performing {0, number, integer} paged requests to fetch {1, number, integer} plays", pages, total);
 			return IntStream.rangeClosed(1, pages)
 					.mapToObj(page -> this.copy(PlaysRequest::new).page(page));
+		}
+	}
+
+	private static class TotalPlaysBggXml extends XmlNode {
+		TotalPlaysBggXml(Node node) {
+			super(node);
+		}
+
+		public int total() {
+			return super.number("@total").intValue();
 		}
 	}
 }
