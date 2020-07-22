@@ -14,9 +14,9 @@
 
         <surefire-plugin.version>2.22.2</surefire-plugin.version>
 
-        <quarkus.version>1.6.0.Final</quarkus.version>
+        <quarkus.version>1.6.1.Final</quarkus.version>
         <failsafe.version>2.4.0</failsafe.version>
-        <commons-lang3.version>3.10</commons-lang3.version>
+        <commons-lang3.version>3.11</commons-lang3.version>
         <vavr.version>0.10.3</vavr.version>
         <caffeine.version>2.8.5</caffeine.version>
 
