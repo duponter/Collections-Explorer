@@ -32,7 +32,7 @@ public class ShelvesResource {
 	@Produces(MediaType.TEXT_PLAIN)
 	public String current(@QueryParam("collections") String collections, @QueryParam("bestWith") Integer bestWith) {
 		String[] collectionNames = StringUtils.split(collections, ",");
-		LOGGER.log(Level.INFO, String.format("Search currently playable collections %s to play a best with %s game", Arrays.toString(collectionNames), ObjectUtils.defaultIfNull(bestWith, "n/a")));
+		LOGGER.log(Level.INFO, "Search currently playable collections {0} to play a best with {1} game", Arrays.toString(collectionNames), ObjectUtils.defaultIfNull(bestWith, "n/a"));
 		String boardGames = displayMultiLineString(
 				BggInit.get().collections().withNames(collectionNames),
 				toCopyFilter(bestWithFilter(bestWith))
@@ -44,10 +44,10 @@ public class ShelvesResource {
 	@Path("/wanttoplay/{geekbuddy}")
 	@Produces(MediaType.TEXT_PLAIN)
 	public String wantToPlay(@PathParam("geekbuddy") String geekbuddy, @QueryParam("bestWith") Integer bestWith) {
-		LOGGER.log(Level.INFO, String.format("Search collections of all geekbuddies for %s's want-to-play best with %s games", geekbuddy, bestWith));
+		LOGGER.log(Level.INFO, "Search collections of all geekbuddies for {0}'s want-to-play best with {1,number,integer} games", geekbuddy, bestWith);
 
 		List<BoardGame> wantToPlay = BggInit.get().geekBuddies().one(geekbuddy).wantToPlayCollection();
-		LOGGER.log(Level.INFO, String.format("Collection fetched: %s wants to play %d boardgames.", geekbuddy, wantToPlay.size()));
+		LOGGER.log(Level.INFO, "Collection fetched: {0} wants to play %d boardgames.", geekbuddy, wantToPlay.size());
 
 		String copies = displayMultiLineString(
 				BggInit.get().collections().all(),
@@ -67,7 +67,7 @@ public class ShelvesResource {
 		}
 
 		String boardGameName = boardGames.stream().findFirst().map(BoardGame::name).orElseThrow();
-		LOGGER.log(Level.INFO, String.format("Searching all collections for game %s", boardGameName));
+		LOGGER.log(Level.INFO, "Searching all collections for game {0}", boardGameName);
 		String copies = displayMultiLineString(
 				BggInit.get().collections().all(),
 				copy -> StringUtils.equals(copy.boardGame().id(), boardGameId)
