@@ -37,6 +37,11 @@ public class GeekBuddyBgg implements GeekBuddy {
 	}
 
 	@Override
+	public List<BoardGame> ratedCollection(int minrating) {
+		return BggInit.get().geekBuddyCollections().minimallyRated(this, minrating).boardGames();
+	}
+
+	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;

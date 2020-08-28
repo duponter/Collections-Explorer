@@ -3,6 +3,7 @@ package edu.boardgames.collections.explorer;
 import edu.boardgames.collections.explorer.domain.BoardGame;
 import edu.boardgames.collections.explorer.domain.BoardGameCollection;
 import edu.boardgames.collections.explorer.domain.Copy;
+import edu.boardgames.collections.explorer.domain.GeekBuddy;
 import edu.boardgames.collections.explorer.domain.PlayerCount;
 import edu.boardgames.collections.explorer.infrastructure.bgg.BggInit;
 import org.apache.commons.lang3.ObjectUtils;
@@ -43,11 +44,17 @@ public class ShelvesResource {
 	@GET
 	@Path("/wanttoplay/{geekbuddy}")
 	@Produces(MediaType.TEXT_PLAIN)
-	public String wantToPlay(@PathParam("geekbuddy") String geekbuddy, @QueryParam("bestWith") Integer bestWith) {
+	public String wantToPlay(@PathParam("geekbuddy") String geekbuddy, @QueryParam("bestWith") Integer bestWith, @QueryParam("includeRated") Integer includeRated) {
 		LOGGER.log(Level.INFO, "Search collections of all geekbuddies for {0}'s want-to-play best with {1,number,integer} games", geekbuddy, bestWith);
 
-		List<BoardGame> wantToPlay = BggInit.get().geekBuddies().one(geekbuddy).wantToPlayCollection();
-		LOGGER.log(Level.INFO, "Collection fetched: {0} wants to play %d boardgames.", geekbuddy, wantToPlay.size());
+		GeekBuddy buddy = BggInit.get().geekBuddies().one(geekbuddy);
+		List<BoardGame> wantToPlay = buddy.wantToPlayCollection();
+		LOGGER.log(Level.INFO, "Collection fetched: {0} wants to play {1,number,integer} boardgames.", geekbuddy, wantToPlay.size());
+		if (includeRated != null) {
+			List<BoardGame> rated = buddy.ratedCollection(includeRated);
+			LOGGER.log(Level.INFO, "Collection fetched: {0} rated {1,number,integer} boardgames {1,number,integer} or more.", geekbuddy, rated.size(), includeRated);
+			wantToPlay = Stream.concat(wantToPlay.stream(), rated.stream()).collect(Collectors.toList());
+		}
 
 		String copies = displayMultiLineString(
 				BggInit.get().collections().all(),
@@ -55,6 +62,20 @@ public class ShelvesResource {
 		);
 		LOGGER.log(Level.INFO, "All owned collections matched against want to play collection");
 		return String.format("Search collections of all geekbuddies for %s's want-to-play best with %d games%n%n%s", geekbuddy, bestWith, copies);
+	}
+
+	@GET
+	@Path("/wanttoreplay/{geekbuddy}")
+	@Produces(MediaType.TEXT_PLAIN)
+	public String wantToReplay(@PathParam("geekbuddy") String geekbuddy, @QueryParam("bestWith") Integer bestWith, @QueryParam("minimallyRated") Integer minimallyRated) {
+		LOGGER.log(Level.INFO, "{0} wants to replay best with {1,number,integer} games minimally rated {2,number,integer}", geekbuddy, bestWith, minimallyRated);
+
+		GeekBuddy buddy = BggInit.get().geekBuddies().one(geekbuddy);
+			List<BoardGame> rated = buddy.ratedCollection(minimallyRated);
+			LOGGER.log(Level.INFO, "Collection fetched: {0} rated {1,number,integer} boardgames {1,number,integer} or more.", geekbuddy, rated.size(), minimallyRated);
+
+		String copies = rated.stream().map(BoardGameRender::playInfo).collect(Collectors.joining("\n"));
+		return String.format("Show replay options for %s's want-to-play best with %d games rated at least %d%n%n%s", geekbuddy, bestWith, minimallyRated, copies);
 	}
 
 	@GET

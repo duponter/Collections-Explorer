@@ -10,4 +10,6 @@ public interface GeekBuddy {
 	List<BoardGame> ownedCollection();
 
 	List<BoardGame> wantToPlayCollection();
+
+	List<BoardGame> ratedCollection(int rating);
 }

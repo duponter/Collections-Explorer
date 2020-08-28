@@ -20,7 +20,32 @@ public class BggGeekBuddyCollections implements GeekBuddyCollections {
 
 	@Override
 	public BoardGameCollection wantToPlay(GeekBuddy geekBuddy) {
-		return new GeekBuddyCollection(geekBuddy, fromInputStream(new CollectionRequest(geekBuddy.username()).wantToPlay().abbreviatedResults().withoutExpansions().asInputStream()));
+		return this.requestCollection(geekBuddy, CollectionRequest::wantToPlay);
+	}
+
+	@Override
+	public BoardGameCollection minimallyRated(GeekBuddy geekBuddy, int minrating) {
+		return this.requestCollection(geekBuddy, request -> request.minimallyRated(minrating));
+	}
+
+	public BoardGameCollection wantInTrade(GeekBuddy geekBuddy) {
+		return this.requestCollection(geekBuddy, UnaryOperator.identity());
+	}
+
+	public BoardGameCollection wantToBuy(GeekBuddy geekBuddy) {
+		return this.requestCollection(geekBuddy, UnaryOperator.identity());
+	}
+
+	public BoardGameCollection previouslyOwned(GeekBuddy geekBuddy) {
+		return this.requestCollection(geekBuddy, UnaryOperator.identity());
+	}
+
+	public BoardGameCollection wishlist(GeekBuddy geekBuddy) {
+		return this.requestCollection(geekBuddy, UnaryOperator.identity());
+	}
+
+	public BoardGameCollection rated(GeekBuddy geekBuddy) {
+		return this.requestCollection(geekBuddy, UnaryOperator.identity());
 	}
 
 	private static List<BoardGame> fromInputStream(InputStream inputStream) {

@@ -1,5 +1,7 @@
 package edu.boardgames.collections.explorer.infrastructure.bgg;
 
+import org.apache.commons.lang3.Validate;
+
 import java.net.http.HttpClient;
 import java.util.function.Supplier;
 
@@ -42,5 +44,10 @@ public class CollectionRequest extends BggRequest<CollectionRequest> {
 
 	public CollectionRequest withoutExpansions() {
 		return this.addOption("excludesubtype", "boardgameexpansion");
+	}
+
+	public CollectionRequest minimallyRated(int minrating) {
+		Validate.inclusiveBetween(1, 10, minrating);
+		return this.addOption("minrating", Integer.toString(minrating));
 	}
 }
