@@ -1,7 +1,7 @@
 package edu.boardgames.collections.explorer.infrastructure.bgg;
 
-import edu.boardgames.collections.explorer.domain.BoardGame;
 import edu.boardgames.collections.explorer.domain.BoardGameCollection;
+import edu.boardgames.collections.explorer.domain.BoardGames;
 import edu.boardgames.collections.explorer.domain.GeekBuddy;
 import edu.boardgames.collections.explorer.domain.GeekBuddyCollection;
 import edu.boardgames.collections.explorer.domain.GeekBuddyCollections;
@@ -9,13 +9,18 @@ import edu.boardgames.collections.explorer.infrastructure.xml.XmlInput;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
 import org.w3c.dom.Node;
 
-import java.io.InputStream;
-import java.util.List;
+import java.util.function.UnaryOperator;
 
 public class BggGeekBuddyCollections implements GeekBuddyCollections {
+	private final BoardGames boardGames;
+
+	BggGeekBuddyCollections(BoardGames boardGames) {
+		this.boardGames = boardGames;
+	}
+
 	@Override
 	public BoardGameCollection owned(GeekBuddy geekBuddy) {
-		return new GeekBuddyCollection(geekBuddy, fromInputStream(new CollectionRequest(geekBuddy.username()).owned().abbreviatedResults().withoutExpansions().asInputStream()));
+		return this.requestCollection(geekBuddy, CollectionRequest::owned);
 	}
 
 	@Override
@@ -48,9 +53,19 @@ public class BggGeekBuddyCollections implements GeekBuddyCollections {
 		return this.requestCollection(geekBuddy, UnaryOperator.identity());
 	}
 
-	private static List<BoardGame> fromInputStream(InputStream inputStream) {
-		return BggInit.get().boardGames().withIds(
-				XmlNode.nodes(new XmlInput().read(inputStream), "//item/@objectid").map(Node::getTextContent)
+	public BoardGameCollection played(GeekBuddy geekBuddy) {
+		//TODO_EDU with play stats?
+		return this.requestCollection(geekBuddy, UnaryOperator.identity());
+	}
+
+	public BoardGameCollection preordered(GeekBuddy geekBuddy) {
+		return this.requestCollection(geekBuddy, UnaryOperator.identity());
+	}
+
+	private BoardGameCollection requestCollection(GeekBuddy geekBuddy, UnaryOperator<CollectionRequest> processor) {
+		CollectionRequest collectionRequest = processor.apply(new CollectionRequest(geekBuddy.username()).abbreviatedResults().withoutExpansions());
+		return new GeekBuddyCollection(geekBuddy,
+				boardGames.withIds(XmlNode.nodes(new XmlInput().read(collectionRequest.asInputStream()), "//item/@objectid").map(Node::getTextContent))
 		);
 	}
 }

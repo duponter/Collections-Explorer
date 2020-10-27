@@ -15,7 +15,7 @@ public class BoardGameGeekApi implements BoardGameGeek {
 
 	@Override
 	public GeekBuddyCollections geekBuddyCollections() {
-		return new BggGeekBuddyCollections();
+		return new BggGeekBuddyCollections(this.boardGames());
 	}
 
 	@Override
