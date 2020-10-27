@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+//TODO_EDU CacheWriter? https://github.com/ben-manes/caffeine/issues/274
 public class BoardGamesCache implements BoardGames {
 	private final LoadingCache<String, BoardGame> cache;
 

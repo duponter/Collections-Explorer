@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Avatar, Table } from 'antd';
 
+// https://medium.com/javascript-in-plain-english/how-to-create-a-custom-react-hook-to-fetch-and-cache-data-a625d251d3ba
 class BoardGameOverview extends React.Component {
 
     render() {
