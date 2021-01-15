@@ -20,6 +20,18 @@ public class PlayerCountPoll {
 		this.notRecommendedVotes = sorted.tail().head().voteCount();
 	}
 
+	public int bestVotes() {
+		return bestVotes;
+	}
+
+	public int recommendedVotes() {
+		return recommendedVotes;
+	}
+
+	public int notRecommendedVotes() {
+		return notRecommendedVotes;
+	}
+
 	public PlayerCountPollChoice result() {
 		if (bestVotes >= 5 && bestVotes >= recommendedVotes && bestVotes >= notRecommendedVotes) {
 			return PlayerCountPollChoice.BEST;

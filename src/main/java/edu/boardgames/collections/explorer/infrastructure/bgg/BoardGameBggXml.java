@@ -10,9 +10,11 @@ import io.vavr.collection.Set;
 import io.vavr.collection.Stream;
 import org.w3c.dom.Node;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class BoardGameBggXml extends XmlNode implements BoardGame {
 	private final String id;
@@ -53,6 +55,16 @@ public class BoardGameBggXml extends XmlNode implements BoardGame {
 	@Override
 	public Range<String> playerCount() {
 		return new Range<>(stringValueAttribute("minplayers"), stringValueAttribute("maxplayers"));
+	}
+
+	@Override
+	public Integer playerCountTotalVoteCount() {
+		return number("poll[@name='suggested_numplayers']/@totalvotes").intValue();
+	}
+
+	@Override
+	public Optional<PlayerCountPoll> playerCountVotes(int playerCount) {
+		return this.playerCountVotes.get().get(new NumberOfPlayers(String.valueOf(playerCount))).toJavaOptional();
 	}
 
 	@Override

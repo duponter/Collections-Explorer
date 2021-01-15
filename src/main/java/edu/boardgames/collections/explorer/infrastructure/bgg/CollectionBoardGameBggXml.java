@@ -5,6 +5,7 @@ import edu.boardgames.collections.explorer.domain.Range;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
 import org.w3c.dom.Node;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -39,6 +40,16 @@ public class CollectionBoardGameBggXml extends XmlNode implements BoardGame {
 	@Override
 	public Range<String> playerCount() {
 		return new Range<>(string("stats/@minplayers"), string("stats/@maxplayers"));
+	}
+
+	@Override
+	public Integer playerCountTotalVoteCount() {
+		return null;
+	}
+
+	@Override
+	public Optional<PlayerCountPoll> playerCountVotes(int playerCount) {
+		return Optional.empty();
 	}
 
 	@Override

@@ -1,13 +1,16 @@
 package edu.boardgames.collections.explorer.infrastructure.cache;
 
-import edu.boardgames.collections.explorer.domain.BoardGame;
-import edu.boardgames.collections.explorer.domain.Range;
-import io.vavr.Lazy;
-
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import edu.boardgames.collections.explorer.domain.BoardGame;
+import edu.boardgames.collections.explorer.domain.Range;
+import edu.boardgames.collections.explorer.infrastructure.bgg.PlayerCountPoll;
+import io.vavr.Lazy;
+
 public class LazyBoardGame implements BoardGame {
+	private final BoardGame delegate;
 	private final Lazy<String> id;
 	private final Lazy<String> name;
 	private final Lazy<String> year;
@@ -19,6 +22,7 @@ public class LazyBoardGame implements BoardGame {
 	private final Lazy<Double> averageWeight;
 
 	protected LazyBoardGame(BoardGame delegate) {
+		this.delegate = delegate;
 		this.id = Lazy.of(delegate::id);
 		this.name = Lazy.of(delegate::name);
 		this.year = Lazy.of(delegate::year);
@@ -53,6 +57,16 @@ public class LazyBoardGame implements BoardGame {
 	@Override
 	public Range<String> playerCount() {
 		return this.playerCount.get();
+	}
+
+	@Override
+	public Integer playerCountTotalVoteCount() {
+		return this.delegate.playerCountTotalVoteCount();
+	}
+
+	@Override
+	public Optional<PlayerCountPoll> playerCountVotes(int playerCount) {
+		return this.delegate.playerCountVotes(playerCount);
 	}
 
 	@Override

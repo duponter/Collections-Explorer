@@ -2,6 +2,8 @@ package edu.boardgames.collections.explorer.domain;
 
 import java.util.Optional;
 
+import edu.boardgames.collections.explorer.infrastructure.bgg.PlayerCountPoll;
+
 public interface BoardGame {
 	String id();
 
@@ -12,6 +14,10 @@ public interface BoardGame {
 	Double bggScore();
 
 	Range<String> playerCount();
+
+	Integer playerCountTotalVoteCount();
+
+	Optional<PlayerCountPoll> playerCountVotes(int playerCount);
 
 	Optional<Range<String>> bestWithPlayerCount();
 
