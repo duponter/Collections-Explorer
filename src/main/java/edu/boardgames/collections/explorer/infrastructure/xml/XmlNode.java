@@ -12,6 +12,8 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import org.apache.commons.lang3.BooleanUtils;
+
 public abstract class XmlNode {
 	private final XPath xpath = XPathFactory.newInstance().newXPath();
 	private final Node node;
@@ -48,6 +50,10 @@ public abstract class XmlNode {
 
 	protected Number number(String expression) {
 		return (Number) this.data(expression, XPathConstants.NUMBER);
+	}
+
+	protected boolean toBoolean(String expression) {
+		return BooleanUtils.toBoolean(number(expression).intValue());
 	}
 
 	protected Stream<Node> nodes(String expression) {

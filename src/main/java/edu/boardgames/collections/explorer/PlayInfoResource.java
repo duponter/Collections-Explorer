@@ -8,6 +8,7 @@ import edu.boardgames.collections.explorer.infrastructure.bgg.ThingRequest;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlInput;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.io.IOException;
 import java.lang.System.Logger;
@@ -63,6 +64,19 @@ public class PlayInfoResource {
 			    .map(BoardGameRender::playInfo)
 			    .collect(Collectors.joining(System.lineSeparator()));
     }
+
+	@GET
+	@Path("/plays/{username}/mksolo")
+	@Produces(MediaType.TEXT_PLAIN)
+	public String mageKnightSoloPlays(@PathParam("username") String username) {
+		return new PlaysRequest().username(username).id("248562")
+				.asInputStreams()
+				.map(new XmlInput()::read)
+				.flatMap(root -> XmlNode.nodes(root, "//play"))
+				.map(PlayBggXml::new)
+				.map(ToStringBuilder::reflectionToString)
+				.collect(Collectors.joining(System.lineSeparator()));
+	}
 
 	@GET
 	@Path("/plays/{username}")

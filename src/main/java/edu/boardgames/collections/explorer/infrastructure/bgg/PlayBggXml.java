@@ -1,12 +1,14 @@
 package edu.boardgames.collections.explorer.infrastructure.bgg;
 
-import edu.boardgames.collections.explorer.domain.Play;
-import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
-import org.apache.commons.lang3.BooleanUtils;
-import org.w3c.dom.Node;
-
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
+
+import edu.boardgames.collections.explorer.domain.Play;
+import edu.boardgames.collections.explorer.domain.Player;
+import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
+import org.w3c.dom.Node;
 
 public class PlayBggXml extends XmlNode implements Play {
 	private final String id;
@@ -32,8 +34,13 @@ public class PlayBggXml extends XmlNode implements Play {
 	}
 
 	@Override
+	public int length() {
+		return number("@length").intValue();
+	}
+
+	@Override
 	public boolean incomplete() {
-		return BooleanUtils.toBoolean(number("@incomplete").intValue());
+		return toBoolean("@incomplete");
 	}
 
 	@Override
@@ -44,6 +51,16 @@ public class PlayBggXml extends XmlNode implements Play {
 	@Override
 	public String boardGameId() {
 		return string("item/@objectid");
+	}
+
+	@Override
+	public String comments() {
+		return string("comments");
+	}
+
+	@Override
+	public List<Player> players() {
+		return nodes("players/player").map(PlayerBggXml::new).collect(Collectors.toList());
 	}
 
 	@Override
