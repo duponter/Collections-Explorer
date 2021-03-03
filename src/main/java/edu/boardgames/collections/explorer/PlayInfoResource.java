@@ -1,5 +1,6 @@
 package edu.boardgames.collections.explorer;
 
+import edu.boardgames.collections.explorer.domain.MageKnightSoloPlay;
 import edu.boardgames.collections.explorer.domain.Play;
 import edu.boardgames.collections.explorer.infrastructure.bgg.BggInit;
 import edu.boardgames.collections.explorer.infrastructure.bgg.PlayBggXml;
@@ -74,7 +75,8 @@ public class PlayInfoResource {
 				.map(new XmlInput()::read)
 				.flatMap(root -> XmlNode.nodes(root, "//play"))
 				.map(PlayBggXml::new)
-				.map(ToStringBuilder::reflectionToString)
+				.map(MageKnightSoloPlay::new)
+				.map(MageKnightSoloPlay::toString)
 				.collect(Collectors.joining(System.lineSeparator()));
 	}
 

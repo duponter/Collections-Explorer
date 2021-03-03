@@ -7,7 +7,7 @@ public interface Player {
 
 	boolean newPlayer();
 
-	boolean won();
+	boolean win();
 
 	double score();
 }

@@ -30,8 +30,8 @@ public class PlayerBggXml extends XmlNode implements Player {
 	}
 
 	@Override
-	public boolean won() {
-		return toBoolean("@won");
+	public boolean win() {
+		return toBoolean("@win");
 	}
 
 	@Override
