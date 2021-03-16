@@ -1,5 +1,7 @@
 package edu.boardgames.collections.explorer.domain;
 
+import java.time.LocalDate;
+import java.time.Month;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Map;
@@ -30,7 +32,7 @@ public class MageKnightSoloPlayAggregate {
 		Map<PlayOutcome, Long> outcomeCounts = this.plays.stream().collect(Collectors.groupingBy(MageKnightSoloPlay::outcome, Collectors.counting()));
 		return new MageKnightSoloPlayStats.Builder()
 				.withCount(this.plays.size())
-				.withLastPlayed(this.plays.stream().map(MageKnightSoloPlay::date).max(Comparator.naturalOrder()).orElse(null))
+				.withLastPlayed(this.plays.stream().map(MageKnightSoloPlay::date).max(Comparator.naturalOrder()).orElse(LocalDate.of(2000, Month.JANUARY, 1)))
 				.withWins(outcomeCounts.getOrDefault(PlayOutcome.WIN, 0L).intValue())
 				.withLosses(outcomeCounts.getOrDefault(PlayOutcome.LOSE, 0L).intValue())
 				.withIncomplete(outcomeCounts.getOrDefault(PlayOutcome.INCOMPLETE, 0L).intValue())

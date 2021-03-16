@@ -36,6 +36,7 @@ import edu.boardgames.collections.explorer.infrastructure.bgg.PlaysRequest;
 import edu.boardgames.collections.explorer.infrastructure.bgg.ThingRequest;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlInput;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
+import io.vavr.Tuple;
 
 @Path("/playinfo")
 public class PlayInfoResource {
@@ -102,13 +103,20 @@ public class PlayInfoResource {
 						)
 				));
 
-		return stats.entrySet().stream()
-				.flatMap(scenarioEntry -> scenarioEntry.getValue().entrySet().stream().map(mageKnightEntry -> stats(scenarioEntry.getKey(), mageKnightEntry.getKey(), mageKnightEntry.getValue(), dummyPlayerCounts)))
+		return Stream.concat(
+				stats.entrySet().stream()
+						.flatMap(scenarioEntry -> scenarioEntry.getValue().keySet().stream()
+								.map(mageKnight -> Tuple.of(scenarioEntry.getKey(), mageKnight))),
+				dummyPlayerCounts.entrySet().stream()
+						.flatMap(scenarioEntry -> scenarioEntry.getValue().keySet().stream()
+								.map(dummyPlayer -> Tuple.of(scenarioEntry.getKey(), dummyPlayer)))
+		).distinct().sorted()
+				.map(tuple -> stats(tuple._1(), tuple._2(), stats.get(tuple._1()).getOrDefault(tuple._2(), new MageKnightSoloPlayAggregate(List.of())), dummyPlayerCounts))
 				.collect(Collectors.joining(System.lineSeparator()));
 	}
 
 	private String stats(String scenario, String mageKnight, MageKnightSoloPlayAggregate aggregate, Map<String, Map<String, Long>> dummyPlayerCounts) {
-		return String.format("%-20s with %-17s : %s - %2dx dummy", scenario, mageKnight, aggregate.stats().formatted(), dummyPlayerCounts.get(scenario).getOrDefault(mageKnight, 0L));
+		return String.format("%-20s with %-17s : %s - %2dx dummy", scenario, StringUtils.defaultIfEmpty(mageKnight, "<unknown>"), aggregate.stats().formatted(), dummyPlayerCounts.get(scenario).getOrDefault(mageKnight, 0L));
 	}
 
 	@GET

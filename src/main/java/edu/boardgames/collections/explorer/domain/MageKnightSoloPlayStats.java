@@ -26,7 +26,7 @@ public class MageKnightSoloPlayStats {
 
 	public String formatted() {
 		return String.format(
-				"%1$2d plays (%2$2d W, %3$2d L, %4$2d I) - %5$te-%5$tb-%5$tY - %6$3d pts - %7$3d mins",
+				"%1$2d plays (%2$2d W, %3$2d L, %4$2d I) - %5$td-%5$tb-%5$tY - %6$3d pts - %7$3d mins",
 				this.count(),
 				this.wins(),
 				this.losses(),
@@ -74,22 +74,11 @@ public class MageKnightSoloPlayStats {
 		private int wins;
 		private int losses;
 		private int incomplete;
-		private LocalDate lastPlayed = LocalDate.of(2000, Month.JANUARY, 1);
+		private LocalDate lastPlayed;
 		private int avgScore;
 		private int avgLength;
 
 		public Builder() {
-		}
-
-		public Builder(MageKnightSoloPlay play) {
-			this.withMageKnight(play.mageKnight())
-					.withCount(1)
-					.withLastPlayed(play.date())
-					.withAvgLength(play.length())
-					.withWins(play.outcome() == PlayOutcome.WIN ? 1 : 0)
-					.withLosses(play.outcome() == PlayOutcome.LOSE ? 1 : 0)
-					.withIncomplete(play.outcome() == PlayOutcome.INCOMPLETE ? 1 : 0)
-					.withAvgScore(play.score());
 		}
 
 		public Builder withMageKnight(String mageKnight) {
