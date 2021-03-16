@@ -1,7 +1,6 @@
 package edu.boardgames.collections.explorer.domain;
 
 import java.time.LocalDate;
-import java.time.Month;
 
 public class MageKnightSoloPlayStats {
 	private final String mageKnight;
