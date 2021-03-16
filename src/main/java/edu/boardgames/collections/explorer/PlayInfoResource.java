@@ -1,16 +1,5 @@
 package edu.boardgames.collections.explorer;
 
-import edu.boardgames.collections.explorer.domain.MageKnightSoloPlay;
-import edu.boardgames.collections.explorer.domain.Play;
-import edu.boardgames.collections.explorer.infrastructure.bgg.BggInit;
-import edu.boardgames.collections.explorer.infrastructure.bgg.PlayBggXml;
-import edu.boardgames.collections.explorer.infrastructure.bgg.PlaysRequest;
-import edu.boardgames.collections.explorer.infrastructure.bgg.ThingRequest;
-import edu.boardgames.collections.explorer.infrastructure.xml.XmlInput;
-import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-
 import java.io.IOException;
 import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
@@ -19,7 +8,10 @@ import java.nio.file.Files;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
@@ -32,6 +24,18 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+
+import org.apache.commons.lang3.StringUtils;
+
+import edu.boardgames.collections.explorer.domain.MageKnightSoloPlay;
+import edu.boardgames.collections.explorer.domain.MageKnightSoloPlayAggregate;
+import edu.boardgames.collections.explorer.domain.Play;
+import edu.boardgames.collections.explorer.infrastructure.bgg.BggInit;
+import edu.boardgames.collections.explorer.infrastructure.bgg.PlayBggXml;
+import edu.boardgames.collections.explorer.infrastructure.bgg.PlaysRequest;
+import edu.boardgames.collections.explorer.infrastructure.bgg.ThingRequest;
+import edu.boardgames.collections.explorer.infrastructure.xml.XmlInput;
+import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
 
 @Path("/playinfo")
 public class PlayInfoResource {
@@ -57,27 +61,54 @@ public class PlayInfoResource {
 		return result;
 	}
 
-    @GET
-    @Path("/{id}")
-    @Produces(MediaType.TEXT_PLAIN)
-    public String infoByIds(@PathParam("id") String id) {
+	@GET
+	@Path("/{id}")
+	@Produces(MediaType.TEXT_PLAIN)
+	public String infoByIds(@PathParam("id") String id) {
 		return BggInit.get().boardGames().withIds(Stream.of(id)).stream()
-			    .map(BoardGameRender::playInfo)
-			    .collect(Collectors.joining(System.lineSeparator()));
-    }
+				.map(BoardGameRender::playInfo)
+				.collect(Collectors.joining(System.lineSeparator()));
+	}
 
 	@GET
 	@Path("/plays/{username}/mksolo")
 	@Produces(MediaType.TEXT_PLAIN)
 	public String mageKnightSoloPlays(@PathParam("username") String username) {
-		return new PlaysRequest().username(username).id("248562")
+		List<MageKnightSoloPlay> plays = new PlaysRequest().username(username).id("248562")
 				.asInputStreams()
 				.map(new XmlInput()::read)
 				.flatMap(root -> XmlNode.nodes(root, "//play"))
 				.map(PlayBggXml::new)
 				.map(MageKnightSoloPlay::new)
-				.map(MageKnightSoloPlay::toString)
+				.collect(Collectors.toList());
+		Map<String, Map<String, Long>> dummyPlayerCounts = plays.stream()
+				.collect(Collectors.groupingBy(
+						MageKnightSoloPlay::scenario,
+						Collectors.groupingBy(
+								MageKnightSoloPlay::dummyPlayer,
+								Collectors.counting()
+						)
+				));
+		Map<String, Map<String, MageKnightSoloPlayAggregate>> stats = plays.stream()
+				.collect(Collectors.groupingBy(
+						MageKnightSoloPlay::scenario,
+						Collectors.groupingBy(
+								MageKnightSoloPlay::mageKnight,
+								TreeMap::new,
+								Collectors.collectingAndThen(
+										Collectors.toList(),
+										MageKnightSoloPlayAggregate::new
+								)
+						)
+				));
+
+		return stats.entrySet().stream()
+				.flatMap(scenarioEntry -> scenarioEntry.getValue().entrySet().stream().map(mageKnightEntry -> stats(scenarioEntry.getKey(), mageKnightEntry.getKey(), mageKnightEntry.getValue(), dummyPlayerCounts)))
 				.collect(Collectors.joining(System.lineSeparator()));
+	}
+
+	private String stats(String scenario, String mageKnight, MageKnightSoloPlayAggregate aggregate, Map<String, Map<String, Long>> dummyPlayerCounts) {
+		return String.format("%-20s with %-17s : %s - %2dx dummy", scenario, mageKnight, aggregate.stats().formatted(), dummyPlayerCounts.get(scenario).getOrDefault(mageKnight, 0L));
 	}
 
 	@GET
@@ -85,14 +116,14 @@ public class PlayInfoResource {
 	@Produces(MediaType.TEXT_PLAIN)
 	public String userPlays(@PathParam("username") String username) {
 		return new PlaysRequest().username(username)
-		                         .asInputStreams()
-		                         .map(new XmlInput()::read)
-		                         .flatMap(root -> XmlNode.nodes(root, "//play"))
-		                         .map(PlayBggXml::new)
-		                         .collect(Collectors.groupingBy(Play::boardGameId, new PlayStatsCollector()))
-		                         .entrySet().stream()
-		                         .map(play -> String.format("Game: %s - Last: %s - Times: %d", play.getKey(), play.getValue().lastPlayed, play.getValue().timesPlayed))
-		                         .collect(Collectors.joining(System.lineSeparator()));
+				.asInputStreams()
+				.map(new XmlInput()::read)
+				.flatMap(root -> XmlNode.nodes(root, "//play"))
+				.map(PlayBggXml::new)
+				.collect(Collectors.groupingBy(Play::boardGameId, new PlayStatsCollector()))
+				.entrySet().stream()
+				.map(play -> String.format("Game: %s - Last: %s - Times: %d", play.getKey(), play.getValue().lastPlayed, play.getValue().timesPlayed))
+				.collect(Collectors.joining(System.lineSeparator()));
 	}
 
 	private static class PlayStats {
