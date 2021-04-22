@@ -10,6 +10,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -32,8 +33,8 @@ public class BoardGamesCache implements BoardGames {
 					}
 
 					@Override
-					public Map<String, BoardGame> loadAll(Iterable<? extends String> keys) {
-						Stream<String> ids = StreamSupport.stream(keys.spliterator(), false).map(String.class::cast);
+					public Map<? extends String, ? extends BoardGame> loadAll(Set<? extends String> keys) throws Exception {
+						Stream<String> ids = keys.stream().map(String.class::cast);
 						return delegate.withIds(ids).stream()
 								.collect(Collectors.toMap(BoardGame::id, LazyBoardGame::new));
 					}
