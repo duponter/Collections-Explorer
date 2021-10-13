@@ -1,0 +1,8 @@
+### Mage Knight Solo plays
+GET http://localhost:8080/playinfo/plays/duponter/mksolo
+
+### Shelves Bareelstraat
+http://localhost:8080/shelves/play?collections=mine,wouteraerts,jarrebesetoert&bestWith=3
+
+### Shelves Forum Mortsel
+http://localhost:8080/shelves/play?collections=mine,bartie,svennos&bestWith=3
