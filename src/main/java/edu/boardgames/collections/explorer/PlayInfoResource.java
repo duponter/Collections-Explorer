@@ -7,6 +7,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -55,8 +56,10 @@ public class PlayInfoResource {
 	public String xml(@PathParam("id") String id) {
 		String response = new ThingRequest().withStats().forIds(Arrays.asList(id.split("\\s*,\\s*"))).asLines().collect(Collectors.joining());
 
-		String xsl = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-				"<?xml-stylesheet type=\"text/xsl\" href=\"http://localhost:8080/playinfo/xsl\"?>\n";
+		String xsl = """
+				<?xml version="1.0" encoding="UTF-8"?>
+				<?xml-stylesheet type="text/xsl" href="http://localhost:8080/playinfo/xsl"?>
+				""";
 		String result = String.format("%s%n%s", xsl, StringUtils.removeStartIgnoreCase(response, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"));
 		LOGGER.log(Level.INFO, result);
 		return result;
@@ -81,7 +84,7 @@ public class PlayInfoResource {
 				.flatMap(root -> XmlNode.nodes(root, "//play"))
 				.map(PlayBggXml::new)
 				.map(MageKnightSoloPlay::new)
-				.collect(Collectors.toList());
+				.toList();
 		Map<String, Map<String, Long>> dummyPlayerCounts = plays.stream()
 				.collect(Collectors.groupingBy(
 						MageKnightSoloPlay::scenario,
@@ -111,12 +114,16 @@ public class PlayInfoResource {
 						.flatMap(scenarioEntry -> scenarioEntry.getValue().keySet().stream()
 								.map(dummyPlayer -> Tuple.of(scenarioEntry.getKey(), dummyPlayer)))
 		).distinct().sorted()
-				.map(tuple -> stats(tuple._1(), tuple._2(), stats.get(tuple._1()).getOrDefault(tuple._2(), new MageKnightSoloPlayAggregate(List.of())), dummyPlayerCounts))
+				.map(tuple -> new LineStats(tuple._1(), tuple._2(), stats.get(tuple._1()).getOrDefault(tuple._2(), new MageKnightSoloPlayAggregate(List.of())), dummyPlayerCounts))
+				.sorted(Comparator.comparing(LineStats::scenario).thenComparing(s -> s.aggregate().stats().count()).thenComparing(s -> s.aggregate().stats().lastPlayed()))
+				.map(LineStats::formatted)
 				.collect(Collectors.joining(System.lineSeparator()));
 	}
 
-	private String stats(String scenario, String mageKnight, MageKnightSoloPlayAggregate aggregate, Map<String, Map<String, Long>> dummyPlayerCounts) {
-		return String.format("%-20s with %-17s : %s - %2dx dummy", scenario, StringUtils.defaultIfEmpty(mageKnight, "<unknown>"), aggregate.stats().formatted(), dummyPlayerCounts.get(scenario).getOrDefault(mageKnight, 0L));
+	private record LineStats(String scenario, String mageKnight, MageKnightSoloPlayAggregate aggregate, Map<String, Map<String, Long>> dummyPlayerCounts) {
+		private String formatted() {
+			return "%-20s with %-17s : %s - %2dx dummy".formatted(scenario, StringUtils.defaultIfEmpty(mageKnight, "<unknown>"), aggregate.stats().formatted(), dummyPlayerCounts.get(scenario).getOrDefault(mageKnight, 0L));
+		}
 	}
 
 	@GET
