@@ -43,6 +43,24 @@ public class ShelvesResource {
 	}
 
 	@GET
+	@Path("/play/perspective/{geekbuddy}")
+	@Produces(MediaType.TEXT_PLAIN)
+	public String current(@PathParam("geekbuddy") String geekbuddy, @QueryParam("collections") String collections, @QueryParam("bestWith") Integer bestWith) {
+		String[] collectionNames = StringUtils.split(collections, ",");
+		LOGGER.log(Level.INFO, "Search currently playable collections {0} to play a best with {1} game", Arrays.toString(collectionNames), ObjectUtils.defaultIfNull(bestWith, "n/a"));
+		String boardGames = BggInit.get().collections().withNames(collectionNames).boardGameCopies()
+				.stream()
+				.filter(toCopyFilter(bestWithFilter(bestWith)))
+				.collect(Collectors.groupingBy(Copy::boardGame, Collectors.mapping(Copy::collection, Collectors.mapping(BoardGameCollection::name, Collectors.toCollection(TreeSet::new)))))
+				.entrySet()
+				.stream()
+				.map(entry -> BoardGameRender.tabularPlayInfo(entry.getKey(), String.join(", ", entry.getValue())))
+				.sorted()
+				.collect(Collectors.joining("\n"));
+		return String.format("Search collections %s to play a best with %s game%n%n%s", Arrays.toString(collectionNames), ObjectUtils.defaultIfNull(bestWith, "n/a"), boardGames);
+	}
+
+	@GET
 	@Path("/wanttoplay/{geekbuddy}")
 	@Produces(MediaType.TEXT_PLAIN)
 	public String wantToPlay(@PathParam("geekbuddy") String geekbuddy, @QueryParam("bestWith") Integer bestWith, @QueryParam("includeRated") Integer includeRated) {

@@ -3,8 +3,6 @@ package edu.boardgames.collections.explorer;
 import java.lang.System.Logger.Level;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import edu.boardgames.collections.explorer.domain.BoardGame;
 import edu.boardgames.collections.explorer.domain.Range;
@@ -30,12 +28,26 @@ public final class BoardGameRender {
 
 	static String slimInfo(BoardGame boardGame) {
 		String formatted = String.format("%s (%s) - %2.1f / 10", boardGame.name(), boardGame.year(), boardGame.bggScore());
-		LOGGER.log(Level.DEBUG, String.format("[Render] %s", formatted));
+		LOGGER.log(Level.DEBUG, String.format("\\[Render] %s", formatted));
 		return formatted;
 	}
 
 	static String playInfo(BoardGame boardGame, String owners) {
 		return String.format("%s owned by %s", playInfo(boardGame), owners);
+	}
+
+	static String tabularPlayInfo(BoardGame boardGame, String owners) {
+		Range<String> communityPlayerCount = boardGame.bestWithPlayerCount()
+				.or(boardGame::recommendedWithPlayerCount)
+				.orElseGet(boardGame::playerCount);
+		return String.join("\t",
+				"%-100s".formatted(boardGame.name()),
+				boardGame.year(),
+				"%4s>%-4s".formatted(boardGame.playerCount().formatted(), communityPlayerCount.formatted()),
+				"%7s Min".formatted(boardGame.playtime().formatted()),
+				"%2.1f / 10".formatted(boardGame.bggScore()),
+				"%1.2f / 5".formatted(boardGame.averageWeight()),
+				owners);
 	}
 
 	static String ranking(BoardGame boardGame, String owners, int playerCount) {
