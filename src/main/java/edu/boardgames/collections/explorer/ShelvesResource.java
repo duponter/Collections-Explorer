@@ -65,14 +65,14 @@ public class ShelvesResource {
 
 		GeekBuddy buddy = BggInit.get().geekBuddies().one(geekbuddy);
 		List<BoardGame> wantToPlay = buddy.wantToPlayCollection();
-		List<BoardGame> wantToReplay = BggInit.get().geekLists().all().get(0).boardGames();
+		List<BoardGame> played = buddy.ratedCollection(5);
 		List<BoardGame> topRated = buddy.ratedCollection(8);
 		Map<String, Collection<Line>> boardGames = joinedCollections.entrySet().stream()
-				.map(entry -> new PlayableCopy(group(entry.getKey(), wantToPlay, wantToReplay, topRated), entry.getKey(), entry.getValue()))
+				.map(entry -> new PlayableCopy(group(entry.getKey(), wantToPlay, played, topRated), entry.getKey(), entry.getValue()))
 				.collect(Collectors.groupingBy(PlayableCopy::group, Collectors.toCollection(TreeSet::new)));
 
 		return new Document(
-				new DocumentTitle("Search collections %s to play a best with %s game".formatted(Arrays.toString(collectionNames), ObjectUtils.defaultIfNull(bestWith, "n/a"))),
+				new DocumentTitle("Search collections %s to play a best with %s game, tailored for %s".formatted(Arrays.toString(collectionNames), ObjectUtils.defaultIfNull(bestWith, "n/a"), geekbuddy)),
 				boardGames.entrySet().stream()
 						.map(entry -> new Chapter(new ChapterTitle(entry.getKey()), new LinesParagraph(entry.getValue())))
 						.toArray(Chapter[]::new)
@@ -94,12 +94,9 @@ public class ShelvesResource {
 		}
 	}
 
-	private String group(BoardGame boardGame, List<BoardGame> wantToPlay, List<BoardGame> wantToReplay, List<BoardGame> rated) {
+	private String group(BoardGame boardGame, List<BoardGame> wantToPlay, List<BoardGame> played, List<BoardGame> rated) {
 		if (wantToPlay.contains(boardGame)) {
-			return "Want to play (never played)";
-		}
-		if (wantToReplay.contains(boardGame)) {
-			return "Want to play again (long time ago or to give another chance)";
+			return played.contains(boardGame) ? "Want to play again (long time ago or to give another chance)" : "Want to play (never played)";
 		}
 		if (rated.contains(boardGame)) {
 			return "Want to play again (rated 8 or higher)";
@@ -175,17 +172,12 @@ public class ShelvesResource {
 	}
 
 	private String displayMultiLineString(BoardGameCollection collection, Predicate<Copy> filter) {
-		return this.displayMultiLineString(collection.boardGameCopies()
-		                                             .stream()
-		                                             .filter(filter));
-	}
-
-	private String displayMultiLineString(Stream<Copy> copies) {
-		return copies.collect(Collectors.groupingBy(Copy::boardGame, Collectors.mapping(Copy::collection, Collectors.mapping(BoardGameCollection::name, Collectors.toCollection(TreeSet::new)))))
-		             .entrySet()
-		             .stream()
-		             .map(entry -> BoardGameRender.playInfo(entry.getKey(), String.join(", ", entry.getValue())))
-		             .sorted()
-		             .collect(Collectors.joining("\n"));
+		return collection.boardGameCopies().stream()
+				.filter(filter)
+				.collect(Collectors.groupingBy(Copy::boardGame, Collectors.mapping(Copy::collection, Collectors.mapping(BoardGameCollection::name, Collectors.toCollection(TreeSet::new)))))
+				.entrySet().stream()
+				.map(entry -> BoardGameRender.playInfo(entry.getKey(), String.join(", ", entry.getValue())))
+				.sorted()
+				.collect(Collectors.joining("\n"));
 	}
 }

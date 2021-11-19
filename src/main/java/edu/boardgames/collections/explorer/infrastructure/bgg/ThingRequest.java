@@ -1,7 +1,5 @@
 package edu.boardgames.collections.explorer.infrastructure.bgg;
 
-import edu.boardgames.collections.explorer.infrastructure.Async;
-
 import java.io.InputStream;
 import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
@@ -9,6 +7,8 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.function.Function;
 import java.util.stream.Stream;
+
+import edu.boardgames.collections.explorer.infrastructure.Async;
 
 public class ThingRequest extends BggRequest<ThingRequest> {
 	private static final Logger LOGGER = System.getLogger(ThingRequest.class.getName());
@@ -82,13 +82,14 @@ public class ThingRequest extends BggRequest<ThingRequest> {
 
 	private Stream<ThingRequest> splitLargeRequests() {
 		int requestCount = (ids.size() / IDS_PER_REQUEST) + (ids.size() % IDS_PER_REQUEST > 0 ? 1 : 0);
-		String format = "Given max %d ids per request, %d ids result into %d request(s)";
-		LOGGER.log(Level.DEBUG, String.format(format, IDS_PER_REQUEST, ids.size(), requestCount));
-		if (requestCount == 1) {
+		LOGGER.log(Level.DEBUG, "Given max %d ids per request, %d ids result into %d request(s)".formatted(IDS_PER_REQUEST, ids.size(), requestCount));
+		if (requestCount == 0) {
+			return Stream.empty();
+		} else if (requestCount == 1) {
 			return Stream.of(this.addIds());
 		} else {
 			int idCountPerRequest = (ids.size() / requestCount) + 1;
-			LOGGER.log(Level.DEBUG, String.format("Performing %d requests for %d ids each", requestCount, idCountPerRequest));
+			LOGGER.log(Level.DEBUG, "Performing %d requests for %d ids each".formatted(requestCount, idCountPerRequest));
 			return io.vavr.collection.Stream.ofAll(ids)
 			                                .grouped(idCountPerRequest)
 			                                .map(idsPerRequest -> this.copy(ThingRequest::new)
