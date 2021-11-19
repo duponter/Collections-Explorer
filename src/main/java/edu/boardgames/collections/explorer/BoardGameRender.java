@@ -18,22 +18,28 @@ public final class BoardGameRender {
 		throw new UnsupportedOperationException("This static class cannot be instantiated.");
 	}
 
+	static String playInfo(BoardGame boardGame, String owners) {
+		return "%s - %s".formatted(playInfo(boardGame), owners);
+	}
+
 	static String playInfo(BoardGame boardGame) {
 		LOGGER.log(Level.DEBUG, String.format("Rendering BoardGame %s", boardGame.name()));
 		Range<String> communityPlayerCount = boardGame.bestWithPlayerCount()
 				.or(boardGame::recommendedWithPlayerCount)
 				.orElseGet(boardGame::playerCount);
-		return String.format("%s (%s) - %s>%sp - %s Min - %2.1f / 10 - %1.2f / 5", boardGame.name(), boardGame.year(), boardGame.playerCount().formatted(), communityPlayerCount.formatted(), boardGame.playtime().formatted(), boardGame.bggScore(), boardGame.averageWeight());
+		return String.join(" - ",
+				"%s (%s)".formatted(boardGame.name(), boardGame.year()),
+				"%s>%sp".formatted(boardGame.playerCount().formatted(), communityPlayerCount.formatted()),
+				"%s min".formatted(boardGame.playtime().formatted()),
+				"%2.1f / 10".formatted(boardGame.bggScore()),
+				"%1.2f / 5".formatted(boardGame.averageWeight())
+		);
 	}
 
 	static String slimInfo(BoardGame boardGame) {
 		String formatted = String.format("%s (%s) - %2.1f / 10", boardGame.name(), boardGame.year(), boardGame.bggScore());
 		LOGGER.log(Level.DEBUG, String.format("\\[Render] %s", formatted));
 		return formatted;
-	}
-
-	static String playInfo(BoardGame boardGame, String owners) {
-		return String.format("%s owned by %s", playInfo(boardGame), owners);
 	}
 
 	static String tabularPlayInfo(BoardGame boardGame, String owners) {
@@ -43,8 +49,8 @@ public final class BoardGameRender {
 		return String.join("\t",
 				"%-100s".formatted(boardGame.name()),
 				boardGame.year(),
-				"%4s>%-4s".formatted(boardGame.playerCount().formatted(), communityPlayerCount.formatted()),
-				"%7s Min".formatted(boardGame.playtime().formatted()),
+				"%5s>%-4s".formatted(boardGame.playerCount().formatted(), communityPlayerCount.formatted()),
+				"%7s min".formatted(boardGame.playtime().formatted()),
 				"%2.1f / 10".formatted(boardGame.bggScore()),
 				"%1.2f / 5".formatted(boardGame.averageWeight()),
 				owners);

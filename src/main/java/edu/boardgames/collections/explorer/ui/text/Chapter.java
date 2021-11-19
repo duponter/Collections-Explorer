@@ -1,9 +1,10 @@
 package edu.boardgames.collections.explorer.ui.text;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
 
-public record Chapter(ChapterTitle title, List<Paragraph> paragraphs) implements TextContainer {
+public record Chapter(ChapterTitle title, Collection<Paragraph> paragraphs) implements TextContainer {
 	public Chapter(ChapterTitle title, Paragraph... paragraphs) {
 		this(title, List.of(paragraphs));
 	}

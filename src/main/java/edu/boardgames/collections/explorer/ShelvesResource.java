@@ -2,10 +2,12 @@ package edu.boardgames.collections.explorer;
 
 import java.lang.System.Logger.Level;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -55,37 +57,54 @@ public class ShelvesResource {
 	@Produces(MediaType.TEXT_PLAIN)
 	public String current(@PathParam("geekbuddy") String geekbuddy, @QueryParam("collections") String collections, @QueryParam("bestWith") Integer bestWith) {
 		String[] collectionNames = StringUtils.split(collections, ",");
+		LOGGER.log(Level.INFO, "Search currently playable collections {0} to play a best with {1} game", Arrays.toString(collectionNames), ObjectUtils.defaultIfNull(bestWith, "n/a"));
+		Map<BoardGame, Set<String>> joinedCollections = BggInit.get().collections().withNames(collectionNames).boardGameCopies()
+				.stream()
+				.filter(toCopyFilter(bestWithFilter(bestWith)))
+				.collect(Collectors.groupingBy(Copy::boardGame, Collectors.mapping(Copy::collection, Collectors.mapping(BoardGameCollection::name, Collectors.toCollection(TreeSet::new)))));
 
 		GeekBuddy buddy = BggInit.get().geekBuddies().one(geekbuddy);
 		List<BoardGame> wantToPlay = buddy.wantToPlayCollection();
-		List<BoardGame> rated = buddy.ratedCollection(8);
-
-		LOGGER.log(Level.INFO, "Search currently playable collections {0} to play a best with {1} game", Arrays.toString(collectionNames), ObjectUtils.defaultIfNull(bestWith, "n/a"));
-
-		List<Line> boardGames = BggInit.get().collections().withNames(collectionNames).boardGameCopies()
-				.stream()
-				.filter(toCopyFilter(bestWithFilter(bestWith)))
-				.collect(Collectors.groupingBy(Copy::boardGame, Collectors.mapping(Copy::collection, Collectors.mapping(BoardGameCollection::name, Collectors.toCollection(TreeSet::new)))))
-				.entrySet()
-				.stream()
-				.map(entry -> new PlayableCopy("GROUP %d".formatted(ThreadLocalRandom.current().nextInt(1, 4)), entry.getKey(), entry.getValue()).row())
-				.sorted()
-				.map(Line::new)
-				.toList();
+		List<BoardGame> wantToReplay = BggInit.get().geekLists().all().get(0).boardGames();
+		List<BoardGame> topRated = buddy.ratedCollection(8);
+		Map<String, Collection<Line>> boardGames = joinedCollections.entrySet().stream()
+				.map(entry -> new PlayableCopy(group(entry.getKey(), wantToPlay, wantToReplay, topRated), entry.getKey(), entry.getValue()))
+				.collect(Collectors.groupingBy(PlayableCopy::group, Collectors.toCollection(TreeSet::new)));
 
 		return new Document(
 				new DocumentTitle("Search collections %s to play a best with %s game".formatted(Arrays.toString(collectionNames), ObjectUtils.defaultIfNull(bestWith, "n/a"))),
-				new Chapter(
-						new ChapterTitle("Group 1"),
-						new LinesParagraph(boardGames)
-				)
+				boardGames.entrySet().stream()
+						.map(entry -> new Chapter(new ChapterTitle(entry.getKey()), new LinesParagraph(entry.getValue())))
+						.toArray(Chapter[]::new)
 		).toText();
 	}
 
-	private record PlayableCopy(String group, BoardGame boardGame, Set<String> owners) {
-		String row() {
-			return "%s\t%s".formatted(group, BoardGameRender.tabularPlayInfo(boardGame, String.join(", ", owners)));
+	private record PlayableCopy(String group, BoardGame boardGame, Set<String> owners) implements Line, Comparable<PlayableCopy> {
+		private static final Comparator<PlayableCopy> COMPARATOR = Comparator.<PlayableCopy, String>comparing(pc -> pc.boardGame().name())
+				.thenComparing(pc -> pc.boardGame().year());
+
+		@Override
+		public String line() {
+			return BoardGameRender.tabularPlayInfo(boardGame, String.join(", ", owners));
 		}
+
+		@Override
+		public int compareTo(PlayableCopy pc) {
+			return COMPARATOR.compare(this, pc);
+		}
+	}
+
+	private String group(BoardGame boardGame, List<BoardGame> wantToPlay, List<BoardGame> wantToReplay, List<BoardGame> rated) {
+		if (wantToPlay.contains(boardGame)) {
+			return "Want to play (never played)";
+		}
+		if (wantToReplay.contains(boardGame)) {
+			return "Want to play again (long time ago or to give another chance)";
+		}
+		if (rated.contains(boardGame)) {
+			return "Want to play again (rated 8 or higher)";
+		}
+		return "Other";
 	}
 
 	@GET

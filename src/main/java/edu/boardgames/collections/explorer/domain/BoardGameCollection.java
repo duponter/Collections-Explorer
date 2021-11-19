@@ -1,7 +1,6 @@
 package edu.boardgames.collections.explorer.domain;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public interface BoardGameCollection {
 	String id();
@@ -13,6 +12,6 @@ public interface BoardGameCollection {
 	default List<Copy> boardGameCopies() {
 		return this.boardGames().stream()
 				.map(bg -> new Copy(bg, this))
-				.collect(Collectors.toList());
+				.toList();
 	}
 }

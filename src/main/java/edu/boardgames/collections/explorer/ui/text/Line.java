@@ -2,11 +2,20 @@ package edu.boardgames.collections.explorer.ui.text;
 
 import java.util.stream.Stream;
 
-public record Line(String value) implements Text {
-	public static Line EMPTY = new Line("");
+import org.apache.commons.lang3.StringUtils;
+
+public interface Line extends Text {
+	Line EMPTY = () -> StringUtils.EMPTY;
+
+	String line();
 
 	@Override
-	public Stream<String> toLines() {
-		return Stream.of(value);
+	default Stream<String> toLines() {
+		return Stream.of(line());
+	}
+
+	@Override
+	default String toText() {
+		return line();
 	}
 }
