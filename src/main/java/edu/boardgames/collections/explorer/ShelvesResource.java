@@ -3,7 +3,9 @@ package edu.boardgames.collections.explorer;
 import java.lang.System.Logger.Level;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -24,6 +26,12 @@ import edu.boardgames.collections.explorer.domain.Copy;
 import edu.boardgames.collections.explorer.domain.GeekBuddy;
 import edu.boardgames.collections.explorer.domain.PlayerCount;
 import edu.boardgames.collections.explorer.infrastructure.bgg.BggInit;
+import edu.boardgames.collections.explorer.ui.text.Chapter;
+import edu.boardgames.collections.explorer.ui.text.ChapterTitle;
+import edu.boardgames.collections.explorer.ui.text.Document;
+import edu.boardgames.collections.explorer.ui.text.DocumentTitle;
+import edu.boardgames.collections.explorer.ui.text.Line;
+import edu.boardgames.collections.explorer.ui.text.LinesParagraph;
 
 @Path("/shelves")
 public class ShelvesResource {
@@ -47,17 +55,37 @@ public class ShelvesResource {
 	@Produces(MediaType.TEXT_PLAIN)
 	public String current(@PathParam("geekbuddy") String geekbuddy, @QueryParam("collections") String collections, @QueryParam("bestWith") Integer bestWith) {
 		String[] collectionNames = StringUtils.split(collections, ",");
+
+		GeekBuddy buddy = BggInit.get().geekBuddies().one(geekbuddy);
+		List<BoardGame> wantToPlay = buddy.wantToPlayCollection();
+		List<BoardGame> rated = buddy.ratedCollection(8);
+
 		LOGGER.log(Level.INFO, "Search currently playable collections {0} to play a best with {1} game", Arrays.toString(collectionNames), ObjectUtils.defaultIfNull(bestWith, "n/a"));
-		String boardGames = BggInit.get().collections().withNames(collectionNames).boardGameCopies()
+
+		List<Line> boardGames = BggInit.get().collections().withNames(collectionNames).boardGameCopies()
 				.stream()
 				.filter(toCopyFilter(bestWithFilter(bestWith)))
 				.collect(Collectors.groupingBy(Copy::boardGame, Collectors.mapping(Copy::collection, Collectors.mapping(BoardGameCollection::name, Collectors.toCollection(TreeSet::new)))))
 				.entrySet()
 				.stream()
-				.map(entry -> BoardGameRender.tabularPlayInfo(entry.getKey(), String.join(", ", entry.getValue())))
+				.map(entry -> new PlayableCopy("GROUP %d".formatted(ThreadLocalRandom.current().nextInt(1, 4)), entry.getKey(), entry.getValue()).row())
 				.sorted()
-				.collect(Collectors.joining("\n"));
-		return String.format("Search collections %s to play a best with %s game%n%n%s", Arrays.toString(collectionNames), ObjectUtils.defaultIfNull(bestWith, "n/a"), boardGames);
+				.map(Line::new)
+				.toList();
+
+		return new Document(
+				new DocumentTitle("Search collections %s to play a best with %s game".formatted(Arrays.toString(collectionNames), ObjectUtils.defaultIfNull(bestWith, "n/a"))),
+				new Chapter(
+						new ChapterTitle("Group 1"),
+						new LinesParagraph(boardGames)
+				)
+		).toText();
+	}
+
+	private record PlayableCopy(String group, BoardGame boardGame, Set<String> owners) {
+		String row() {
+			return "%s\t%s".formatted(group, BoardGameRender.tabularPlayInfo(boardGame, String.join(", ", owners)));
+		}
 	}
 
 	@GET
