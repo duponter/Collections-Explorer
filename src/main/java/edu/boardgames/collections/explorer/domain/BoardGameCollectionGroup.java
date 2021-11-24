@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public final class BoardGameCollectionGroup implements BoardGameCollection {
 	private final String name;
@@ -28,16 +28,15 @@ public final class BoardGameCollectionGroup implements BoardGameCollection {
 	@Override
 	public List<BoardGame> boardGames() {
 		return Arrays.stream(this.groupedCollections)
-		             .map(BoardGameCollection::boardGames)
-		             .flatMap(Collection::stream)
-		             .collect(Collectors.toList());
+				.map(BoardGameCollection::boardGames)
+				.flatMap(Collection::stream)
+				.toList();
 	}
 
 	@Override
-	public List<Copy> boardGameCopies() {
+	public Stream<Copy> copyStream() {
 		return Arrays.stream(this.groupedCollections)
-		             .map(BoardGameCollection::boardGameCopies)
-		             .flatMap(Collection::stream)
-		             .collect(Collectors.toList());
+				.map(BoardGameCollection::boardGameCopies)
+				.flatMap(Collection::stream);
 	}
 }

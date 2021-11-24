@@ -2,7 +2,6 @@ package edu.boardgames.collections.explorer;
 
 import java.lang.System.Logger;
 import java.util.Arrays;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -14,7 +13,6 @@ import javax.ws.rs.core.MediaType;
 import org.apache.commons.lang3.StringUtils;
 
 import edu.boardgames.collections.explorer.domain.BoardGameCollection;
-import edu.boardgames.collections.explorer.domain.Copy;
 import edu.boardgames.collections.explorer.infrastructure.bgg.BggInit;
 
 import static java.lang.System.getLogger;
@@ -34,9 +32,8 @@ public class RankingResource {
 	}
 
 	private String displayMultiLineString(BoardGameCollection collection, Integer playerCount) {
-		return collection.boardGameCopies().stream().collect(Collectors.groupingBy(Copy::boardGame, Collectors.mapping(Copy::collection, Collectors.mapping(BoardGameCollection::name, Collectors.toCollection(TreeSet::new)))))
-				.entrySet()
-				.stream()
+		return collection.copiesPerBoardGame()
+				.entrySet().stream()
 				.map(entry -> BoardGameRender.ranking(entry.getKey(), String.join(", ", entry.getValue()), playerCount))
 				.sorted()
 				.collect(Collectors.joining("\n"));
