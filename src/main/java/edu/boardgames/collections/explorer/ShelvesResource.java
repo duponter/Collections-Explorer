@@ -43,17 +43,21 @@ public class ShelvesResource {
 	public String current(@QueryParam("collections") String collections, @QueryParam("bestWith") Integer bestWith) {
 		String[] collectionNames = StringUtils.split(collections, ",");
 		LOGGER.log(Level.INFO, "Search currently playable collections {0} to play a best with {1} game", Arrays.toString(collectionNames), ObjectUtils.defaultIfNull(bestWith, "n/a"));
-		String boardGames = BggInit.get().collections().withNames(collectionNames).copiesPerBoardGame()
+		List<Line> boardGames = BggInit.get().collections().withNames(collectionNames).copiesPerBoardGame()
 				.entrySet().stream()
 				.filter(entry -> bestWithFilter(bestWith).test(entry.getKey()))
 				.map(entry -> BoardGameRender.tabularPlayInfo(entry.getKey(), String.join(", ", entry.getValue())))
 				.sorted()
-				.collect(Collectors.joining("\n"));
-		return String.format("Search collections %s to play a best with %s game%n%n%s", Arrays.toString(collectionNames), ObjectUtils.defaultIfNull(bestWith, "n/a"), boardGames);
+				.map(Line::of)
+				.toList();
+		return new Document(
+				new DocumentTitle("Search collections %s to play a best with %s game".formatted(Arrays.toString(collectionNames), ObjectUtils.defaultIfNull(bestWith, "n/a"))),
+				new LinesParagraph(boardGames)
+		).toText();
 	}
 
 	@GET
-	@Path("/play/perspective/{geekbuddy}")
+	@Path("/play/{geekbuddy}")
 	@Produces(MediaType.TEXT_PLAIN)
 	public String current(@PathParam("geekbuddy") String geekbuddy, @QueryParam("collections") String collections, @QueryParam("bestWith") Integer bestWith) {
 		// TODO_EDU parameters to search criteria
@@ -108,27 +112,32 @@ public class ShelvesResource {
 	@GET
 	@Path("/wanttoplay/{geekbuddy}")
 	@Produces(MediaType.TEXT_PLAIN)
-	public String wantToPlay(@PathParam("geekbuddy") String geekbuddy, @QueryParam("bestWith") Integer bestWith, @QueryParam("includeRated") Integer includeRated) {
+	public String wantToPlay(@PathParam("geekbuddy") String geekbuddy, @QueryParam("bestWith") Integer bestWith, @QueryParam("includeRated") Integer minimallyRated) {
 		LOGGER.log(Level.INFO, "Search collections of all geekbuddies for {0}'s want-to-play best with {1,number,integer} games", geekbuddy, bestWith);
 
 		GeekBuddy buddy = BggInit.get().geekBuddies().one(geekbuddy);
 		List<BoardGame> wantToPlay = buddy.wantToPlayCollection();
 		LOGGER.log(Level.INFO, "Collection fetched: {0} wants to play {1,number,integer} boardgames.", geekbuddy, wantToPlay.size());
-		if (includeRated != null) {
-			List<BoardGame> rated = buddy.ratedCollection(includeRated);
-			LOGGER.log(Level.INFO, "Collection fetched: {0} rated {1,number,integer} boardgames {1,number,integer} or more.", geekbuddy, rated.size(), includeRated);
+		if (minimallyRated != null) {
+			List<BoardGame> rated = buddy.ratedCollection(minimallyRated);
+			LOGGER.log(Level.INFO, "Collection fetched: {0} rated {1,number,integer} boardgames {1,number,integer} or more.", geekbuddy, rated.size(), minimallyRated);
 			wantToPlay = Stream.concat(wantToPlay.stream(), rated.stream()).toList();
 		}
 		Predicate<BoardGame> wantsToPlay = wantToPlay::contains;
 
-		String copies = BggInit.get().collections().all().copiesPerBoardGame()
+		List<Line> copies = BggInit.get().collections().all().copiesPerBoardGame()
 				.entrySet().stream()
 				.filter(entry -> bestWithFilter(bestWith).and(wantsToPlay).test(entry.getKey()))
 				.map(entry -> BoardGameRender.playInfo(entry.getKey(), String.join(", ", entry.getValue())))
 				.sorted()
-				.collect(Collectors.joining("\n"));
+				.map(Line::of)
+				.toList();
 		LOGGER.log(Level.INFO, "All owned collections matched against want to play collection");
-		return String.format("Search collections of all geekbuddies for %s's want-to-play best with %d games%n%n%s", geekbuddy, bestWith, copies);
+
+		return new Document(
+				new DocumentTitle("Search collections of all geekbuddies for %s's want-to-play best with %d games".formatted(geekbuddy, bestWith)),
+				new LinesParagraph(copies)
+		).toText();
 	}
 
 	@GET
@@ -141,8 +150,10 @@ public class ShelvesResource {
 		List<BoardGame> rated = buddy.ratedCollection(minimallyRated);
 		LOGGER.log(Level.INFO, "Collection fetched: {0} rated {1,number,integer} boardgames {1,number,integer} or more.", geekbuddy, rated.size(), minimallyRated);
 
-		String copies = rated.stream().map(BoardGameRender::playInfo).collect(Collectors.joining("\n"));
-		return String.format("Show replay options for %s's want-to-play best with %d games rated at least %d%n%n%s", geekbuddy, bestWith, minimallyRated, copies);
+		return new Document(
+				new DocumentTitle("Show replay options for %s's want-to-play best with %d games rated at least %d".formatted(geekbuddy, bestWith, minimallyRated)),
+				new LinesParagraph(rated.stream().map(BoardGameRender::playInfo).map(Line::of).toList())
+		).toText();
 	}
 
 	@GET

@@ -5,7 +5,11 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 
 public interface Line extends Text {
-	Line EMPTY = () -> StringUtils.EMPTY;
+	Line EMPTY = Line.of(StringUtils.EMPTY);
+
+	static Line of(String value) {
+		return () -> value;
+	}
 
 	String line();
 
