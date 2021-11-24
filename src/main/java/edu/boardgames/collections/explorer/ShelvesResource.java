@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -27,6 +26,7 @@ import edu.boardgames.collections.explorer.domain.BoardGameCollection;
 import edu.boardgames.collections.explorer.domain.Copy;
 import edu.boardgames.collections.explorer.domain.GeekBuddy;
 import edu.boardgames.collections.explorer.domain.PlayerCount;
+import edu.boardgames.collections.explorer.domain.poll.Filter;
 import edu.boardgames.collections.explorer.infrastructure.bgg.BggInit;
 import edu.boardgames.collections.explorer.ui.text.Chapter;
 import edu.boardgames.collections.explorer.ui.text.ChapterTitle;
@@ -47,7 +47,7 @@ public class ShelvesResource {
 		LOGGER.log(Level.INFO, "Search currently playable collections {0} to play a best with {1} game", Arrays.toString(collectionNames), ObjectUtils.defaultIfNull(bestWith, "n/a"));
 		String boardGames = displayMultiLineString(
 				BggInit.get().collections().withNames(collectionNames),
-				toCopyFilter(bestWithFilter(bestWith))
+				bestWithFilter(bestWith).lift(Copy::boardGame)
 		);
 		return String.format("Search collections %s to play a best with %s game%n%n%s", Arrays.toString(collectionNames), ObjectUtils.defaultIfNull(bestWith, "n/a"), boardGames);
 	}
@@ -56,11 +56,15 @@ public class ShelvesResource {
 	@Path("/play/perspective/{geekbuddy}")
 	@Produces(MediaType.TEXT_PLAIN)
 	public String current(@PathParam("geekbuddy") String geekbuddy, @QueryParam("collections") String collections, @QueryParam("bestWith") Integer bestWith) {
+		// TODO_EDU parameters to search criteria
 		String[] collectionNames = StringUtils.split(collections, ",");
-		LOGGER.log(Level.INFO, "Search currently playable collections {0} to play a best with {1} game", Arrays.toString(collectionNames), ObjectUtils.defaultIfNull(bestWith, "n/a"));
+		String documentTitle = "Search collections %s to play a best with %s game, tailored for %s".formatted(Arrays.toString(collectionNames), ObjectUtils.defaultIfNull(bestWith, "n/a"), geekbuddy);
+		LOGGER.log(Level.INFO, documentTitle);
+
+		// TODO_EDU collections merge and filtering
 		Map<BoardGame, Set<String>> joinedCollections = BggInit.get().collections().withNames(collectionNames).boardGameCopies()
 				.stream()
-				.filter(toCopyFilter(bestWithFilter(bestWith)))
+				.filter(bestWithFilter(bestWith).lift(Copy::boardGame))
 				.collect(Collectors.groupingBy(Copy::boardGame, Collectors.mapping(Copy::collection, Collectors.mapping(BoardGameCollection::name, Collectors.toCollection(TreeSet::new)))));
 
 		GeekBuddy buddy = BggInit.get().geekBuddies().one(geekbuddy);
@@ -72,7 +76,7 @@ public class ShelvesResource {
 				.collect(Collectors.groupingBy(PlayableCopy::group, Collectors.toCollection(TreeSet::new)));
 
 		return new Document(
-				new DocumentTitle("Search collections %s to play a best with %s game, tailored for %s".formatted(Arrays.toString(collectionNames), ObjectUtils.defaultIfNull(bestWith, "n/a"), geekbuddy)),
+				new DocumentTitle(documentTitle),
 				boardGames.entrySet().stream()
 						.map(entry -> new Chapter(new ChapterTitle(entry.getKey()), new LinesParagraph(entry.getValue())))
 						.toArray(Chapter[]::new)
@@ -85,6 +89,7 @@ public class ShelvesResource {
 
 		@Override
 		public String line() {
+			// TODO_EDU extend Document API with TableParagraph
 			return BoardGameRender.tabularPlayInfo(boardGame, String.join(", ", owners));
 		}
 
@@ -121,7 +126,7 @@ public class ShelvesResource {
 
 		String copies = displayMultiLineString(
 				BggInit.get().collections().all(),
-				toCopyFilter(bestWithFilter(bestWith).and(wantToPlay::contains))
+				Filter.of(bestWithFilter(bestWith).and(wantToPlay::contains)).lift(Copy::boardGame)
 		);
 		LOGGER.log(Level.INFO, "All owned collections matched against want to play collection");
 		return String.format("Search collections of all geekbuddies for %s's want-to-play best with %d games%n%n%s", geekbuddy, bestWith, copies);
@@ -159,15 +164,7 @@ public class ShelvesResource {
 		return String.format("Searched all known collections for game %s:%n%n%s", boardGameName, StringUtils.defaultIfBlank(copies.trim(), ">>> not found in known collections"));
 	}
 
-	private Predicate<Copy> toCopyFilter(Predicate<BoardGame> filter) {
-		return lift(filter, Copy::boardGame);
-	}
-
-	private <T, R> Predicate<R> lift(Predicate<T> filter, Function<R, T> mapper) {
-		return subject -> filter.test(mapper.apply(subject));
-	}
-
-	private Predicate<BoardGame> bestWithFilter(Integer bestWith) {
+	private Filter<BoardGame> bestWithFilter(Integer bestWith) {
 		return bestWith != null ? new PlayerCount(bestWith)::bestOnly : bg -> true;
 	}
 
