@@ -1,11 +1,5 @@
 package edu.boardgames.collections.explorer.infrastructure.cache;
 
-import com.github.benmanes.caffeine.cache.CacheLoader;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.LoadingCache;
-import edu.boardgames.collections.explorer.domain.BoardGame;
-import edu.boardgames.collections.explorer.domain.BoardGames;
-
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -13,7 +7,12 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
+
+import com.github.benmanes.caffeine.cache.CacheLoader;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
+import edu.boardgames.collections.explorer.domain.BoardGame;
+import edu.boardgames.collections.explorer.domain.BoardGames;
 
 //TODO_EDU CacheWriter? https://github.com/ben-manes/caffeine/issues/274
 public class BoardGamesCache implements BoardGames {
@@ -43,6 +42,6 @@ public class BoardGamesCache implements BoardGames {
 
 	@Override
 	public List<BoardGame> withIds(Stream<String> ids) {
-		return List.copyOf(cache.getAll(ids.collect(Collectors.toList())).values());
+		return List.copyOf(cache.getAll(ids.toList()).values());
 	}
 }

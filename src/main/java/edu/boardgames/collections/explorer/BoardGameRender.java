@@ -4,6 +4,8 @@ import java.lang.System.Logger.Level;
 import java.util.Locale;
 import java.util.Optional;
 
+import org.apache.commons.lang3.StringUtils;
+
 import edu.boardgames.collections.explorer.domain.BoardGame;
 import edu.boardgames.collections.explorer.domain.Range;
 import edu.boardgames.collections.explorer.infrastructure.bgg.PlayerCountPoll;
@@ -47,7 +49,7 @@ public final class BoardGameRender {
 				.or(boardGame::recommendedWithPlayerCount)
 				.orElseGet(boardGame::playerCount);
 		return String.join("\t",
-				"%-100s".formatted(boardGame.name()),
+				"%-70s".formatted(StringUtils.abbreviate(boardGame.name(), 70)),
 				boardGame.year(),
 				"%5s>%-4s".formatted(boardGame.playerCount().formatted(), communityPlayerCount.formatted()),
 				"%7s min".formatted(boardGame.playtime().formatted()),

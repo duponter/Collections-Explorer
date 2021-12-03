@@ -82,14 +82,14 @@ public class ThingRequest extends BggRequest<ThingRequest> {
 
 	private Stream<ThingRequest> splitLargeRequests() {
 		int requestCount = (ids.size() / IDS_PER_REQUEST) + (ids.size() % IDS_PER_REQUEST > 0 ? 1 : 0);
-		LOGGER.log(Level.DEBUG, "Given max %d ids per request, %d ids result into %d request(s)".formatted(IDS_PER_REQUEST, ids.size(), requestCount));
+		LOGGER.log(Level.INFO, "Given max %d ids per request, %d ids result into %d request(s)".formatted(IDS_PER_REQUEST, ids.size(), requestCount));
 		if (requestCount == 0) {
 			return Stream.empty();
 		} else if (requestCount == 1) {
 			return Stream.of(this.addIds());
 		} else {
 			int idCountPerRequest = (ids.size() / requestCount) + 1;
-			LOGGER.log(Level.DEBUG, "Performing %d requests for %d ids each".formatted(requestCount, idCountPerRequest));
+			LOGGER.log(Level.INFO, "Performing %d requests for %d ids each".formatted(requestCount, idCountPerRequest));
 			return io.vavr.collection.Stream.ofAll(ids)
 			                                .grouped(idCountPerRequest)
 			                                .map(idsPerRequest -> this.copy(ThingRequest::new)
