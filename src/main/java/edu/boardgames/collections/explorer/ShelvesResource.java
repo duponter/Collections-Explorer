@@ -92,7 +92,7 @@ public class ShelvesResource {
 				.thenComparing(pc -> pc.boardGame().year());
 
 		public Line asLine(OwnedBoardGameFormat format) {
-			return () -> format.apply(this.boardGame(), this.owners());
+			return Line.of(format.apply(this.boardGame(), this.owners()));
 		}
 
 		@Override

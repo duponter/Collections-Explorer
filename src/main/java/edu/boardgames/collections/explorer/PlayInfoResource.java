@@ -37,6 +37,12 @@ import edu.boardgames.collections.explorer.infrastructure.bgg.PlaysRequest;
 import edu.boardgames.collections.explorer.infrastructure.bgg.ThingRequest;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlInput;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
+import edu.boardgames.collections.explorer.ui.text.Chapter;
+import edu.boardgames.collections.explorer.ui.text.ChapterTitle;
+import edu.boardgames.collections.explorer.ui.text.Document;
+import edu.boardgames.collections.explorer.ui.text.DocumentTitle;
+import edu.boardgames.collections.explorer.ui.text.Line;
+import edu.boardgames.collections.explorer.ui.text.LinesParagraph;
 import io.vavr.Tuple;
 
 @Path("/playinfo")
@@ -130,20 +136,51 @@ public class PlayInfoResource {
 	@Path("/plays/{username}")
 	@Produces(MediaType.TEXT_PLAIN)
 	public String userPlays(@PathParam("username") String username) {
-		return new PlaysRequest().username(username)
+		List<PlayStats> stats = new PlaysRequest().username(username)
 				.asInputStreams()
 				.map(new XmlInput()::read)
 				.flatMap(root -> XmlNode.nodes(root, "//play"))
 				.map(PlayBggXml::new)
 				.collect(Collectors.groupingBy(Play::boardGameId, new PlayStatsCollector()))
-				.entrySet().stream()
-				.map(play -> String.format("Game: %s - Last: %s - Times: %d", play.getKey(), play.getValue().lastPlayed, play.getValue().timesPlayed))
-				.collect(Collectors.joining(System.lineSeparator()));
+				.values().stream()
+				.sorted(Comparator.reverseOrder())
+				.toList();
+		return new Document(
+				new DocumentTitle("Plays of %s".formatted(username)),
+				new Chapter(
+						new ChapterTitle(String.join("\t", StringUtils.rightPad("Game", 10), StringUtils.center("Last", 10), "Times")),
+						new LinesParagraph(
+								stats.stream()
+										.map(stat -> Line.of(
+												String.join("\t",
+														"%-10s".formatted(stat.boardGameId),
+														"%s".formatted(stat.lastPlayed),
+														"%5d".formatted(stat.timesPlayed)
+												)
+										)).toList()
+						)
+				)
+		).toText();
 	}
 
-	private static class PlayStats {
+	private static class PlayStats implements Comparable<PlayStats> {
+		private String boardGameId;
 		private LocalDate lastPlayed;
 		private int timesPlayed;
+
+		private PlayStats init(Play play) {
+			this.boardGameId = play.boardGameId();
+			this.timesPlayed += play.quantity();
+			if (this.lastPlayed == null || play.date().isAfter(this.lastPlayed)) {
+				this.lastPlayed = play.date();
+			}
+			return this;
+		}
+
+		@Override
+		public int compareTo(PlayStats o) {
+			return this.lastPlayed.compareTo(o.lastPlayed);
+		}
 	}
 
 	private static class PlayStatsCollector implements Collector<Play, PlayStats, PlayStats> {
@@ -154,7 +191,7 @@ public class PlayInfoResource {
 
 		@Override
 		public BiConsumer<PlayStats, Play> accumulator() {
-			return (stats, play) -> processNext(stats, play.date(), play.quantity());
+			return PlayStats::init;
 		}
 
 		@Override
