@@ -26,12 +26,14 @@ import edu.boardgames.collections.explorer.domain.GeekBuddy;
 import edu.boardgames.collections.explorer.domain.PlayerCount;
 import edu.boardgames.collections.explorer.domain.poll.Filter;
 import edu.boardgames.collections.explorer.infrastructure.bgg.BggInit;
+import edu.boardgames.collections.explorer.ui.input.OwnedBoardGameFormatInput;
 import edu.boardgames.collections.explorer.ui.text.Chapter;
 import edu.boardgames.collections.explorer.ui.text.ChapterTitle;
 import edu.boardgames.collections.explorer.ui.text.Document;
 import edu.boardgames.collections.explorer.ui.text.DocumentTitle;
 import edu.boardgames.collections.explorer.ui.text.Line;
 import edu.boardgames.collections.explorer.ui.text.LinesParagraph;
+import edu.boardgames.collections.explorer.ui.text.format.OwnedBoardGameFormat;
 
 @Path("/shelves")
 public class ShelvesResource {
@@ -59,38 +61,38 @@ public class ShelvesResource {
 	@GET
 	@Path("/play/{geekbuddy}")
 	@Produces(MediaType.TEXT_PLAIN)
-	public String current(@PathParam("geekbuddy") String geekbuddy, @QueryParam("collections") String collections, @QueryParam("bestWith") Integer bestWith) {
+	public String current(@PathParam("geekbuddy") String geekbuddy, @QueryParam("collections") String collections, @QueryParam("bestWith") Integer bestWith, @QueryParam("format") String format) {
 		// TODO_EDU parameters to search criteria
 		String[] collectionNames = StringUtils.split(collections, ",");
-		String documentTitle = "Search collections %s to play a best with %s game, tailored for %s".formatted(Arrays.toString(collectionNames), ObjectUtils.defaultIfNull(bestWith, "n/a"), geekbuddy);
+		OwnedBoardGameFormatInput formatInput = new OwnedBoardGameFormatInput(format);
+		String documentTitle = "Search collections %s to play a best with %s game, tailored for %s, %s".formatted(Arrays.toString(collectionNames), ObjectUtils.defaultIfNull(bestWith, "n/a"), geekbuddy, formatInput.asText());
 		LOGGER.log(Level.INFO, documentTitle);
 
 		GeekBuddy buddy = BggInit.get().geekBuddies().one(geekbuddy);
 		List<BoardGame> wantToPlay = buddy.wantToPlayCollection();
 		List<BoardGame> played = buddy.ratedCollection(5);
 		List<BoardGame> topRated = buddy.ratedCollection(8);
-		Map<String, Collection<Line>> boardGames = BggInit.get().collections().withNames(collectionNames).copiesPerBoardGame()
+		Map<String, Collection<PlayableCopy>> boardGames = BggInit.get().collections().withNames(collectionNames).copiesPerBoardGame()
 				.entrySet().stream()
 				.filter(entry -> bestWithFilter(bestWith).test(entry.getKey()))
 				.map(entry -> new PlayableCopy(group(entry.getKey(), wantToPlay, played, topRated), entry.getKey(), entry.getValue()))
 				.collect(Collectors.groupingBy(PlayableCopy::group, Collectors.toCollection(TreeSet::new)));
 
+		OwnedBoardGameFormat outputFormat = formatInput.resolve();
 		return new Document(
 				new DocumentTitle(documentTitle),
 				boardGames.entrySet().stream()
-						.map(entry -> new Chapter(new ChapterTitle(entry.getKey()), new LinesParagraph(entry.getValue())))
+						.map(entry -> new Chapter(new ChapterTitle(entry.getKey()), new LinesParagraph(entry.getValue().stream().map(pc -> pc.asLine(outputFormat)).toList())))
 						.toArray(Chapter[]::new)
 		).toText();
 	}
 
-	private record PlayableCopy(String group, BoardGame boardGame, Set<String> owners) implements Line, Comparable<PlayableCopy> {
+	private record PlayableCopy(String group, BoardGame boardGame, Set<String> owners) implements Comparable<PlayableCopy> {
 		private static final Comparator<PlayableCopy> COMPARATOR = Comparator.<PlayableCopy, String>comparing(pc -> pc.boardGame().name())
 				.thenComparing(pc -> pc.boardGame().year());
 
-		@Override
-		public String line() {
-			// TODO_EDU extend Document API with TableParagraph
-			return BoardGameRender.tabularPlayInfo(boardGame, String.join(", ", owners));
+		public Line asLine(OwnedBoardGameFormat format) {
+			return () -> format.apply(this.boardGame(), this.owners());
 		}
 
 		@Override
