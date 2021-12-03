@@ -7,11 +7,15 @@ public final class Score implements Function<Double, String> {
 	private final int scale;
 
 	public static Score score5() {
-		return new Score("%1.2f", 5);
+		return new Score("%4.2f", 5);
 	}
 
 	public static Score score10() {
-		return new Score("%2.1f", 10);
+		return new Score("%4.1f", 10);
+	}
+
+	public static Score percentage() {
+		return new Score("%6.2f%%", 100);
 	}
 
 	private Score(String format, int scale) {

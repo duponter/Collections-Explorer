@@ -48,7 +48,7 @@ public class ShelvesResource {
 		List<Line> boardGames = BggInit.get().collections().withNames(collectionNames).copiesPerBoardGame()
 				.entrySet().stream()
 				.filter(entry -> bestWithFilter(bestWith).test(entry.getKey()))
-				.map(entry -> BoardGameRender.tabularPlayInfo(entry.getKey(), String.join(", ", entry.getValue())))
+				.map(entry -> OwnedBoardGameFormat.FULL.apply(entry.getKey(), entry.getValue()))
 				.sorted()
 				.map(Line::of)
 				.toList();
@@ -130,7 +130,7 @@ public class ShelvesResource {
 		List<Line> copies = BggInit.get().collections().all().copiesPerBoardGame()
 				.entrySet().stream()
 				.filter(entry -> bestWithFilter(bestWith).and(wantsToPlay).test(entry.getKey()))
-				.map(entry -> BoardGameRender.playInfo(entry.getKey(), String.join(", ", entry.getValue())))
+				.map(entry -> OwnedBoardGameFormat.FULL.apply(entry.getKey(), entry.getValue()))
 				.sorted()
 				.map(Line::of)
 				.toList();
@@ -154,7 +154,7 @@ public class ShelvesResource {
 
 		return new Document(
 				new DocumentTitle("Show replay options for %s's want-to-play best with %d games rated at least %d".formatted(geekbuddy, bestWith, minimallyRated)),
-				new LinesParagraph(rated.stream().map(BoardGameRender::playInfo).map(Line::of).toList())
+				new LinesParagraph(rated.stream().map(bg -> OwnedBoardGameFormat.SLIM.apply(bg, Set.of())).map(Line::of).toList())
 		).toText();
 	}
 
@@ -173,7 +173,7 @@ public class ShelvesResource {
 				.entrySet().stream()
 				.filter(entry -> StringUtils.equals(entry.getKey().id(), boardGameId))
 				.findFirst()
-				.map(entry -> BoardGameRender.playInfo(entry.getKey(), String.join(", ", entry.getValue())))
+				.map(entry -> OwnedBoardGameFormat.FULL.apply(entry.getKey(), entry.getValue()))
 				.orElse(">>> not found in known collections");
 		return String.format("Searched all known collections for game %s:%n%n%s", boardGameName, copies);
 	}
