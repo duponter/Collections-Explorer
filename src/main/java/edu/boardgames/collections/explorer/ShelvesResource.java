@@ -29,11 +29,14 @@ import edu.boardgames.collections.explorer.infrastructure.bgg.BggInit;
 import edu.boardgames.collections.explorer.ui.input.OwnedBoardGameFormatInput;
 import edu.boardgames.collections.explorer.ui.text.Chapter;
 import edu.boardgames.collections.explorer.ui.text.ChapterTitle;
+import edu.boardgames.collections.explorer.ui.text.Column;
 import edu.boardgames.collections.explorer.ui.text.Document;
 import edu.boardgames.collections.explorer.ui.text.DocumentTitle;
 import edu.boardgames.collections.explorer.ui.text.Line;
 import edu.boardgames.collections.explorer.ui.text.LinesParagraph;
+import edu.boardgames.collections.explorer.ui.text.Table;
 import edu.boardgames.collections.explorer.ui.text.format.OwnedBoardGameFormat;
+import edu.boardgames.collections.explorer.ui.text.format.Score;
 
 @Path("/shelves")
 public class ShelvesResource {
@@ -154,7 +157,15 @@ public class ShelvesResource {
 
 		return new Document(
 				new DocumentTitle("Show replay options for %s's want-to-play best with %d games rated at least %d".formatted(geekbuddy, bestWith, minimallyRated)),
-				new LinesParagraph(rated.stream().map(bg -> OwnedBoardGameFormat.SLIM.apply(bg, Set.of())).map(Line::of).toList())
+				new LinesParagraph(rated.stream().map(bg -> OwnedBoardGameFormat.SLIM.apply(bg, Set.of())).map(Line::of).toList()),
+				new Table<>(
+						List.of(
+								new Column<>("Boardgame", 70, bg -> "%-70s".formatted(StringUtils.abbreviate(bg.name(), 70))),
+								new Column<>("Year", 4, BoardGame::year),
+								new Column<>("BGG Score", 10, bg -> Score.score10().fullString(bg.bggScore()))
+						),
+						rated
+				)
 		).toText();
 	}
 
