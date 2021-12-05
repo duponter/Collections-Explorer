@@ -4,11 +4,9 @@ import org.apache.commons.lang3.StringUtils;
 
 import edu.boardgames.collections.explorer.ui.text.format.OwnedBoardGameFormat;
 
-public class OwnedBoardGameFormatInput implements Input<OwnedBoardGameFormat> {
-	private final String name;
-
+public record OwnedBoardGameFormatInput(String name) implements Input<OwnedBoardGameFormat> {
 	public OwnedBoardGameFormatInput(String name) {
-		this.name = StringUtils.upperCase(name);
+		this.name = StringUtils.defaultString(StringUtils.upperCase(name), OwnedBoardGameFormat.FULL.name());
 	}
 
 	@Override
