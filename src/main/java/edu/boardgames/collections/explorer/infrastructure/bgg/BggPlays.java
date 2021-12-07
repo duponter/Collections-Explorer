@@ -20,17 +20,24 @@ public class BggPlays implements Plays {
 
 	@Override
 	public List<Play> forUserAndGame(String username, String id) {
-		LOGGER.info("Fetching plays of {} by {} ", id, username);
-		return this.executeRequest(new PlaysRequest().username(username).id(id));
+		LOGGER.info("Fetching first page of {} plays by {}", id, username);
+		List<Play> plays = this.executeRequest(new PlaysRequest().username(username).id(id).page(1));
+		if (plays.size() == 100) {
+			LOGGER.warn("Exactly 100 records fetched because request is limited to first page of 100 records, requerying without page");
+			plays = this.executeRequest(new PlaysRequest().username(username).id(id).page(0));
+		}
+		return plays;
 	}
 
 	private List<Play> executeRequest(PlaysRequest request) {
-		return request
+		List<Play> plays = request
 				.asInputStreams()
 				.map(new XmlInput()::read)
 				.flatMap(root -> XmlNode.nodes(root, "//play"))
 				.map(PlayBggXml::new)
 				.map(Play.class::cast)
 				.toList();
+		LOGGER.info("Fetching {} logged plays", plays.size());
+		return plays;
 	}
 }

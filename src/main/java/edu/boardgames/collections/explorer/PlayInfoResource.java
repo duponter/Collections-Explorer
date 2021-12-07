@@ -214,22 +214,29 @@ public class PlayInfoResource {
 	@Produces(MediaType.TEXT_PLAIN)
 	public String shelfOfShame(@PathParam("username") String username) {
 		GeekbuddyInput geekbuddyInput = new GeekbuddyInput(username);
-		List<BoardGamePlaySummary> stats = geekbuddyInput.resolve().ownedCollection().stream()
+		List<BoardGamePlaySummary> stats = geekbuddyInput.resolve().ownedCollection().parallelStream()
 				.map(bg -> new BoardGamePlays(bg, BggInit.get().plays().forUserAndGame(username, bg.id())))
 				.map(BoardGamePlays::summarize)
-				.sorted()
 				.toList();
+		/*
+		1) Link to included games
+		https://boardgamegeek.com/xmlapi2/thing?id=295260,331992
+		<link type="boardgamecompilation" id="162007" value="Steampunk Rally" inbound="true"/>
+		<link type="boardgamecompilation" id="298229" value="Steampunk Rally Fusion" inbound="true"/>
+		2) Filter children games
+		 */
 
 		return new Document(
 				new DocumentTitle("Shelf of Shame of %s".formatted(geekbuddyInput.asText())),
 				new LinesParagraph(
 						stats.stream()
+								.sorted()
 								.map(stat -> Line.of(
 										String.join("\t",
 												"%-70s".formatted(stat.boardGame().name()),
-												Objects.toString(stat.lastPlay(), ""),
+												Objects.toString(stat.lastPlay(), " ".repeat(10)),
 												"%2d".formatted(stat.count()),
-												Objects.toString(stat.firstPlay(), "")
+												Objects.toString(stat.firstPlay(), " ".repeat(10))
 										)
 								)).toList()
 				)
@@ -251,8 +258,8 @@ public class PlayInfoResource {
 	}
 
 	private record BoardGamePlaySummary(BoardGame boardGame, int count, LocalDate firstPlay, LocalDate lastPlay) implements Comparable<BoardGamePlaySummary> {
-//		private static final Comparator<BoardGamePlaySummary> COMPARATOR = Comparator.nullsFirst(Comparator.comparing(BoardGamePlaySummary::lastPlay)).thenComparing(s -> s.boardGame.name());
-		private static final Comparator<BoardGamePlaySummary> COMPARATOR = Comparator.comparing(s -> s.boardGame.name());
+		private static final Comparator<BoardGamePlaySummary> COMPARATOR = Comparator.comparing(BoardGamePlaySummary::lastPlay, Comparator.nullsFirst(Comparator.naturalOrder()))
+				.thenComparing(s -> s.boardGame.name());
 
 		BoardGamePlaySummary(BoardGame boardGame) {
 			this(boardGame, 0, null, null);
