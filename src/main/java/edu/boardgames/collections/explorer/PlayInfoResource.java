@@ -11,6 +11,7 @@ import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.BiConsumer;
@@ -28,15 +29,13 @@ import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.lang3.StringUtils;
 
+import edu.boardgames.collections.explorer.domain.BoardGame;
 import edu.boardgames.collections.explorer.domain.MageKnightSoloPlay;
 import edu.boardgames.collections.explorer.domain.MageKnightSoloPlayAggregate;
 import edu.boardgames.collections.explorer.domain.Play;
 import edu.boardgames.collections.explorer.infrastructure.bgg.BggInit;
-import edu.boardgames.collections.explorer.infrastructure.bgg.PlayBggXml;
-import edu.boardgames.collections.explorer.infrastructure.bgg.PlaysRequest;
 import edu.boardgames.collections.explorer.infrastructure.bgg.ThingRequest;
-import edu.boardgames.collections.explorer.infrastructure.xml.XmlInput;
-import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
+import edu.boardgames.collections.explorer.ui.input.GeekbuddyInput;
 import edu.boardgames.collections.explorer.ui.text.Chapter;
 import edu.boardgames.collections.explorer.ui.text.ChapterTitle;
 import edu.boardgames.collections.explorer.ui.text.Document;
@@ -84,11 +83,7 @@ public class PlayInfoResource {
 	@Path("/plays/{username}/mksolo")
 	@Produces(MediaType.TEXT_PLAIN)
 	public String mageKnightSoloPlays(@PathParam("username") String username) {
-		List<MageKnightSoloPlay> plays = new PlaysRequest().username(username).id("248562")
-				.asInputStreams()
-				.map(new XmlInput()::read)
-				.flatMap(root -> XmlNode.nodes(root, "//play"))
-				.map(PlayBggXml::new)
+		List<MageKnightSoloPlay> plays = BggInit.get().plays().forUserAndGame(username, "248562").stream()
 				.map(MageKnightSoloPlay::new)
 				.toList();
 		Map<String, Map<String, Long>> dummyPlayerCounts = plays.stream()
@@ -136,11 +131,7 @@ public class PlayInfoResource {
 	@Path("/plays/{username}")
 	@Produces(MediaType.TEXT_PLAIN)
 	public String userPlays(@PathParam("username") String username) {
-		List<PlayStats> stats = new PlaysRequest().username(username)
-				.asInputStreams()
-				.map(new XmlInput()::read)
-				.flatMap(root -> XmlNode.nodes(root, "//play"))
-				.map(PlayBggXml::new)
+		List<PlayStats> stats = BggInit.get().plays().forUser(username).stream()
 				.collect(Collectors.groupingBy(Play::boardGameId, new PlayStatsCollector()))
 				.values().stream()
 				.sorted(Comparator.reverseOrder())
@@ -154,7 +145,7 @@ public class PlayInfoResource {
 										.map(stat -> Line.of(
 												String.join("\t",
 														"%-10s".formatted(stat.boardGameId),
-														"%s".formatted(stat.lastPlayed),
+														stat.lastPlayed.toString(),
 														"%5d".formatted(stat.timesPlayed)
 												)
 										)).toList()
@@ -217,4 +208,60 @@ public class PlayInfoResource {
 			return EnumSet.of(Collector.Characteristics.IDENTITY_FINISH);
 		}
 	}
+
+	@GET
+	@Path("/shelfofshame/{username}")
+	@Produces(MediaType.TEXT_PLAIN)
+	public String shelfOfShame(@PathParam("username") String username) {
+		GeekbuddyInput geekbuddyInput = new GeekbuddyInput(username);
+		List<BoardGamePlaySummary> stats = geekbuddyInput.resolve().ownedCollection().stream()
+				.map(bg -> new BoardGamePlays(bg, BggInit.get().plays().forUserAndGame(username, bg.id())))
+				.map(BoardGamePlays::summarize)
+				.sorted()
+				.toList();
+
+		return new Document(
+				new DocumentTitle("Shelf of Shame of %s".formatted(geekbuddyInput.asText())),
+				new LinesParagraph(
+						stats.stream()
+								.map(stat -> Line.of(
+										String.join("\t",
+												"%-70s".formatted(stat.boardGame().name()),
+												Objects.toString(stat.lastPlay(), ""),
+												"%2d".formatted(stat.count()),
+												Objects.toString(stat.firstPlay(), "")
+										)
+								)).toList()
+				)
+		).toText();
+	}
+
+	private record BoardGamePlays(BoardGame boardGame, List<Play> plays) {
+		private static final Comparator<Play> PLAY_COMPARATOR = Comparator.comparing(Play::date);
+
+		private BoardGamePlaySummary summarize() {
+			if (plays.isEmpty()) {
+				return new BoardGamePlaySummary(this.boardGame());
+			}
+			int count = this.plays().stream().mapToInt(Play::quantity).sum();
+			LocalDate firstPlay = this.plays().stream().min(PLAY_COMPARATOR).map(Play::date).orElse(null);
+			LocalDate lastPlay = this.plays().stream().max(PLAY_COMPARATOR).map(Play::date).orElse(null);
+			return new BoardGamePlaySummary(this.boardGame(), count, firstPlay, lastPlay);
+		}
+	}
+
+	private record BoardGamePlaySummary(BoardGame boardGame, int count, LocalDate firstPlay, LocalDate lastPlay) implements Comparable<BoardGamePlaySummary> {
+//		private static final Comparator<BoardGamePlaySummary> COMPARATOR = Comparator.nullsFirst(Comparator.comparing(BoardGamePlaySummary::lastPlay)).thenComparing(s -> s.boardGame.name());
+		private static final Comparator<BoardGamePlaySummary> COMPARATOR = Comparator.comparing(s -> s.boardGame.name());
+
+		BoardGamePlaySummary(BoardGame boardGame) {
+			this(boardGame, 0, null, null);
+		}
+
+		@Override
+		public int compareTo(BoardGamePlaySummary other) {
+			return COMPARATOR.compare(this, other);
+		}
+	}
+
 }

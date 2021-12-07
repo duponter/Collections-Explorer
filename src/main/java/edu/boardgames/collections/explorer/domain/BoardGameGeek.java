@@ -10,4 +10,6 @@ public interface BoardGameGeek {
 	BoardGames boardGames();
 
 	GeekLists geekLists();
+
+	Plays plays();
 }

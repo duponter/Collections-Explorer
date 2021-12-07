@@ -1,10 +1,5 @@
 package edu.boardgames.collections.explorer.infrastructure.bgg;
 
-import edu.boardgames.collections.explorer.infrastructure.Async;
-import edu.boardgames.collections.explorer.infrastructure.xml.XmlInput;
-import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
-import org.w3c.dom.Node;
-
 import java.io.InputStream;
 import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
@@ -12,6 +7,11 @@ import java.util.NoSuchElementException;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+
+import edu.boardgames.collections.explorer.infrastructure.Async;
+import edu.boardgames.collections.explorer.infrastructure.xml.XmlInput;
+import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
+import org.w3c.dom.Node;
 
 public class PlaysRequest extends BggRequest<PlaysRequest> {
 	private static final Logger LOGGER = System.getLogger(PlaysRequest.class.getName());
@@ -86,8 +86,7 @@ public class PlaysRequest extends BggRequest<PlaysRequest> {
 			                         .orElse(0);
 			int pages = (total / 100) + 1;
 			LOGGER.log(Level.DEBUG, "Performing {0, number, integer} paged requests to fetch {1, number, integer} plays", pages, total);
-			return IntStream.rangeClosed(1, pages)
-					.mapToObj(page -> this.copy(PlaysRequest::new).page(page));
+			return IntStream.rangeClosed(1, pages).mapToObj(this.copy(PlaysRequest::new)::page);
 		}
 	}
 
