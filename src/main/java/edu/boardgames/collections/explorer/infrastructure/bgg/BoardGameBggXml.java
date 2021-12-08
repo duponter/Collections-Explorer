@@ -1,5 +1,10 @@
 package edu.boardgames.collections.explorer.infrastructure.bgg;
 
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Predicate;
+
 import edu.boardgames.collections.explorer.domain.BoardGame;
 import edu.boardgames.collections.explorer.domain.NumberOfPlayers;
 import edu.boardgames.collections.explorer.domain.Range;
@@ -9,12 +14,6 @@ import io.vavr.collection.Map;
 import io.vavr.collection.Set;
 import io.vavr.collection.Stream;
 import org.w3c.dom.Node;
-
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 public class BoardGameBggXml extends XmlNode implements BoardGame {
 	private final String id;
@@ -94,6 +93,15 @@ public class BoardGameBggXml extends XmlNode implements BoardGame {
 	@Override
 	public Double averageWeight() {
 		return numericValueAttribute("statistics/ratings/averageweight").doubleValue();
+	}
+
+	@Override
+	public List<BoardGame> contains() {
+		return BggInit.get().boardGames()
+				.withIds(
+						this.nodes("link[@type='boardgamecompilation'][@inbound='true']/@id")
+								.map(Node::getNodeValue)
+				);
 	}
 
 	@Override

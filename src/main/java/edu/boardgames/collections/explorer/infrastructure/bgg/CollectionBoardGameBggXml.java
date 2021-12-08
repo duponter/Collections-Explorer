@@ -1,13 +1,13 @@
 package edu.boardgames.collections.explorer.infrastructure.bgg;
 
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+
 import edu.boardgames.collections.explorer.domain.BoardGame;
 import edu.boardgames.collections.explorer.domain.Range;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
 import org.w3c.dom.Node;
-
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 
 public class CollectionBoardGameBggXml extends XmlNode implements BoardGame {
 	private final String id;
@@ -70,6 +70,11 @@ public class CollectionBoardGameBggXml extends XmlNode implements BoardGame {
 	@Override
 	public Double averageWeight() {
 		return Double.NaN;
+	}
+
+	@Override
+	public List<BoardGame> contains() {
+		return List.of();
 	}
 
 	@Override

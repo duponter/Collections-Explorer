@@ -1,5 +1,6 @@
 package edu.boardgames.collections.explorer.infrastructure.cache;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -19,6 +20,7 @@ public class LazyBoardGame implements BoardGame {
 	private final Lazy<Optional<Range<String>>> recommendedWithPlayerCount;
 	private final Lazy<Range<String>> playtime;
 	private final Lazy<Double> averageWeight;
+	private final Lazy<List<BoardGame>> contains;
 
 	protected LazyBoardGame(BoardGame delegate) {
 		this.delegate = delegate;
@@ -31,6 +33,7 @@ public class LazyBoardGame implements BoardGame {
 		this.recommendedWithPlayerCount = Lazy.of(delegate::recommendedWithPlayerCount);
 		this.playtime = Lazy.of(delegate::playtime);
 		this.averageWeight = Lazy.of(delegate::averageWeight);
+		this.contains = Lazy.of(delegate::contains);
 	}
 
 	@Override
@@ -86,6 +89,11 @@ public class LazyBoardGame implements BoardGame {
 	@Override
 	public Double averageWeight() {
 		return this.averageWeight.get();
+	}
+
+	@Override
+	public List<BoardGame> contains() {
+		return this.contains.get();
 	}
 
 	@Override
