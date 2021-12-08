@@ -8,17 +8,11 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.TreeMap;
-import java.util.function.BiConsumer;
-import java.util.function.BinaryOperator;
 import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.ws.rs.GET;
@@ -134,82 +128,33 @@ public class PlayInfoResource {
 	@Path("/plays/{username}")
 	@Produces(MediaType.TEXT_PLAIN)
 	public String userPlays(@PathParam("username") String username) {
-		List<PlayStats> stats = BggInit.get().plays().forUser(username).stream()
-				.collect(Collectors.groupingBy(Play::boardGameId, new PlayStatsCollector()))
-				.values().stream()
+		Instant now = Instant.now();
+
+		Map<String, List<Play>> plays = BggInit.get().plays().forUser(username).stream()
+				.collect(Collectors.groupingBy(Play::boardGameId, Collectors.toList()));
+		Map<String, BoardGame> boardGames = BggInit.get().boardGames().withIds(plays.keySet().stream()).stream().collect(Collectors.toMap(BoardGame::id, Function.identity()));
+
+		List<Line> stats = plays.entrySet().stream()
+				.map(entry -> new BoardGamePlays(boardGames.get(entry.getKey()), entry.getValue()))
+				.map(BoardGamePlays::summarize)
 				.sorted(Comparator.reverseOrder())
-				.toList();
-		return new Document(
+				.map(stat -> Line.of(
+						String.join("\t",
+								"%-70s".formatted(stat.boardGame().name()),
+								stat.lastPlay().toString(),
+								"%5d".formatted(stat.count())
+						)
+				)).toList();
+
+		String response = new Document(
 				new DocumentTitle("Plays of %s".formatted(username)),
 				new Chapter(
-						new ChapterTitle(String.join("\t", StringUtils.rightPad("Game", 10), StringUtils.center("Last", 10), "Times")),
-						new LinesParagraph(
-								stats.stream()
-										.map(stat -> Line.of(
-												String.join("\t",
-														"%-10s".formatted(stat.boardGameId),
-														stat.lastPlayed.toString(),
-														"%5d".formatted(stat.timesPlayed)
-												)
-										)).toList()
-						)
+						new ChapterTitle(String.join("\t", StringUtils.rightPad("Game", 70), StringUtils.center("Last", 10), "Times")),
+						new LinesParagraph(stats)
 				)
 		).toText();
-	}
-
-	private static class PlayStats implements Comparable<PlayStats> {
-		private String boardGameId;
-		private LocalDate lastPlayed;
-		private int timesPlayed;
-
-		private PlayStats init(Play play) {
-			this.boardGameId = play.boardGameId();
-			this.timesPlayed += play.quantity();
-			if (this.lastPlayed == null || play.date().isAfter(this.lastPlayed)) {
-				this.lastPlayed = play.date();
-			}
-			return this;
-		}
-
-		@Override
-		public int compareTo(PlayStats o) {
-			return this.lastPlayed.compareTo(o.lastPlayed);
-		}
-	}
-
-	private static class PlayStatsCollector implements Collector<Play, PlayStats, PlayStats> {
-		@Override
-		public Supplier<PlayStats> supplier() {
-			return PlayStats::new;
-		}
-
-		@Override
-		public BiConsumer<PlayStats, Play> accumulator() {
-			return PlayStats::init;
-		}
-
-		@Override
-		public BinaryOperator<PlayStats> combiner() {
-			return (current, other) -> processNext(current, other.lastPlayed, other.timesPlayed);
-		}
-
-		private PlayStats processNext(PlayStats stats, LocalDate lastPlayed, int timesPlayed) {
-			stats.timesPlayed += timesPlayed;
-			if (stats.lastPlayed == null || lastPlayed.isAfter(stats.lastPlayed)) {
-				stats.lastPlayed = lastPlayed;
-			}
-			return stats;
-		}
-
-		@Override
-		public Function<PlayStats, PlayStats> finisher() {
-			return Function.identity();
-		}
-
-		@Override
-		public Set<Characteristics> characteristics() {
-			return EnumSet.of(Collector.Characteristics.IDENTITY_FINISH);
-		}
+		LOGGER.info("Request took {} to complete", Duration.between(now, Instant.now()));
+		return response;
 	}
 
 	@GET
