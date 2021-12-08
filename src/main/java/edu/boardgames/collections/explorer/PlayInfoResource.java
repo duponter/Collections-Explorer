@@ -1,10 +1,10 @@
 package edu.boardgames.collections.explorer;
 
 import java.io.IOException;
-import java.lang.System.Logger;
-import java.lang.System.Logger.Level;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -43,10 +43,13 @@ import edu.boardgames.collections.explorer.ui.text.DocumentTitle;
 import edu.boardgames.collections.explorer.ui.text.Line;
 import edu.boardgames.collections.explorer.ui.text.LinesParagraph;
 import io.vavr.Tuple;
+import org.slf4j.Logger;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 @Path("/playinfo")
 public class PlayInfoResource {
-	private static final Logger LOGGER = System.getLogger(PlayInfoResource.class.getName());
+	private static final Logger LOGGER = getLogger(PlayInfoResource.class.getName());
 
 	@GET
 	@Path("/xsl")
@@ -66,7 +69,7 @@ public class PlayInfoResource {
 				<?xml-stylesheet type="text/xsl" href="http://localhost:8080/playinfo/xsl"?>
 				""";
 		String result = String.format("%s%n%s", xsl, StringUtils.removeStartIgnoreCase(response, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"));
-		LOGGER.log(Level.INFO, result);
+		LOGGER.info(result);
 		return result;
 	}
 
@@ -213,20 +216,20 @@ public class PlayInfoResource {
 	@Path("/shelfofshame/{username}")
 	@Produces(MediaType.TEXT_PLAIN)
 	public String shelfOfShame(@PathParam("username") String username) {
+		Instant now = Instant.now();
 		GeekbuddyInput geekbuddyInput = new GeekbuddyInput(username);
-		List<BoardGamePlaySummary> stats = geekbuddyInput.resolve().ownedCollection().parallelStream()
-				.map(bg -> new BoardGamePlays(bg, BggInit.get().plays().forUserAndGame(username, bg.id())))
-				.map(BoardGamePlays::summarize)
-				.toList();
+
+		Map<String, List<Play>> plays = BggInit.get().plays().forUser(username).stream()
+				.collect(Collectors.groupingBy(Play::boardGameId, Collectors.toList()));
 		/*
-		1) Link to included games
-		https://boardgamegeek.com/xmlapi2/thing?id=295260,331992
-		<link type="boardgamecompilation" id="162007" value="Steampunk Rally" inbound="true"/>
-		<link type="boardgamecompilation" id="298229" value="Steampunk Rally Fusion" inbound="true"/>
 		2) Filter children games
 		 */
+		List<BoardGamePlaySummary> stats = geekbuddyInput.resolve().ownedCollection().stream()
+				.map(bg -> joinPlays(bg, plays))
+				.map(BoardGamePlays::summarize)
+				.toList();
 
-		return new Document(
+		String response = new Document(
 				new DocumentTitle("Shelf of Shame of %s".formatted(geekbuddyInput.asText())),
 				new LinesParagraph(
 						stats.stream()
@@ -241,6 +244,17 @@ public class PlayInfoResource {
 								)).toList()
 				)
 		).toText();
+		LOGGER.info("Request took {} to complete", Duration.between(now, Instant.now()));
+		return response;
+	}
+
+	private BoardGamePlays joinPlays(BoardGame boardGame, Map<String, List<Play>> plays) {
+		return new BoardGamePlays(boardGame, Stream.concat(
+						Stream.of(boardGame),
+						boardGame.contains().stream()
+				).map(bg -> plays.getOrDefault(bg.id(), List.of()))
+				.flatMap(List::stream)
+				.toList());
 	}
 
 	private record BoardGamePlays(BoardGame boardGame, List<Play> plays) {
