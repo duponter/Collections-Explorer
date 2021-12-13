@@ -168,6 +168,9 @@ public class PlayInfoResource {
 				.collect(Collectors.groupingBy(Play::boardGameId, Collectors.toList()));
 		/*
 		2) Filter children games
+		https://boardgamegeek.com/xmlapi2/collection?id=8195&type=boardgame&username=duponter&stats=1&version=1
+		https://boardgamegeek.com/xmlapi2/collection?id=8195,204583&type=boardgame&username=duponter&stats=1&version=1
+		<name sortindex="1">Children: Viva Topo!</name> <version> <other>Children</other> </version>
 		 */
 		List<BoardGamePlaySummary> stats = geekbuddyInput.resolve().ownedCollection().stream()
 				.map(bg -> joinPlays(bg, plays))
