@@ -1,9 +1,5 @@
 package edu.boardgames.collections.explorer.infrastructure.bgg;
 
-import net.jodah.failsafe.Failsafe;
-import net.jodah.failsafe.RetryPolicy;
-import org.apache.commons.lang3.BooleanUtils;
-
 import java.io.InputStream;
 import java.lang.System.Logger.Level;
 import java.net.URLEncoder;
@@ -21,6 +17,11 @@ import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import org.apache.commons.lang3.BooleanUtils;
+
+import dev.failsafe.Failsafe;
+import dev.failsafe.RetryPolicy;
 
 abstract class BggRequest<R extends BggRequest<R>> {
 	private static final System.Logger LOGGER = System.getLogger(BggRequest.class.getName());
@@ -86,7 +87,7 @@ abstract class BggRequest<R extends BggRequest<R>> {
 				.GET()
 				.build();
 
-		RetryPolicy<HttpResponse<T>> retryPolicy = new RetryPolicy<HttpResponse<T>>()
+		RetryPolicy<HttpResponse<T>> retryPolicy = RetryPolicy.<HttpResponse<T>>builder()
 				.abortIf(response -> response.statusCode() == 200)
 				.handleResultIf(response -> response.statusCode() == 202)
 				.withBackoff(1L, 100L, ChronoUnit.SECONDS)
@@ -94,7 +95,8 @@ abstract class BggRequest<R extends BggRequest<R>> {
 				.onFailedAttempt(e -> LOGGER.log(Level.WARNING, String.format("Failed to get a response from %s", request.uri())))
 				.onRetry(e -> LOGGER.log(Level.WARNING, String.format("Retrying to get a response from %s", request.uri())))
 				.onSuccess(e -> LOGGER.log(Level.INFO, String.format("Got response from %s", request.uri())))
-				.onFailure(e -> LOGGER.log(Level.INFO, String.format("Failed to get response from %s", request.uri())));
+				.onFailure(e -> LOGGER.log(Level.INFO, String.format("Failed to get response from %s", request.uri())))
+				.build();
 
 		return Failsafe.with(retryPolicy).get(() -> httpClientSupplier.get().send(request, bodyHandler)).body();
 	}

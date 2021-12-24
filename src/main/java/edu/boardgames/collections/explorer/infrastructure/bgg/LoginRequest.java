@@ -1,10 +1,5 @@
 package edu.boardgames.collections.explorer.infrastructure.bgg;
 
-import net.jodah.failsafe.Failsafe;
-import net.jodah.failsafe.Fallback;
-import net.jodah.failsafe.event.ExecutionAttemptedEvent;
-import net.jodah.failsafe.function.CheckedConsumer;
-
 import java.net.CookieManager;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -14,6 +9,11 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.Objects;
+
+import dev.failsafe.Failsafe;
+import dev.failsafe.Fallback;
+import dev.failsafe.event.ExecutionAttemptedEvent;
+import dev.failsafe.function.CheckedConsumer;
 
 /**
  http://tutorials.jenkov.com/java-cryptography/cipher.html
