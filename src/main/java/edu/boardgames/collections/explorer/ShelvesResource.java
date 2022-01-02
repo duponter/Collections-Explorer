@@ -65,9 +65,9 @@ public class ShelvesResource {
 	@GET
 	@Path("/play/{geekbuddy}")
 	@Produces(MediaType.TEXT_PLAIN)
-	public String current(@PathParam("geekbuddy") String geekbuddy, @QueryParam("collections") String collections, @QueryParam("bestWith") Integer bestWith, @QueryParam("format") String format) {
+	public String current(@PathParam("geekbuddy") String geekbuddy, @QueryParam("collections") List<String> collections, @QueryParam("bestWith") Integer bestWith, @QueryParam("format") String format) {
 		// TODO_EDU parameters to search criteria
-		String[] collectionNames = StringUtils.split(collections, ",");
+		String[] collectionNames = collections.stream().flatMap(s -> Arrays.stream(StringUtils.split(s, ","))).toArray(String[]::new);
 		OwnedBoardGameFormatInput formatInput = new OwnedBoardGameFormatInput(format);
 		String documentTitle = "Search collections %s to play a best with %s game, tailored for %s, %s".formatted(Arrays.toString(collectionNames), ObjectUtils.defaultIfNull(bestWith, "n/a"), geekbuddy, formatInput.asText());
 		LOGGER.log(Level.INFO, documentTitle);
