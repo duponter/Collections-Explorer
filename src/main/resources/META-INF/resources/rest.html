@@ -204,50 +204,112 @@
             </form>
         </div>
         <div class="col-lg-4">
-            <h1>Website Rating Form</h1>
-            <form action="/">
-                <div class="info">
-                    <div class="info-item">
-                        <label class="icon" for="name"><i class="fas fa-user"></i></label>
-                        <input type="text" name="name" id="name" placeholder="Name" required/>
-                    </div>
-                    <div class="info-item">
-                        <label class="icon" for="age"><i class="fas fa-calendar"></i></i></label>
-                        <input type="text" name="age" id="age" placeholder="Age" required/>
-                    </div>
-                    <div class="info-item">
-                        <label class="icon" for="email"><i class="fas fa-envelope"></i></label>
-                        <input type="text" name="email" id="email" placeholder="Email" required/>
-                    </div>
-                    <div class="info-item">
-                        <label class="icon" for="phone"><i class="fas fa-phone"></i></label>
-                        <input type="text" name="phone" id="phone" placeholder="Phone" required/>
+            <h1>Collections Search</h1>
+            <form action="/shelves/play/{username}"
+                  method="get"
+                  onsubmit="this.action = '/shelves/play/' + this.username.value; this.submit();"
+            >
+
+                <div class="row">
+                    <div class="col-4"><h3>Perspective</h3></div>
+                    <div class="col-8">
+                        <label class="icon" for="f2-username"><i class="fas fa-user"></i></label>
+                        <input type="text" name="username" id="f2-username" placeholder="Username" value="duponter" required/>
                     </div>
                 </div>
-                <div class="grade-type">
-                    <h3>Rate Our Website</h3>
-                    <div>
-                        <input type="radio" value="none" id="radioOne" name="grade" checked/>
-                        <label for="radioOne" class="radio">Excellent</label>
-                    </div>
-                    <div>
-                        <input type="radio" value="none" id="radioTwo" name="grade"/>
-                        <label for="radioTwo" class="radio">Very Good</label>
-                    </div>
-                    <div>
-                        <input type="radio" value="none" id="radioThree" name="grade"/>
-                        <label for="radioThree" class="radio">Good</label>
-                    </div>
-                    <div>
-                        <input type="radio" value="none" id="radioFour" name="grade"/>
-                        <label for="radioFour" class="radio">Bad</label>
-                    </div>
-                    <div>
-                        <input type="radio" value="none" id="radioFive" name="grade"/>
-                        <label for="radioFive" class="radio">Very Bad</label>
+                <div class="row">
+                    <div class="col-12">
+                        <h3>Players</h3>
                     </div>
                 </div>
-                <button type="submit" href="/">Submit</button>
+                <div class="row">
+                    <div class="col-4">
+                        <label for="f2-bestwith">Best with</label>
+                    </div>
+                    <div class="col-8">
+                        <input type="number" name="bestWith" id="f2-bestwith" value="3"/>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12" style="display: inline-block">
+                        <ul style="list-style: none; border: 1px solid #000;">
+                            <li style="display: inline-block">
+                                <input type="checkbox" value="bartie" id="f2-player-bartie" name="collections"/>
+                                <label for="f2-player-bartie">Bart</label>
+                            </li>
+                            <li style="display: inline-block">
+                                <input type="checkbox" value="Svennos" id="f2-player-svennos" name="collections"/>
+                                <label for="f2-player-svennos">Sven</label>
+                            </li>
+                            <li style="display: inline-block">
+                                <input type="checkbox" value="TurtleR6" id="f2-player-turtler6" name="collections"/>
+                                <label for="f2-player-turtler6">Dirk</label>
+                            </li>
+                            <li style="display: inline-block">
+                                <input type="checkbox" value="de rode baron" id="f2-player-derodebaron" name="collections"/>
+                                <label for="f2-player-derodebaron">Steffen</label>
+                            </li>
+                            <li style="display: inline-block">
+                                <input type="checkbox" value="evildee" id="f2-player-evildee" name="collections"/>
+                                <label for="f2-player-evildee">Didier</label>
+                            </li>
+                            <li style="display: inline-block">
+                                <input type="checkbox" value="Edou" id="f2-player-edou" name="collections"/>
+                                <label for="f2-player-edou">Edouard</label>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12" style="display: inline-block">
+                        <ul style="list-style: none; border: 1px solid #000;">
+                            <li style="display: inline-block">
+                                <input type="checkbox" value="mine" id="f2-player-mine" name="collections" checked/>
+                                <label for="f2-player-mine">Erwin</label>
+                            </li>
+                            <li style="display: inline-block">
+                                <input type="checkbox" value="WouterAerts" id="f2-player-wouteraerts" name="collections"/>
+                                <label for="f2-player-wouteraerts">Wouter</label>
+                            </li>
+                            <li style="display: inline-block">
+                                <input type="checkbox" value="jarrebesetoert" id="f2-player-jarrebesetoert" name="collections"/>
+                                <label for="f2-player-jarrebesetoert">Koen</label>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12" style="display: inline-block">
+                        <ul style="list-style: none; border: 1px solid #000;">
+                            <li style="display: inline-block">
+                                <input type="checkbox" value="leys" id="f2-player-leys" name="collections"/>
+                                <label for="f2-player-leys">Pieter</label>
+                            </li>
+                            <li style="display: inline-block">
+                                <input type="checkbox" value="wallofshame" id="f2-player-wallofshame" name="collections"/>
+                                <label for="f2-player-wallofshame">Johan</label>
+                            </li>
+                            <li style="display: inline-block">
+                                <input type="checkbox" value="engelwi" id="f2-player-engelwi" name="collections"/>
+                                <label for="f2-player-engelwi">Wim</label>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-4">
+                        <h3>Format</h3>
+                    </div>
+                    <div class="col-8">
+                        <input type="radio" value="FULL" id="f2-format-full" name="format" checked/>
+                        <label for="f2-format-full" class="radio">Full</label>
+                        <input type="radio" value="SLIM" id="f2-format-slim" name="format"/>
+                        <label for="f2-format-slim" class="radio">Slim</label>
+                        <input type="radio" value="BARE" id="f2-format-bare" name="format"/>
+                        <label for="f2-format-bare" class="radio">Bare</label>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Submit</button>
             </form>
         </div>
         <div class="col-lg-4">
