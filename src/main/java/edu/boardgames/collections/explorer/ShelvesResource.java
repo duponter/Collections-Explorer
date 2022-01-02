@@ -7,6 +7,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -75,22 +76,22 @@ public class ShelvesResource {
 		List<BoardGame> wantToPlay = buddy.wantToPlayCollection();
 		List<BoardGame> played = buddy.ratedCollection(5);
 		List<BoardGame> topRated = buddy.ratedCollection(8);
-		Map<String, Collection<PlayableCopy>> boardGames = BggInit.get().collections().withNames(collectionNames).copiesPerBoardGame()
+		Map<PlayGroup, Collection<PlayableCopy>> boardGames = BggInit.get().collections().withNames(collectionNames).copiesPerBoardGame()
 				.entrySet().stream()
 				.filter(entry -> bestWithFilter(bestWith).test(entry.getKey()))
 				.map(entry -> new PlayableCopy(group(entry.getKey(), wantToPlay, played, topRated), entry.getKey(), entry.getValue()))
-				.collect(Collectors.groupingBy(PlayableCopy::group, Collectors.toCollection(TreeSet::new)));
+				.collect(Collectors.groupingBy(PlayableCopy::group, TreeMap::new, Collectors.toCollection(TreeSet::new)));
 
 		OwnedBoardGameFormat outputFormat = formatInput.resolve();
 		return new Document(
 				new DocumentTitle(documentTitle),
 				boardGames.entrySet().stream()
-						.map(entry -> new Chapter(new ChapterTitle(entry.getKey()), new LinesParagraph(entry.getValue().stream().map(pc -> pc.asLine(outputFormat)).toList())))
+						.map(entry -> new Chapter(new ChapterTitle(entry.getKey().title()), new LinesParagraph(entry.getValue().stream().map(pc -> pc.asLine(outputFormat)).toList())))
 						.toArray(Chapter[]::new)
 		).toText();
 	}
 
-	private record PlayableCopy(String group, BoardGame boardGame, Set<String> owners) implements Comparable<PlayableCopy> {
+	private record PlayableCopy(PlayGroup group, BoardGame boardGame, Set<String> owners) implements Comparable<PlayableCopy> {
 		private static final Comparator<PlayableCopy> COMPARATOR = Comparator.<PlayableCopy, String>comparing(pc -> pc.boardGame().name())
 				.thenComparing(pc -> pc.boardGame().year());
 
@@ -104,14 +105,32 @@ public class ShelvesResource {
 		}
 	}
 
-	private String group(BoardGame boardGame, List<BoardGame> wantToPlay, List<BoardGame> played, List<BoardGame> rated) {
+	private PlayGroup group(BoardGame boardGame, List<BoardGame> wantToPlay, List<BoardGame> played, List<BoardGame> rated) {
 		if (wantToPlay.contains(boardGame)) {
-			return played.contains(boardGame) ? "Want to play again (long time ago or to give another chance)" : "Want to play (never played)";
+			return played.contains(boardGame) ? PlayGroup.WANT_ALREADY_PLAYED : PlayGroup.WANT_NEVER_PLAYED;
 		}
 		if (rated.contains(boardGame)) {
-			return "Want to play again (rated 8 or higher)";
+			return PlayGroup.WANT_RATED_HIGH;
 		}
-		return "Other";
+		return played.contains(boardGame) ? PlayGroup.ALREADY_PLAYED : PlayGroup.NEVER_PLAYED;
+	}
+
+	private enum PlayGroup {
+		WANT_NEVER_PLAYED("Want to play (never played)"),
+		WANT_ALREADY_PLAYED("Want to play again (long time ago or to give another chance)"),
+		WANT_RATED_HIGH("Want to play again (rated 8 or higher)"),
+		ALREADY_PLAYED("Already played"),
+		NEVER_PLAYED("Never played");
+
+		private final String title;
+
+		PlayGroup(String title) {
+			this.title = title;
+		}
+
+		public String title() {
+			return title;
+		}
 	}
 
 	@GET
