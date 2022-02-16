@@ -9,6 +9,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import edu.boardgames.collections.explorer.infrastructure.Async;
+import org.eclipse.collections.api.factory.Lists;
 
 public class ThingRequest extends BggRequest<ThingRequest> {
 	private static final Logger LOGGER = System.getLogger(ThingRequest.class.getName());
@@ -90,12 +91,12 @@ public class ThingRequest extends BggRequest<ThingRequest> {
 		} else {
 			int idCountPerRequest = (ids.size() / requestCount) + 1;
 			LOGGER.log(Level.INFO, "Performing %d requests for %d ids each".formatted(requestCount, idCountPerRequest));
-			return io.vavr.collection.Stream.ofAll(ids)
-			                                .grouped(idCountPerRequest)
-			                                .map(idsPerRequest -> this.copy(ThingRequest::new)
-			                                                          .forIds(idsPerRequest.toJavaList())
-			                                                          .addIds())
-			                                .toJavaStream();
+			return Lists.immutable.withAll(ids)
+					.chunk(idCountPerRequest)
+					.collect(idsPerRequest -> this.copy(ThingRequest::new)
+							.forIds(idsPerRequest.toList())
+							.addIds())
+					.toList().stream();
 		}
 	}
 }

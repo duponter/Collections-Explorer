@@ -1,22 +1,20 @@
 package edu.boardgames.collections.explorer.domain;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.function.Function;
 
-public class Range<T extends Comparable<T>> {
-	private final T lowerBound;
-	private final T upperBound;
+import org.apache.commons.lang3.StringUtils;
 
+import org.eclipse.collections.api.factory.Lists;
+import org.eclipse.collections.api.list.ImmutableList;
+
+public record Range<T extends Comparable<T>>(T lowerBound, T upperBound) {
 	public static <V extends Comparable<V>> Optional<Range<V>> of(List<V> bounds) {
-		io.vavr.collection.List<V> sorted = io.vavr.collection.List.ofAll(bounds).sorted();
-		return sorted.headOption()
-				.map(head -> new Range<>(head, sorted.last()))
-				.toJavaOptional();
+		ImmutableList<V> sorted = Lists.immutable.withAll(bounds);
+		return sorted.minOptional().map(head -> new Range<>(head, sorted.max()));
 	}
 
 	public Range(T lowerBound, T upperBound) {

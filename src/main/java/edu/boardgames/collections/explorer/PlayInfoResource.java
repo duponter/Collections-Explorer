@@ -36,7 +36,6 @@ import edu.boardgames.collections.explorer.ui.text.Document;
 import edu.boardgames.collections.explorer.ui.text.DocumentTitle;
 import edu.boardgames.collections.explorer.ui.text.Line;
 import edu.boardgames.collections.explorer.ui.text.LinesParagraph;
-import io.vavr.Tuple;
 import org.slf4j.Logger;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -105,17 +104,20 @@ public class PlayInfoResource {
 				));
 
 		return Stream.concat(
-				stats.entrySet().stream()
-						.flatMap(scenarioEntry -> scenarioEntry.getValue().keySet().stream()
-								.map(mageKnight -> Tuple.of(scenarioEntry.getKey(), mageKnight))),
-				dummyPlayerCounts.entrySet().stream()
-						.flatMap(scenarioEntry -> scenarioEntry.getValue().keySet().stream()
-								.map(dummyPlayer -> Tuple.of(scenarioEntry.getKey(), dummyPlayer)))
-		).distinct().sorted()
-				.map(tuple -> new LineStats(tuple._1(), tuple._2(), stats.get(tuple._1()).getOrDefault(tuple._2(), new MageKnightSoloPlayAggregate(List.of())), dummyPlayerCounts))
+						stats.entrySet().stream()
+								.flatMap(scenarioEntry -> scenarioEntry.getValue().keySet().stream()
+										.map(mageKnight -> new ScenarioMageKnight(scenarioEntry.getKey(), mageKnight))),
+						dummyPlayerCounts.entrySet().stream()
+								.flatMap(scenarioEntry -> scenarioEntry.getValue().keySet().stream()
+										.map(dummyPlayer -> new ScenarioMageKnight(scenarioEntry.getKey(), dummyPlayer)))
+				).distinct().sorted()
+				.map(smk -> new LineStats(smk.scenario(), smk.mageKnight(), stats.get(smk.scenario()).getOrDefault(smk.mageKnight(), new MageKnightSoloPlayAggregate(List.of())), dummyPlayerCounts))
 				.sorted(Comparator.comparing(LineStats::scenario).thenComparing(s -> s.aggregate().stats().count()).thenComparing(s -> s.aggregate().stats().lastPlayed()))
 				.map(LineStats::formatted)
 				.collect(Collectors.joining(System.lineSeparator()));
+	}
+
+	private record ScenarioMageKnight(String scenario, String mageKnight) {
 	}
 
 	private record LineStats(String scenario, String mageKnight, MageKnightSoloPlayAggregate aggregate, Map<String, Map<String, Long>> dummyPlayerCounts) {

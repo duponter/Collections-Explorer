@@ -10,25 +10,26 @@ import edu.boardgames.collections.explorer.domain.NumberOfPlayers;
 import edu.boardgames.collections.explorer.domain.Range;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
 import io.vavr.Lazy;
-import io.vavr.collection.Map;
-import io.vavr.collection.Set;
-import io.vavr.collection.Stream;
+import org.eclipse.collections.api.RichIterable;
+import org.eclipse.collections.api.factory.Lists;
+import org.eclipse.collections.api.map.MutableMap;
 import org.w3c.dom.Node;
 
 public class BoardGameBggXml extends XmlNode implements BoardGame {
-	private final String id;
-	private final Lazy<Map<NumberOfPlayers, PlayerCountPoll>> playerCountVotes;
+    private final String id;
+    private final Lazy<MutableMap<NumberOfPlayers, PlayerCountPoll>> playerCountVotes;
 
 	public BoardGameBggXml(Node node) {
 		super(node);
 		this.id = id();
 		this.playerCountVotes = Lazy.of(
-				() -> Stream.ofAll(this.nodes("poll[@name='suggested_numplayers']/results/result")
-				                       .map(PlayerCountVotesBggXml::new)
-				                       .map(LazyPlayerCountVotes::new))
-				            .groupBy(PlayerCountVotes::numberOfPlayers)
-				            .mapValues(PlayerCountPoll::new)
-		);
+                () -> Lists.immutable.fromStream(this.nodes("poll[@name='suggested_numplayers']/results/result")
+                                .map(PlayerCountVotesBggXml::new)
+                                .map(LazyPlayerCountVotes::new))
+                        .groupBy(PlayerCountVotes::numberOfPlayers)
+                        .toMap()
+                        .collectValues((playerCount, votes) -> new PlayerCountPoll(votes))
+        );
 	}
 
 	@Override
@@ -63,7 +64,7 @@ public class BoardGameBggXml extends XmlNode implements BoardGame {
 
 	@Override
 	public Optional<PlayerCountPoll> playerCountVotes(int playerCount) {
-		return this.playerCountVotes.get().get(new NumberOfPlayers(String.valueOf(playerCount))).toJavaOptional();
+        return Optional.ofNullable(this.playerCountVotes.get().get(new NumberOfPlayers(String.valueOf(playerCount))));
 	}
 
 	@Override
@@ -77,13 +78,9 @@ public class BoardGameBggXml extends XmlNode implements BoardGame {
 	}
 
 	private Optional<Range<String>> pollResultAsRange(Predicate<PlayerCountPoll> pollPredicate) {
-		Set<NumberOfPlayers> filtered = this.playerCountVotes.get()
-		                                                     .filterValues(pollPredicate)
-		                                                     .keySet();
-		return filtered.headOption()
-		               .map(head -> new Range<>(head.value(), filtered.last().value()))
-		               .toJavaOptional();
-	}
+        RichIterable<NumberOfPlayers> filtered = this.playerCountVotes.get().select((pc, poll) -> pollPredicate.test(poll)).keysView();
+        return filtered.minOptional().map(min -> new Range<>(min.value(), filtered.max().value()));
+    }
 
 	@Override
 	public Range<String> playtime() {
