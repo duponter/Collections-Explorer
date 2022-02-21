@@ -107,28 +107,35 @@ public class PlayInfoResource {
 						stats.entrySet().stream()
 								.flatMap(scenarioEntry -> scenarioEntry.getValue().keySet().stream()
 										.map(mageKnight -> new ScenarioMageKnight(scenarioEntry.getKey(), mageKnight))),
-						dummyPlayerCounts.entrySet().stream()
-								.flatMap(scenarioEntry -> scenarioEntry.getValue().keySet().stream()
-										.map(dummyPlayer -> new ScenarioMageKnight(scenarioEntry.getKey(), dummyPlayer)))
-				).distinct().sorted()
-				.map(smk -> new LineStats(smk.scenario(), smk.mageKnight(), stats.get(smk.scenario()).getOrDefault(smk.mageKnight(), new MageKnightSoloPlayAggregate(List.of())), dummyPlayerCounts))
-				.sorted(Comparator.comparing(LineStats::scenario).thenComparing(s -> s.aggregate().stats().count()).thenComparing(s -> s.aggregate().stats().lastPlayed()))
-				.map(LineStats::formatted)
-				.collect(Collectors.joining(System.lineSeparator()));
-	}
+                        dummyPlayerCounts.entrySet().stream()
+                                .flatMap(scenarioEntry -> scenarioEntry.getValue().keySet().stream()
+                                        .map(dummyPlayer -> new ScenarioMageKnight(scenarioEntry.getKey(), dummyPlayer)))
+                ).distinct().sorted()
+                .map(smk -> new LineStats(smk.scenario(), smk.mageKnight(), stats.get(smk.scenario()).getOrDefault(smk.mageKnight(), new MageKnightSoloPlayAggregate(List.of())), dummyPlayerCounts))
+                .sorted(Comparator.comparing(LineStats::scenario).thenComparing(s -> s.aggregate().stats().count()).thenComparing(s -> s.aggregate().stats().lastPlayed()))
+                .map(LineStats::formatted)
+                .collect(Collectors.joining(System.lineSeparator()));
+    }
 
-	private record ScenarioMageKnight(String scenario, String mageKnight) {
-	}
+    private record ScenarioMageKnight(String scenario, String mageKnight) implements Comparable<ScenarioMageKnight> {
+        private static final Comparator<ScenarioMageKnight> COMPARATOR = Comparator.comparing(ScenarioMageKnight::scenario)
+                .thenComparing(ScenarioMageKnight::mageKnight);
 
-	private record LineStats(String scenario, String mageKnight, MageKnightSoloPlayAggregate aggregate, Map<String, Map<String, Long>> dummyPlayerCounts) {
-		private String formatted() {
-			return "%-20s with %-17s : %s - %2dx dummy".formatted(scenario, StringUtils.defaultIfEmpty(mageKnight, "<unknown>"), aggregate.stats().formatted(), dummyPlayerCounts.get(scenario).getOrDefault(mageKnight, 0L));
-		}
-	}
+        @Override
+        public int compareTo(ScenarioMageKnight other) {
+            return COMPARATOR.compare(this, other);
+        }
+    }
 
-	@GET
-	@Path("/plays/{username}")
-	@Produces(MediaType.TEXT_PLAIN)
+    private record LineStats(String scenario, String mageKnight, MageKnightSoloPlayAggregate aggregate, Map<String, Map<String, Long>> dummyPlayerCounts) {
+        private String formatted() {
+            return "%-20s with %-17s : %s - %2dx dummy".formatted(scenario, StringUtils.defaultIfEmpty(mageKnight, "<unknown>"), aggregate.stats().formatted(), dummyPlayerCounts.get(scenario).getOrDefault(mageKnight, 0L));
+        }
+    }
+
+    @GET
+    @Path("/plays/{username}")
+    @Produces(MediaType.TEXT_PLAIN)
 	public String userPlays(@PathParam("username") String username) {
 		Instant now = Instant.now();
 
