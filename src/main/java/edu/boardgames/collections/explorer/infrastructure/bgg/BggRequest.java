@@ -22,6 +22,8 @@ import org.apache.commons.lang3.BooleanUtils;
 
 import dev.failsafe.Failsafe;
 import dev.failsafe.RetryPolicy;
+import edu.boardgames.collections.explorer.infrastructure.xml.XmlInput;
+import org.w3c.dom.Node;
 
 abstract class BggRequest<R extends BggRequest<R>> {
 	private static final System.Logger LOGGER = System.getLogger(BggRequest.class.getName());
@@ -71,6 +73,10 @@ abstract class BggRequest<R extends BggRequest<R>> {
 				.map(Object::toString)
 				.collect(Collectors.joining("&"));
 	}
+
+    public Node asNode() {
+        return new XmlInput().read(this.asInputStream());
+    }
 
 	public InputStream asInputStream() {
 		return this.send(BodyHandlers.ofInputStream());
