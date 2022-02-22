@@ -9,41 +9,40 @@ import java.util.stream.Stream;
 import edu.boardgames.collections.explorer.infrastructure.Async;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlInput;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
-import org.slf4j.Logger;
 import org.w3c.dom.Node;
 
-import static org.slf4j.LoggerFactory.getLogger;
+import static java.lang.System.Logger.Level.INFO;
 
 public class PlaysRequest extends BggRequest<PlaysRequest> {
-	private static final Logger LOGGER = getLogger(PlaysRequest.class.getName());
-	private int page = 0;
+    private static final System.Logger LOGGER = System.getLogger(PlaysRequest.class.getName());
+    private int page = 0;
 
-	public PlaysRequest() {
-		super(BggApi.V2.create("plays"));
-		this.addOption("type", "thing");
-	}
+    public PlaysRequest() {
+        super(BggApi.V2.create("plays"));
+        this.addOption("type", "thing");
+    }
 
-	@Override
-	PlaysRequest self() {
-		return this;
-	}
+    @Override
+    PlaysRequest self() {
+        return this;
+    }
 
-	public PlaysRequest username(String username) {
-		this.addOption("username", username);
-		return this;
-	}
+    public PlaysRequest username(String username) {
+        this.addOption("username", username);
+        return this;
+    }
 
-	public PlaysRequest id(String id) {
-		this.addOption("id", id);
-		return this;
-	}
+    public PlaysRequest id(String id) {
+        this.addOption("id", id);
+        return this;
+    }
 
 	public PlaysRequest page(int page) {
-		LOGGER.info("Setting page from {} to {}", this.page, page);
-		this.page = page;
-		this.addOption("page", Integer.toString(page));
-		return this;
-	}
+        LOGGER.log(INFO, "Setting page from %s to %s", this.page, page);
+        this.page = page;
+        this.addOption("page", Integer.toString(page));
+        return this;
+    }
 
 	@Override
 	public InputStream asInputStream() {
@@ -76,17 +75,17 @@ public class PlaysRequest extends BggRequest<PlaysRequest> {
 
 	private Stream<PlaysRequest> createPagedRequests() {
 		if (this.page > 0) {
-			LOGGER.info("Page {} defined, returning this request", this.page);
+            LOGGER.log(INFO, "Page %d defined, returning this request", this.page);
 			return Stream.of(this);
 		} else {
-			LOGGER.info("No page defined, fetching total number of plays");
+            LOGGER.log(INFO, "No page defined, fetching total number of plays");
 			Integer total = XmlNode.nodes(new XmlInput().read(this.superAsInputStream()), "/plays")
 			                         .findFirst()
 			                         .map(TotalPlaysBggXml::new)
 			                         .map(TotalPlaysBggXml::total)
 			                         .orElse(0);
 			int pages = (total / 100) + 1;
-			LOGGER.info("Performing {} paged requests to fetch {} plays", pages, total);
+            LOGGER.log(INFO, "Performing %d paged requests to fetch %d plays", pages, total);
 			return IntStream.rangeClosed(1, pages).mapToObj(this.copy(PlaysRequest::new)::page);
 		}
 	}

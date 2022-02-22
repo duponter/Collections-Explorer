@@ -7,16 +7,14 @@ import edu.boardgames.collections.explorer.domain.BoardGame;
 import edu.boardgames.collections.explorer.domain.BoardGames;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlInput;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class BggBoardGames implements BoardGames {
-	private static final Logger LOGGER = LoggerFactory.getLogger(BggBoardGames.class.getName());
+    private static final System.Logger LOGGER = System.getLogger(BggBoardGames.class.getName());
 
 	@Override
 	public List<BoardGame> withIds(Stream<String> ids) {
 		List<String> boardGameIds = ids.toList();
-		LOGGER.info("Fetching {} boardgames by id", boardGameIds.size());
+        LOGGER.log(System.Logger.Level.INFO, "Fetching %d boardgames by id", boardGameIds.size());
 		return new ThingRequest().withStats().forIds(boardGameIds).asInputStreams()
 				.flatMap(is -> XmlNode.nodes(new XmlInput().read(is), "//item"))
 				.map(BoardGameBggXml::new)

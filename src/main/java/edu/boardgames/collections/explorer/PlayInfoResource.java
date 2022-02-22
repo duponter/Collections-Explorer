@@ -36,13 +36,12 @@ import edu.boardgames.collections.explorer.ui.text.Document;
 import edu.boardgames.collections.explorer.ui.text.DocumentTitle;
 import edu.boardgames.collections.explorer.ui.text.Line;
 import edu.boardgames.collections.explorer.ui.text.LinesParagraph;
-import org.slf4j.Logger;
 
-import static org.slf4j.LoggerFactory.getLogger;
+import static java.lang.System.Logger.Level.INFO;
 
 @Path("/playinfo")
 public class PlayInfoResource {
-	private static final Logger LOGGER = getLogger(PlayInfoResource.class.getName());
+    private static final System.Logger LOGGER = System.getLogger(PlayInfoResource.class.getName());
 
 	@GET
 	@Path("/xsl")
@@ -62,7 +61,7 @@ public class PlayInfoResource {
 				<?xml-stylesheet type="text/xsl" href="http://localhost:8080/playinfo/xsl"?>
 				""";
 		String result = String.format("%s%n%s", xsl, StringUtils.removeStartIgnoreCase(response, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"));
-		LOGGER.info(result);
+        LOGGER.log(INFO, result);
 		return result;
 	}
 
@@ -162,7 +161,7 @@ public class PlayInfoResource {
 						new LinesParagraph(stats)
 				)
 		).toText();
-		LOGGER.info("Request took {} to complete", Duration.between(now, Instant.now()));
+        LOGGER.log(INFO, "Request took %s to complete", Duration.between(now, Instant.now()));
 		return response;
 	}
 
@@ -201,7 +200,7 @@ public class PlayInfoResource {
 								)).toList()
 				)
 		).toText();
-		LOGGER.info("Request took {} to complete", Duration.between(now, Instant.now()));
+        LOGGER.log(INFO, "Request took %s to complete", Duration.between(now, Instant.now()));
 		return response;
 	}
 
