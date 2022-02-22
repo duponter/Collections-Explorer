@@ -1,53 +1,70 @@
 package edu.boardgames.collections.explorer.infrastructure.bgg;
 
-import org.apache.commons.lang3.Validate;
-
 import java.net.http.HttpClient;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-public class CollectionRequest extends BggRequest<CollectionRequest> {
-	public CollectionRequest(String username) {
-		this(username, () -> HttpClient.newBuilder().build());
-	}
+import org.apache.commons.lang3.Validate;
 
-	public CollectionRequest(String username, String password) {
-		this(username, () -> new LoginRequest(username, password).send());
-		this.enableOption("showprivate");
-	}
+import edu.boardgames.collections.explorer.domain.CollectedBoardGame;
+import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
 
-	private CollectionRequest(String username, Supplier<HttpClient> httpClientSupplier) {
-		super(BggApi.V2.create("collection"), httpClientSupplier);
-		this.addOption("username", username);
-		this.addOption("subtype", "boardgame");
-	}
+public final class CollectionRequest {
+    private final GenericBggRequest bggRequest;
 
-	@Override
-	CollectionRequest self() {
-		return this;
-	}
+    public CollectionRequest(String username) {
+        this(username, () -> HttpClient.newBuilder().build());
+    }
 
-	public CollectionRequest owned() {
-		return this.enableOption("own");
-	}
+    public CollectionRequest(String username, String password) {
+        this(username, () -> new LoginRequest(username, password).send());
+        this.bggRequest.enableOption("showprivate");
+    }
 
-	public CollectionRequest wantToPlay() {
-		return this.enableOption("wanttoplay");
-	}
+    private CollectionRequest(String username, Supplier<HttpClient> httpClientSupplier) {
+        this.bggRequest = new GenericBggRequest(BggApi.V2.create("collection"), httpClientSupplier)
+                .addOption("username", username)
+                .addOption("subtype", "boardgame");
+    }
 
-	public CollectionRequest abbreviatedResults() {
-		return this.enableOption("brief");
-	}
+    public CollectionRequest owned() {
+        this.bggRequest.enableOption("own");
+        return this;
+    }
 
-	public CollectionRequest withStats() {
-		return this.enableOption("stats");
-	}
+    public CollectionRequest wantToPlay() {
+        this.bggRequest.enableOption("wanttoplay");
+        return this;
+    }
 
-	public CollectionRequest withoutExpansions() {
-		return this.addOption("excludesubtype", "boardgameexpansion");
-	}
+    public CollectionRequest abbreviatedResults() {
+        this.bggRequest.enableOption("brief");
+        return this;
+    }
 
-	public CollectionRequest minimallyRated(int minrating) {
-		Validate.inclusiveBetween(1, 10, minrating);
-		return this.addOption("minrating", Integer.toString(minrating));
-	}
+    public CollectionRequest withStats() {
+        this.bggRequest.enableOption("stats");
+        return this;
+    }
+
+    public CollectionRequest withoutExpansions() {
+        this.bggRequest.addOption("excludesubtype", "boardgameexpansion");
+        return this;
+    }
+
+    public CollectionRequest minimallyRated(int minrating) {
+        Validate.inclusiveBetween(1, 10, minrating);
+        this.bggRequest.addOption("minrating", Integer.toString(minrating));
+        return this;
+    }
+
+    public Stream<CollectedBoardGame> execute() {
+        return XmlNode.nodes(this.bggRequest.asNode(), "//item")
+                .map(CollectedBoardGameBggXml::new);
+    }
+
+    public String asXml() {
+        return this.bggRequest.asLines().collect(Collectors.joining());
+    }
 }

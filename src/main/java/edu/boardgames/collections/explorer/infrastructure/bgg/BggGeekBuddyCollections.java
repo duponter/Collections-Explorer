@@ -1,15 +1,13 @@
 package edu.boardgames.collections.explorer.infrastructure.bgg;
 
+import java.util.function.UnaryOperator;
+
 import edu.boardgames.collections.explorer.domain.BoardGameCollection;
 import edu.boardgames.collections.explorer.domain.BoardGames;
+import edu.boardgames.collections.explorer.domain.CollectedBoardGame;
 import edu.boardgames.collections.explorer.domain.GeekBuddy;
 import edu.boardgames.collections.explorer.domain.GeekBuddyCollection;
 import edu.boardgames.collections.explorer.domain.GeekBuddyCollections;
-import edu.boardgames.collections.explorer.infrastructure.xml.XmlInput;
-import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
-import org.w3c.dom.Node;
-
-import java.util.function.UnaryOperator;
 
 public class BggGeekBuddyCollections implements GeekBuddyCollections {
 	private final BoardGames boardGames;
@@ -64,8 +62,6 @@ public class BggGeekBuddyCollections implements GeekBuddyCollections {
 
 	private BoardGameCollection requestCollection(GeekBuddy geekBuddy, UnaryOperator<CollectionRequest> processor) {
 		CollectionRequest collectionRequest = processor.apply(new CollectionRequest(geekBuddy.username()).abbreviatedResults().withoutExpansions());
-		return new GeekBuddyCollection(geekBuddy,
-				boardGames.withIds(XmlNode.nodes(new XmlInput().read(collectionRequest.asInputStream()), "//item/@objectid").map(Node::getTextContent))
-		);
+        return new GeekBuddyCollection(geekBuddy, boardGames.withIds(collectionRequest.execute().map(CollectedBoardGame::id)));
 	}
 }

@@ -1,7 +1,6 @@
 package edu.boardgames.collections.explorer;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Serializable;
 import java.lang.System.Logger.Level;
 import java.net.URISyntaxException;
@@ -11,7 +10,6 @@ import java.util.Comparator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.ws.rs.GET;
@@ -25,17 +23,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import edu.boardgames.collections.explorer.domain.BoardGame;
+import edu.boardgames.collections.explorer.domain.CollectedBoardGame;
 import edu.boardgames.collections.explorer.domain.GeekBuddies;
 import edu.boardgames.collections.explorer.domain.GeekBuddy;
 import edu.boardgames.collections.explorer.domain.GeekList;
 import edu.boardgames.collections.explorer.domain.PlayerCount;
 import edu.boardgames.collections.explorer.infrastructure.Async;
 import edu.boardgames.collections.explorer.infrastructure.bgg.BggInit;
-import edu.boardgames.collections.explorer.infrastructure.bgg.CollectedBoardGameBggXml;
 import edu.boardgames.collections.explorer.infrastructure.bgg.CollectionRequest;
 import edu.boardgames.collections.explorer.infrastructure.bgg.GeekBuddiesBggInMemory;
-import edu.boardgames.collections.explorer.infrastructure.xml.XmlInput;
-import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
 import io.reactivex.Flowable;
 import org.reactivestreams.Publisher;
 
@@ -85,52 +81,45 @@ public class CollectionsResource {
 	@Path("/xml/{username}")
 	@Produces(MediaType.TEXT_XML)
 	public String xml(@PathParam("username") String username, @QueryParam("password") String password) {
-		return new CollectionRequest(username, password).owned().asLines().collect(Collectors.joining());
+        return new CollectionRequest(username, password).owned().asXml();
 	}
 
 	@GET
 	@Path("/stream")
 	@Produces(MediaType.SERVER_SENT_EVENTS)
 	public Publisher<String> publishers() {
-        Function<String, Pair<String, String>> toPair = username -> Pair.of(username, username);
-        Function<String, InputStream> mapper = username -> new CollectionRequest(username).withStats().withoutExpansions().asInputStream();
-        Function<String, Stream<String>> nameStringExtractor = mapper.andThen(new XmlInput()::read)
-                .andThen(document -> XmlNode.nodes(document, "//item")
-                        .map(CollectedBoardGameBggXml::new)
-                        .map(CollectionsResource::toMap)
-                        .map(Map::toString)
-                );
-
 //		List<Flowable<Pair<String, Stream<String>>>> flowables = Async.mapToFutures(users().values().stream(), toPair.andThen(pair -> mapRight(pair, nameStringExtractor))).stream().map(Flowable::fromFuture).collect(Collectors.toList());
 //		return Flowable
 //				.concat(flowables)
 //				.flatMap(pair -> Flowable.fromIterable(pair.getRight().map(game -> String.format("%s (%s)", game, pair.getLeft())).collect(Collectors.toList())));
         return Flowable.just(geekBuddies().one("duponter"))
                 .map(GeekBuddy::username)
-                .map(username -> toPair.andThen(pair -> mapRight(pair, nameStringExtractor)).apply(username))
+                .map(this::usernameToCollection)
                 .flatMap(pair -> Flowable.fromIterable(pair.getRight().map(game -> String.format("%s (%s)", game, pair.getLeft())).toList()));
     }
 
 	@GET
 	@Path("/users")
 	@Produces(MediaType.TEXT_PLAIN)
-	public String infoByIds(@QueryParam("usernames") String usernames, @QueryParam("firstnames") String firstnames, @QueryParam("playercount") Integer playercount, @QueryParam("maxtime") Integer maxtime) {
+    public String infoByIds(@QueryParam("usernames") String usernames, @QueryParam("firstnames") String firstnames, @QueryParam("playercount") Integer playercount, @QueryParam("maxtime") Integer maxtime) {
 //		https://www.callicoder.com/java-8-completablefuture-tutorial/
 //		http://tabulator.info/
+        Set<String> collectedNames = Async.map(Arrays.stream(StringUtils.split(usernames, ",")), this::usernameToCollection)
+                .flatMap(pair -> pair.getRight().map(game -> String.format("%s (%s)", game, pair.getLeft())))
+                .collect(Collectors.toCollection(TreeSet::new));
+        return "to implement via 1. CompletableFuture.allOf() and render via http://tabulator.info/\nids:\n" + StringUtils.join(collectedNames, "\n");
+    }
 
-		Function<String, Pair<String, String>> toPair = username -> Pair.of(username, username);
-		Function<String, InputStream> mapper = username -> new CollectionRequest(username).owned().withStats().withoutExpansions().asInputStream();
-		Function<String, Stream<String>> nameStringExtractor = mapper.andThen(new XmlInput()::read)
-				.andThen(document -> XmlNode.nodes(document, "//item").map(CollectedBoardGameBggXml::new).map(CollectionsResource::toMap).map(Object::toString));
+    private Pair<String, Stream<String>> usernameToCollection(String username) {
+        return Pair.of(
+                username,
+                new CollectionRequest(username).withStats().withoutExpansions().execute()
+                        .map(this::toMap)
+                        .map(Map::toString)
+        );
+    }
 
-		Set<String> collectedNames = Async.map(Arrays.stream(StringUtils.split(usernames, ",")), toPair.andThen(pair -> mapRight(pair, nameStringExtractor)))
-				.flatMap(pair -> pair.getRight().map(game -> String.format("%s (%s)", game, pair.getLeft())))
-				.collect(Collectors.toCollection(TreeSet::new));
-
-		return "to implement via 1. CompletableFuture.allOf() and render via http://tabulator.info/\nids:\n" + StringUtils.join(collectedNames, "\n");
-	}
-
-    private static Map<String, Serializable> toMap(CollectedBoardGameBggXml cbg) {
+    private Map<String, Serializable> toMap(CollectedBoardGame cbg) {
         return Map.ofEntries(
                 entry("id", cbg.id()),
                 entry("name", cbg.name()),
@@ -151,10 +140,6 @@ public class CollectionsResource {
                 entry("publicComment", cbg.publicComment())
         );
     }
-
-	private static <T, U, R> Pair<T, R> mapRight(Pair<T, U> pair, Function<U, R> mapper) {
-		return Pair.of(pair.getLeft(), mapper.apply(pair.getRight()));
-	}
 
 	private GeekBuddies geekBuddies() {
 		return new GeekBuddiesBggInMemory();
