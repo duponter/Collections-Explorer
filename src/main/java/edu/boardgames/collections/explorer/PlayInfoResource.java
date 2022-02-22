@@ -54,7 +54,7 @@ public class PlayInfoResource {
 	@Path("/formatted/{id}")
 	@Produces(MediaType.TEXT_XML)
 	public String xml(@PathParam("id") String id) {
-		String response = new ThingRequest().withStats().forIds(Arrays.asList(id.split("\\s*,\\s*"))).asLines().collect(Collectors.joining());
+		String response = new ThingRequest().withStats().forIds(Arrays.asList(id.split("\\s*,\\s*"))).asXml();
 
 		String xsl = """
 				<?xml version="1.0" encoding="UTF-8"?>

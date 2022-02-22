@@ -78,11 +78,15 @@ abstract class BggRequest<R extends BggRequest<R>> {
         return new XmlInput().read(this.asInputStream());
     }
 
-	public InputStream asInputStream() {
-		return this.send(BodyHandlers.ofInputStream());
-	}
+    InputStream asInputStream() {
+        return this.send(BodyHandlers.ofInputStream());
+    }
 
-	public Stream<String> asLines() {
+    String asXml() {
+        return this.asLines().collect(Collectors.joining());
+    }
+
+	Stream<String> asLines() {
 		return this.send(BodyHandlers.ofLines());
 	}
 

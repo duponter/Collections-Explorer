@@ -89,14 +89,18 @@ public class ThingRequest extends BggRequest<ThingRequest> {
 		} else if (requestCount == 1) {
 			return Stream.of(this.addIds());
 		} else {
-			int idCountPerRequest = (ids.size() / requestCount) + 1;
-			LOGGER.log(Level.INFO, "Performing %d requests for %d ids each".formatted(requestCount, idCountPerRequest));
-			return Lists.immutable.withAll(ids)
-					.chunk(idCountPerRequest)
-					.collect(idsPerRequest -> this.copy(ThingRequest::new)
-							.forIds(idsPerRequest.toList())
-							.addIds())
-					.toList().stream();
-		}
-	}
+            int idCountPerRequest = (ids.size() / requestCount) + 1;
+            LOGGER.log(Level.INFO, "Performing %d requests for %d ids each".formatted(requestCount, idCountPerRequest));
+            return Lists.immutable.withAll(ids)
+                    .chunk(idCountPerRequest)
+                    .collect(idsPerRequest -> this.copy(ThingRequest::new)
+                            .forIds(idsPerRequest.toList())
+                            .addIds())
+                    .toList().stream();
+        }
+    }
+
+    public String asXml() {
+        return super.asXml();
+    }
 }

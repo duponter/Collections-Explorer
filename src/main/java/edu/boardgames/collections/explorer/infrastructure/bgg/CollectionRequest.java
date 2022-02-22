@@ -2,7 +2,6 @@ package edu.boardgames.collections.explorer.infrastructure.bgg;
 
 import java.net.http.HttpClient;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.Validate;
@@ -65,6 +64,6 @@ public final class CollectionRequest {
     }
 
     public String asXml() {
-        return this.bggRequest.asLines().collect(Collectors.joining());
+        return this.bggRequest.asXml();
     }
 }
