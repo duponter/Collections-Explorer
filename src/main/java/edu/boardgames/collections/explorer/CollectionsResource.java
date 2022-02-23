@@ -30,7 +30,7 @@ import edu.boardgames.collections.explorer.domain.GeekList;
 import edu.boardgames.collections.explorer.domain.PlayerCount;
 import edu.boardgames.collections.explorer.infrastructure.Async;
 import edu.boardgames.collections.explorer.infrastructure.bgg.BggInit;
-import edu.boardgames.collections.explorer.infrastructure.bgg.CollectionRequest;
+import edu.boardgames.collections.explorer.infrastructure.bgg.CollectionEndpoint;
 import edu.boardgames.collections.explorer.infrastructure.bgg.GeekBuddiesBggInMemory;
 import io.reactivex.Flowable;
 import org.reactivestreams.Publisher;
@@ -81,7 +81,7 @@ public class CollectionsResource {
 	@Path("/xml/{username}")
 	@Produces(MediaType.TEXT_XML)
 	public String xml(@PathParam("username") String username, @QueryParam("password") String password) {
-        return new CollectionRequest(username, password).owned().asXml();
+        return new CollectionEndpoint(username, password).owned().asXml();
 	}
 
 	@GET
@@ -113,7 +113,7 @@ public class CollectionsResource {
     private Pair<String, Stream<String>> usernameToCollection(String username) {
         return Pair.of(
                 username,
-                new CollectionRequest(username).withStats().withoutExpansions().execute()
+                new CollectionEndpoint(username).withStats().withoutExpansions().execute()
                         .map(this::toMap)
                         .map(Map::toString)
         );

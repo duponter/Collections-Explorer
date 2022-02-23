@@ -11,24 +11,24 @@ import org.w3c.dom.Node;
 
 import static java.lang.System.Logger.Level.INFO;
 
-public class PlaysRequest {
-    private static final System.Logger LOGGER = System.getLogger(PlaysRequest.class.getName());
+public class PlaysEndpoint implements BggEndpoint {
+    private static final System.Logger LOGGER = System.getLogger(PlaysEndpoint.class.getName());
 
     private final XmlHttpRequest bggRequest;
     private static final Page PAGING = new Page(100);
 
-    public PlaysRequest() {
+    public PlaysEndpoint() {
         this.bggRequest = new XmlHttpRequest(BggApi.V2.create("plays"))
                 .addOption("type", "thing")
                 .addOption("page", Integer.toString(1));
     }
 
-    public PlaysRequest username(String username) {
+    public PlaysEndpoint username(String username) {
         this.bggRequest.addOption("username", username);
         return this;
     }
 
-    public PlaysRequest id(String id) {
+    public PlaysEndpoint id(String id) {
         this.bggRequest.addOption("id", id);
         return this;
     }

@@ -15,6 +15,6 @@ public class BggBoardGames implements BoardGames {
 	public List<BoardGame> withIds(Stream<String> ids) {
 		List<String> boardGameIds = ids.toList();
         LOGGER.log(INFO, "Fetching {0,number,integer} boardgames by id", boardGameIds.size());
-		return new ThingRequest().forIds(boardGameIds).execute().toList();
+		return new ThingEndpoint().forIds(boardGameIds).execute().toList();
 	}
 }

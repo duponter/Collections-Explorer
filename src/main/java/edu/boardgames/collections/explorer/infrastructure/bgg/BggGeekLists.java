@@ -6,6 +6,6 @@ import edu.boardgames.collections.explorer.domain.GeekLists;
 public class BggGeekLists implements GeekLists {
 	@Override
 	public GeekList withId(String id) {
-        return new GeekListRequest(id).execute();
+        return new GeekListEndpoint(id).execute();
 	}
 }

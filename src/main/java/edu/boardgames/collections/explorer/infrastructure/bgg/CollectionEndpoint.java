@@ -10,50 +10,50 @@ import edu.boardgames.collections.explorer.domain.CollectedBoardGame;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlHttpRequest;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
 
-public final class CollectionRequest {
+public final class CollectionEndpoint implements BggEndpoint {
     private final XmlHttpRequest bggRequest;
 
-    public CollectionRequest(String username) {
+    public CollectionEndpoint(String username) {
         this(username, () -> HttpClient.newBuilder().build());
     }
 
-    public CollectionRequest(String username, String password) {
+    public CollectionEndpoint(String username, String password) {
         this(username, () -> new LoginRequest(username, password).send());
         this.bggRequest.enableOption("showprivate");
     }
 
-    private CollectionRequest(String username, Supplier<HttpClient> httpClientSupplier) {
+    private CollectionEndpoint(String username, Supplier<HttpClient> httpClientSupplier) {
         this.bggRequest = new XmlHttpRequest(BggApi.V2.create("collection"), httpClientSupplier)
                 .addOption("username", username)
                 .addOption("subtype", "boardgame");
     }
 
-    public CollectionRequest owned() {
+    public CollectionEndpoint owned() {
         this.bggRequest.enableOption("own");
         return this;
     }
 
-    public CollectionRequest wantToPlay() {
+    public CollectionEndpoint wantToPlay() {
         this.bggRequest.enableOption("wanttoplay");
         return this;
     }
 
-    public CollectionRequest abbreviatedResults() {
+    public CollectionEndpoint abbreviatedResults() {
         this.bggRequest.enableOption("brief");
         return this;
     }
 
-    public CollectionRequest withStats() {
+    public CollectionEndpoint withStats() {
         this.bggRequest.enableOption("stats");
         return this;
     }
 
-    public CollectionRequest withoutExpansions() {
+    public CollectionEndpoint withoutExpansions() {
         this.bggRequest.addOption("excludesubtype", "boardgameexpansion");
         return this;
     }
 
-    public CollectionRequest minimallyRated(int minrating) {
+    public CollectionEndpoint minimallyRated(int minrating) {
         Validate.inclusiveBetween(1, 10, minrating);
         this.bggRequest.addOption("minrating", Integer.toString(minrating));
         return this;

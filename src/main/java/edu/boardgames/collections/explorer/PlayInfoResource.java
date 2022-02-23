@@ -28,7 +28,7 @@ import edu.boardgames.collections.explorer.domain.MageKnightSoloPlay;
 import edu.boardgames.collections.explorer.domain.MageKnightSoloPlayAggregate;
 import edu.boardgames.collections.explorer.domain.Play;
 import edu.boardgames.collections.explorer.infrastructure.bgg.BggInit;
-import edu.boardgames.collections.explorer.infrastructure.bgg.ThingRequest;
+import edu.boardgames.collections.explorer.infrastructure.bgg.ThingEndpoint;
 import edu.boardgames.collections.explorer.ui.input.GeekbuddyInput;
 import edu.boardgames.collections.explorer.ui.text.Chapter;
 import edu.boardgames.collections.explorer.ui.text.ChapterTitle;
@@ -54,7 +54,7 @@ public class PlayInfoResource {
 	@Path("/formatted/{id}")
 	@Produces(MediaType.TEXT_XML)
 	public String xml(@PathParam("id") String id) {
-		String response = new ThingRequest().forIds(Arrays.asList(id.split("\\s*,\\s*"))).asXml();
+		String response = new ThingEndpoint().forIds(Arrays.asList(id.split("\\s*,\\s*"))).asXml();
 
 		String xsl = """
 				<?xml version="1.0" encoding="UTF-8"?>

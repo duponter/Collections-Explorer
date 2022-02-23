@@ -11,8 +11,8 @@ import edu.boardgames.collections.explorer.infrastructure.xml.XmlHttpRequest;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
 import org.eclipse.collections.api.factory.Lists;
 
-public class ThingRequest {
-    private static final Logger LOGGER = System.getLogger(ThingRequest.class.getName());
+public class ThingEndpoint implements BggEndpoint {
+    private static final Logger LOGGER = System.getLogger(ThingEndpoint.class.getName());
 
     /*
     Handle with https://jodah.net/failsafe/fallback/ ?
@@ -30,13 +30,13 @@ public class ThingRequest {
     private static final Page PAGING = new Page(900);
     private List<String> ids;
 
-    public ThingRequest() {
+    public ThingEndpoint() {
         this.bggRequest = new XmlHttpRequest(BggApi.V2.create("thing"))
                 .addOption("type", "boardgame")
                 .enableOption("stats");
     }
 
-    public ThingRequest forIds(List<String> ids) {
+    public ThingEndpoint forIds(List<String> ids) {
         this.ids = ids;
         return this;
     }

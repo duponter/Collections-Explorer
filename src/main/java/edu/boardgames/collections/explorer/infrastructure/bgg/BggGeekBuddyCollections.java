@@ -18,12 +18,12 @@ public class BggGeekBuddyCollections implements GeekBuddyCollections {
 
 	@Override
 	public BoardGameCollection owned(GeekBuddy geekBuddy) {
-		return this.requestCollection(geekBuddy, CollectionRequest::owned);
+		return this.requestCollection(geekBuddy, CollectionEndpoint::owned);
 	}
 
 	@Override
 	public BoardGameCollection wantToPlay(GeekBuddy geekBuddy) {
-		return this.requestCollection(geekBuddy, CollectionRequest::wantToPlay);
+		return this.requestCollection(geekBuddy, CollectionEndpoint::wantToPlay);
 	}
 
 	@Override
@@ -60,8 +60,8 @@ public class BggGeekBuddyCollections implements GeekBuddyCollections {
 		return this.requestCollection(geekBuddy, UnaryOperator.identity());
 	}
 
-	private BoardGameCollection requestCollection(GeekBuddy geekBuddy, UnaryOperator<CollectionRequest> processor) {
-		CollectionRequest collectionRequest = processor.apply(new CollectionRequest(geekBuddy.username()).abbreviatedResults().withoutExpansions());
+	private BoardGameCollection requestCollection(GeekBuddy geekBuddy, UnaryOperator<CollectionEndpoint> processor) {
+		CollectionEndpoint collectionRequest = processor.apply(new CollectionEndpoint(geekBuddy.username()).abbreviatedResults().withoutExpansions());
         return new GeekBuddyCollection(geekBuddy, boardGames.withIds(collectionRequest.execute().map(CollectedBoardGame::id)));
 	}
 }

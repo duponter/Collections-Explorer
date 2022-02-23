@@ -4,10 +4,10 @@ import edu.boardgames.collections.explorer.domain.GeekList;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlHttpRequest;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
 
-public final class GeekListRequest {
+public final class GeekListEndpoint implements BggEndpoint {
     private final String geekListId;
 
-    public GeekListRequest(String id) {
+    public GeekListEndpoint(String id) {
         this.geekListId = id;
     }
 
