@@ -7,6 +7,7 @@ import java.util.stream.Stream;
 
 import edu.boardgames.collections.explorer.domain.BoardGame;
 import edu.boardgames.collections.explorer.infrastructure.Async;
+import edu.boardgames.collections.explorer.infrastructure.xml.XmlHttpRequest;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
 import org.eclipse.collections.api.factory.Lists;
 
@@ -25,12 +26,12 @@ public class ThingRequest {
     separator = %2C
 
      */
-    private final BggRequest bggRequest;
+    private final XmlHttpRequest bggRequest;
     private static final Page PAGING = new Page(900);
     private List<String> ids;
 
     public ThingRequest() {
-        this.bggRequest = new BggRequest(BggApi.V2.create("thing"))
+        this.bggRequest = new XmlHttpRequest(BggApi.V2.create("thing"))
                 .addOption("type", "boardgame")
                 .enableOption("stats");
     }
@@ -41,12 +42,12 @@ public class ThingRequest {
     }
 
     public Stream<BoardGame> execute() {
-        return Async.map(this.splitLargeRequests(), BggRequest::asNode)
+        return Async.map(this.splitLargeRequests(), XmlHttpRequest::asNode)
                 .flatMap(node -> XmlNode.nodes(node, "//item"))
                 .map(BoardGameBggXml::new);
     }
 
-    private Stream<BggRequest> splitLargeRequests() {
+    private Stream<XmlHttpRequest> splitLargeRequests() {
         if (ids.isEmpty()) {
             return Stream.empty();
         }

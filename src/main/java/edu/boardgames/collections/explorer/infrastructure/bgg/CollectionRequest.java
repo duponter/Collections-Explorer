@@ -7,10 +7,11 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.Validate;
 
 import edu.boardgames.collections.explorer.domain.CollectedBoardGame;
+import edu.boardgames.collections.explorer.infrastructure.xml.XmlHttpRequest;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
 
 public final class CollectionRequest {
-    private final BggRequest bggRequest;
+    private final XmlHttpRequest bggRequest;
 
     public CollectionRequest(String username) {
         this(username, () -> HttpClient.newBuilder().build());
@@ -22,7 +23,7 @@ public final class CollectionRequest {
     }
 
     private CollectionRequest(String username, Supplier<HttpClient> httpClientSupplier) {
-        this.bggRequest = new BggRequest(BggApi.V2.create("collection"), httpClientSupplier)
+        this.bggRequest = new XmlHttpRequest(BggApi.V2.create("collection"), httpClientSupplier)
                 .addOption("username", username)
                 .addOption("subtype", "boardgame");
     }

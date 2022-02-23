@@ -1,6 +1,7 @@
 package edu.boardgames.collections.explorer.infrastructure.bgg;
 
 import edu.boardgames.collections.explorer.domain.GeekList;
+import edu.boardgames.collections.explorer.infrastructure.xml.XmlHttpRequest;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
 
 public final class GeekListRequest {
@@ -11,7 +12,7 @@ public final class GeekListRequest {
     }
 
     public GeekList execute() {
-        return XmlNode.nodes(new BggRequest(BggApi.V1.create(String.format("geeklist/%s", geekListId))).asNode(), "//geeklist")
+        return XmlNode.nodes(new XmlHttpRequest(BggApi.V1.create(String.format("geeklist/%s", geekListId))).asNode(), "//geeklist")
                 .map(GeekListBggXml::new)
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException(String.format("Unable to find GeekList with id %s in BGG", geekListId)));

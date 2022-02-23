@@ -2,6 +2,8 @@ package edu.boardgames.collections.explorer.infrastructure.bgg;
 
 import java.net.URI;
 
+import edu.boardgames.collections.explorer.infrastructure.xml.UrlFactory;
+
 public enum BggApi {
 	V1("https://boardgamegeek.com/xmlapi/"),
 	V2("https://boardgamegeek.com/xmlapi2/");
@@ -12,7 +14,7 @@ public enum BggApi {
 		this.baseUrl = baseUrl;
 	}
 
-	public BggUrlFactory create(String subpath) {
+	public UrlFactory create(String subpath) {
 		return queryString -> URI.create("%s%s?%s".formatted(baseUrl, subpath, queryString));
 	}
 }

@@ -5,6 +5,7 @@ import java.util.stream.Stream;
 
 import edu.boardgames.collections.explorer.domain.Play;
 import edu.boardgames.collections.explorer.infrastructure.Async;
+import edu.boardgames.collections.explorer.infrastructure.xml.XmlHttpRequest;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
 import org.w3c.dom.Node;
 
@@ -13,11 +14,11 @@ import static java.lang.System.Logger.Level.INFO;
 public class PlaysRequest {
     private static final System.Logger LOGGER = System.getLogger(PlaysRequest.class.getName());
 
-    private final BggRequest bggRequest;
+    private final XmlHttpRequest bggRequest;
     private static final Page PAGING = new Page(100);
 
     public PlaysRequest() {
-        this.bggRequest = new BggRequest(BggApi.V2.create("plays"))
+        this.bggRequest = new XmlHttpRequest(BggApi.V2.create("plays"))
                 .addOption("type", "thing")
                 .addOption("page", Integer.toString(1));
     }
@@ -50,7 +51,7 @@ public class PlaysRequest {
                         IntStream.rangeClosed(2, pageCount)
                                 .mapToObj(Integer::toString)
                                 .map(p -> this.bggRequest.copy().addOption("page", p)),
-                        BggRequest::asNode
+                        XmlHttpRequest::asNode
                 )
         ).flatMap(this::readPlays);
     }

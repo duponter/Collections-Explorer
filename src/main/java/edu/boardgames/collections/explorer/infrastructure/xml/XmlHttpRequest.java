@@ -1,6 +1,5 @@
-package edu.boardgames.collections.explorer.infrastructure.bgg;
+package edu.boardgames.collections.explorer.infrastructure.xml;
 
-import java.io.InputStream;
 import java.lang.System.Logger.Level;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
@@ -16,73 +15,53 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.apache.commons.lang3.BooleanUtils;
 
 import dev.failsafe.Failsafe;
 import dev.failsafe.RetryPolicy;
-import edu.boardgames.collections.explorer.infrastructure.xml.XmlInput;
 import org.w3c.dom.Node;
 
-public final class BggRequest {
-	private static final System.Logger LOGGER = System.getLogger(BggRequest.class.getName());
+public final class XmlHttpRequest {
+	private static final System.Logger LOGGER = System.getLogger(XmlHttpRequest.class.getName());
 
 	private final Supplier<HttpClient> httpClientSupplier;
-	private final BggUrlFactory urlFactory;
+	private final UrlFactory urlFactory;
 	private final Map<String, String> options = new HashMap<>();
 
-	BggRequest(BggUrlFactory urlFactory) {
+	public XmlHttpRequest(UrlFactory urlFactory) {
 		this(urlFactory, () -> HttpClient.newBuilder().build());
 	}
 
-	BggRequest(BggUrlFactory urlFactory, Supplier<HttpClient> httpClientSupplier) {
+    public XmlHttpRequest(UrlFactory urlFactory, Supplier<HttpClient> httpClientSupplier) {
 		this.httpClientSupplier = httpClientSupplier;
 		this.urlFactory = urlFactory;
 	}
 
-    BggRequest copy() {
-		BggRequest request = new BggRequest(this.urlFactory, this.httpClientSupplier);
+    public XmlHttpRequest copy() {
+		XmlHttpRequest request = new XmlHttpRequest(this.urlFactory, this.httpClientSupplier);
 		request.options.putAll(this.options);
 		return request;
 	}
 
-	BggRequest addOption(String name, String value) {
+    public XmlHttpRequest addOption(String name, String value) {
 		this.options.put(name, URLEncoder.encode(value, Charset.defaultCharset()));
 		return this;
 	}
 
-	BggRequest enableOption(String name) {
-		return this.addSwitchableOption(name, true);
-	}
-
-	private BggRequest addSwitchableOption(String name, boolean value) {
-		return this.addOption(name, Objects.toString(BooleanUtils.toInteger(value)));
-	}
-
-	private String buildQueryString() {
-		return this.options.entrySet().stream()
-				.map(Object::toString)
-				.collect(Collectors.joining("&"));
-	}
+    public XmlHttpRequest enableOption(String name) {
+        return this.addOption(name, Objects.toString(BooleanUtils.toInteger(true)));
+    }
 
     public Node asNode() {
-        return new XmlInput().read(this.asInputStream());
+        return new XmlInput().read(this.send(BodyHandlers.ofInputStream()));
     }
 
-    InputStream asInputStream() {
-        return this.send(BodyHandlers.ofInputStream());
+    public String asXml() {
+        return this.send(BodyHandlers.ofLines()).collect(Collectors.joining());
     }
 
-    String asXml() {
-        return this.asLines().collect(Collectors.joining());
-    }
-
-	Stream<String> asLines() {
-		return this.send(BodyHandlers.ofLines());
-	}
-
-	private <T> T send(BodyHandler<T> bodyHandler) {
+    private <T> T send(BodyHandler<T> bodyHandler) {
 		HttpRequest request = HttpRequest.newBuilder()
 				.uri(this.urlFactory.create(buildQueryString()))
 				.version(Version.HTTP_2)
@@ -102,4 +81,10 @@ public final class BggRequest {
 
 		return Failsafe.with(retryPolicy).get(() -> httpClientSupplier.get().send(request, bodyHandler)).body();
 	}
+
+    private String buildQueryString() {
+        return this.options.entrySet().stream()
+                .map(Object::toString)
+                .collect(Collectors.joining("&"));
+    }
 }
