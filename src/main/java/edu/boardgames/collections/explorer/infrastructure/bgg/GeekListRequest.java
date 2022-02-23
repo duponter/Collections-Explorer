@@ -11,7 +11,7 @@ public final class GeekListRequest {
     }
 
     public GeekList execute() {
-        return XmlNode.nodes(new GenericBggRequest(BggApi.V1.create(String.format("geeklist/%s", geekListId))).asNode(), "//geeklist")
+        return XmlNode.nodes(new BggRequest(BggApi.V1.create(String.format("geeklist/%s", geekListId))).asNode(), "//geeklist")
                 .map(GeekListBggXml::new)
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException(String.format("Unable to find GeekList with id %s in BGG", geekListId)));

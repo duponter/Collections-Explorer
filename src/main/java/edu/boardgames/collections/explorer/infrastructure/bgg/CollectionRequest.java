@@ -10,7 +10,7 @@ import edu.boardgames.collections.explorer.domain.CollectedBoardGame;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
 
 public final class CollectionRequest {
-    private final GenericBggRequest bggRequest;
+    private final BggRequest bggRequest;
 
     public CollectionRequest(String username) {
         this(username, () -> HttpClient.newBuilder().build());
@@ -22,7 +22,7 @@ public final class CollectionRequest {
     }
 
     private CollectionRequest(String username, Supplier<HttpClient> httpClientSupplier) {
-        this.bggRequest = new GenericBggRequest(BggApi.V2.create("collection"), httpClientSupplier)
+        this.bggRequest = new BggRequest(BggApi.V2.create("collection"), httpClientSupplier)
                 .addOption("username", username)
                 .addOption("subtype", "boardgame");
     }

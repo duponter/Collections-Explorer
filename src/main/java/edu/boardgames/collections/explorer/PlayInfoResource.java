@@ -54,7 +54,7 @@ public class PlayInfoResource {
 	@Path("/formatted/{id}")
 	@Produces(MediaType.TEXT_XML)
 	public String xml(@PathParam("id") String id) {
-		String response = new ThingRequest().withStats().forIds(Arrays.asList(id.split("\\s*,\\s*"))).asXml();
+		String response = new ThingRequest().forIds(Arrays.asList(id.split("\\s*,\\s*"))).asXml();
 
 		String xsl = """
 				<?xml version="1.0" encoding="UTF-8"?>
@@ -161,7 +161,7 @@ public class PlayInfoResource {
 						new LinesParagraph(stats)
 				)
 		).toText();
-        LOGGER.log(INFO, "Request took %s to complete", Duration.between(now, Instant.now()));
+        LOGGER.log(INFO, "Request took {0} to complete", Duration.between(now, Instant.now()));
 		return response;
 	}
 
@@ -200,7 +200,7 @@ public class PlayInfoResource {
 								)).toList()
 				)
 		).toText();
-        LOGGER.log(INFO, "Request took %s to complete", Duration.between(now, Instant.now()));
+        LOGGER.log(INFO, "Request took {0} to complete", Duration.between(now, Instant.now()));
 		return response;
 	}
 

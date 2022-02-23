@@ -25,7 +25,7 @@ import dev.failsafe.RetryPolicy;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlInput;
 import org.w3c.dom.Node;
 
-abstract class BggRequest<R extends BggRequest<R>> {
+public final class BggRequest {
 	private static final System.Logger LOGGER = System.getLogger(BggRequest.class.getName());
 
 	private final Supplier<HttpClient> httpClientSupplier;
@@ -41,30 +41,22 @@ abstract class BggRequest<R extends BggRequest<R>> {
 		this.urlFactory = urlFactory;
 	}
 
-	abstract R self();
-
-	R copy(Supplier<R> constructor) {
-		R newInstance = constructor.get();
-		BggRequest<?> request = newInstance;
-		request.options.clear();
+    BggRequest copy() {
+		BggRequest request = new BggRequest(this.urlFactory, this.httpClientSupplier);
 		request.options.putAll(this.options);
-		return newInstance;
+		return request;
 	}
 
-	R addOption(String name, String value) {
+	BggRequest addOption(String name, String value) {
 		this.options.put(name, URLEncoder.encode(value, Charset.defaultCharset()));
-		return this.self();
+		return this;
 	}
 
-	R enableOption(String name) {
+	BggRequest enableOption(String name) {
 		return this.addSwitchableOption(name, true);
 	}
 
-	R disableOption(String name) {
-		return this.addSwitchableOption(name, false);
-	}
-
-	private R addSwitchableOption(String name, boolean value) {
+	private BggRequest addSwitchableOption(String name, boolean value) {
 		return this.addOption(name, Objects.toString(BooleanUtils.toInteger(value)));
 	}
 

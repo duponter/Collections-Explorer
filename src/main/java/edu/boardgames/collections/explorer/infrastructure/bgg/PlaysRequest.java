@@ -1,102 +1,72 @@
 package edu.boardgames.collections.explorer.infrastructure.bgg;
 
-import java.io.InputStream;
-import java.util.NoSuchElementException;
-import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import edu.boardgames.collections.explorer.domain.Play;
 import edu.boardgames.collections.explorer.infrastructure.Async;
-import edu.boardgames.collections.explorer.infrastructure.xml.XmlInput;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
 import org.w3c.dom.Node;
 
 import static java.lang.System.Logger.Level.INFO;
 
-public class PlaysRequest extends BggRequest<PlaysRequest> {
+public class PlaysRequest {
     private static final System.Logger LOGGER = System.getLogger(PlaysRequest.class.getName());
-    private int page = 0;
+
+    private final BggRequest bggRequest;
+    private static final Page PAGING = new Page(100);
 
     public PlaysRequest() {
-        super(BggApi.V2.create("plays"));
-        this.addOption("type", "thing");
-    }
-
-    @Override
-    PlaysRequest self() {
-        return this;
+        this.bggRequest = new BggRequest(BggApi.V2.create("plays"))
+                .addOption("type", "thing")
+                .addOption("page", Integer.toString(1));
     }
 
     public PlaysRequest username(String username) {
-        this.addOption("username", username);
+        this.bggRequest.addOption("username", username);
         return this;
     }
 
     public PlaysRequest id(String id) {
-        this.addOption("id", id);
+        this.bggRequest.addOption("id", id);
         return this;
     }
 
-	public PlaysRequest page(int page) {
-        LOGGER.log(INFO, "Setting page from %s to %s", this.page, page);
-        this.page = page;
-        this.addOption("page", Integer.toString(page));
-        return this;
+    public Stream<Play> execute() {
+        Node firstPage = this.bggRequest.asNode();
+        Integer total = XmlNode.nodes(firstPage, "/plays")
+                .findFirst()
+                .map(TotalPlaysBggXml::new)
+                .map(TotalPlaysBggXml::total)
+                .orElse(0);
+        int pageCount = PAGING.count(total);
+        if (pageCount < 2) {
+            return this.readPlays(firstPage);
+        }
+        LOGGER.log(INFO, "Performing {0,number,integer} paged requests to fetch {1,number,integer} plays", pageCount, total);
+        return Stream.concat(
+                Stream.of(firstPage),
+                Async.map(
+                        IntStream.rangeClosed(2, pageCount)
+                                .mapToObj(Integer::toString)
+                                .map(p -> this.bggRequest.copy().addOption("page", p)),
+                        BggRequest::asNode
+                )
+        ).flatMap(this::readPlays);
     }
 
-	@Override
-	public InputStream asInputStream() {
-		return this.asInputStreams()
-		           .reduce(PlaysRequest::onlyOne)
-		           .orElseThrow(() -> new NoSuchElementException("Exactly one element expected."));
-	}
 
-	private static <T> T onlyOne(T first, T second) {
-		throw new IllegalArgumentException("Only one element expected.");
-	}
+    private Stream<Play> readPlays(Node node) {
+        return XmlNode.nodes(node, "//play").map(PlayBggXml::new);
+    }
 
-	public Stream<InputStream> asInputStreams() {
-		return Async.map(this.createPagedRequests(), PlaysRequest::superAsInputStream);
-	}
+    private static class TotalPlaysBggXml extends XmlNode {
+        TotalPlaysBggXml(Node node) {
+            super(node);
+        }
 
-	private InputStream superAsInputStream() {
-		return super.asInputStream();
-	}
-
-	@Override
-	public Stream<String> asLines() {
-		return Async.map(this.createPagedRequests(), PlaysRequest::superAsLines)
-		            .flatMap(Function.identity());
-	}
-
-	private Stream<String> superAsLines() {
-		return super.asLines();
-	}
-
-	private Stream<PlaysRequest> createPagedRequests() {
-		if (this.page > 0) {
-            LOGGER.log(INFO, "Page %d defined, returning this request", this.page);
-			return Stream.of(this);
-		} else {
-            LOGGER.log(INFO, "No page defined, fetching total number of plays");
-			Integer total = XmlNode.nodes(new XmlInput().read(this.superAsInputStream()), "/plays")
-			                         .findFirst()
-			                         .map(TotalPlaysBggXml::new)
-			                         .map(TotalPlaysBggXml::total)
-			                         .orElse(0);
-			int pages = (total / 100) + 1;
-            LOGGER.log(INFO, "Performing %d paged requests to fetch %d plays", pages, total);
-			return IntStream.rangeClosed(1, pages).mapToObj(this.copy(PlaysRequest::new)::page);
-		}
-	}
-
-	private static class TotalPlaysBggXml extends XmlNode {
-		TotalPlaysBggXml(Node node) {
-			super(node);
-		}
-
-		public int total() {
-			return super.number("@total").intValue();
-		}
-	}
+        public int total() {
+            return number("@total").intValue();
+        }
+    }
 }
