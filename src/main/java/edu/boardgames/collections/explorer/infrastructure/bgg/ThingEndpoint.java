@@ -60,6 +60,7 @@ public class ThingEndpoint implements BggEndpoint {
     }
 
     public String asXml() {
+        this.bggRequest.addOption("id", String.join(",", ids));
         return this.bggRequest.asXml();
     }
 }
