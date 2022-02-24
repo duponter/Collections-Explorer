@@ -1,0 +1,428 @@
+---
+openapi: 3.0.3
+info:
+  title: BoardGame Collection Explorer resources
+  description: BoardGame Collection Explorer resources Open API documentation
+  version: v1
+paths:
+  /collections/geeklist/{geeklist}:
+    get:
+      summary: Looks up boardgames in geeklist
+      description: Looks up boardgames in geeklist with the given id, filtered to play best with.
+      deprecated: false
+      tags:
+        - Lookup Resource
+        - Tryout
+      parameters:
+        - name: geeklist
+          description: Id of the geeklist to be looked up, e.g. 274761 for borrowed board games
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 274761
+        - name: bestWith
+          in: query
+          schema:
+            format: int32
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+  /collections/stream:
+    get:
+      summary: Dumps collection of duponter, using SERVER_SENT_EVENTS
+      description: Dumps collection of duponter, using ReactiveX
+      deprecated: false
+      tags:
+        - Collections Resource
+        - Tryout
+        - Reactive
+      responses:
+        "200":
+          description: OK
+          content:
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/PublisherString'
+  /collections/users:
+    get:
+      summary: Dumps and merges collections of given users
+      description: Dumps and merges collections of given users
+      deprecated: false
+      tags:
+        - Collections Resource
+      parameters:
+        - name: usernames
+          description: BGG Usernames of collections to be merged
+          in: query
+          schema:
+            type: string
+          example: fmlimited
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+  /collections/xml/{username}:
+    get:
+      summary: Dumps collection of given user as received from BGG
+      description: Dumps collection of given user as received from BGG
+      tags:
+        - Collections Resource
+        - XML
+      parameters:
+        - name: username
+          description: BGG username whose collection to dump
+          in: path
+          required: true
+          schema:
+            type: string
+          example: duponter
+        - name: password
+          description: Password of the given BGG username to display private collection information as well
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            text/xml:
+              schema:
+                type: string
+  /collections/{geekbuddy}/wanttoplay:
+    get:
+      summary: Looks up all boardgames given BGG user wants to play
+      description: Looks up all boardgames given BGG user wants to play, although it should map with the owned collection of all geekbuddies, it seems to only with the BGG user's own collection.
+      tags:
+        - Collections Resource
+        - Outdated
+      parameters:
+        - name: geekbuddy
+          description: BGG username whose want-to-play list should be displayed
+          in: path
+          required: true
+          schema:
+            type: string
+          example: duponter
+        - name: bestWith
+          in: query
+          schema:
+            format: int32
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+  /playinfo/formatted/{id}:
+    get:
+      summary: TODO
+      description: >
+        A detailed description of the operation.
+        Use markdown for rich text representation,
+        such as **bold**, *italic*, and [links](https://swagger.io).
+      tags:
+        - Play Info Resource
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            text/xml:
+              schema:
+                type: string
+  /playinfo/plays/{username}:
+    get:
+      tags:
+        - Play Info Resource
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+  /playinfo/plays/{username}/mksolo:
+    get:
+      tags:
+        - Play Info Resource
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+  /playinfo/shelfofshame/{username}:
+    get:
+      tags:
+        - Play Info Resource
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+  /playinfo/xsl:
+    get:
+      summary: Endpoint to XSL stylesheet to format any XML output
+      description: Endpoint to XSL stylesheet to format any XML output
+      tags:
+        - Play Info Resource
+        - XML
+        - Outdated
+      responses:
+        "200":
+          description: OK
+          content:
+            text/xml:
+              schema:
+                type: string
+  /playinfo/{id}:
+    get:
+      tags:
+        - Play Info Resource
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+  /ranking/playercount/{count}:
+    get:
+      tags:
+        - Ranking Resource
+      parameters:
+        - name: count
+          in: path
+          required: true
+          schema:
+            format: int32
+            type: integer
+        - name: collections
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+  /shelves/lookup/{bgId}:
+    get:
+      tags:
+        - Shelves Resource
+      parameters:
+        - name: bgId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+  /shelves/play:
+    get:
+      tags:
+        - Shelves Resource
+      parameters:
+        - name: bestWith
+          in: query
+          schema:
+            format: int32
+            type: integer
+        - name: collections
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+  /shelves/play/{geekbuddy}:
+    get:
+      tags:
+        - Shelves Resource
+      parameters:
+        - name: geekbuddy
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: bestWith
+          in: query
+          schema:
+            format: int32
+            type: integer
+        - name: collections
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: format
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+  /shelves/wanttoplay/{geekbuddy}:
+    get:
+      tags:
+        - Shelves Resource
+      parameters:
+        - name: geekbuddy
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: bestWith
+          in: query
+          schema:
+            format: int32
+            type: integer
+        - name: includeRated
+          in: query
+          schema:
+            format: int32
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+  /shelves/wanttoreplay/{geekbuddy}:
+    get:
+      tags:
+        - Shelves Resource
+      parameters:
+        - name: geekbuddy
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: bestWith
+          in: query
+          schema:
+            format: int32
+            type: integer
+        - name: minimallyRated
+          in: query
+          schema:
+            format: int32
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+  /shelvesjson/play:
+    get:
+      tags:
+        - Shelves Json Resource
+      parameters:
+        - name: bestWith
+          in: query
+          schema:
+            format: int32
+            type: integer
+        - name: collections
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BoardGameJson'
+components:
+  schemas:
+    BoardGameJson:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        year:
+          type: string
+        bggScore:
+          format: double
+          type: number
+        playerCount:
+          type: string
+        bestWithPlayerCount:
+          type: string
+        recommendedWithPlayerCount:
+          type: string
+        playtime:
+          type: string
+        averageWeight:
+          format: double
+          type: number
+    PublisherString:
+      type: object
