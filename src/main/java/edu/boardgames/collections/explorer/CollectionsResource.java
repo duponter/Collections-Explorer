@@ -1,10 +1,7 @@
 package edu.boardgames.collections.explorer;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.lang.System.Logger.Level;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Map;
@@ -69,15 +66,7 @@ public class CollectionsResource {
 		return String.format("Search collections of all geekbuddies for best with %d want-to-play games of %s%n%n%s", bestWithFilter, geekbuddy, wantToPlay);
 	}
 
-	//https://google.github.io/flogger/best_practice
-
     @GET
-	@Path("/xsl")
-	@Produces(MediaType.TEXT_XML)
-	public String xsl() throws URISyntaxException, IOException {
-		return Files.readString(java.nio.file.Path.of(CollectionsResource.class.getResource("play-info.xsl").toURI()));
-	}
-	@GET
 	@Path("/xml/{username}")
 	@Produces(MediaType.TEXT_XML)
 	public String xml(@PathParam("username") String username, @QueryParam("password") String password) {
@@ -88,6 +77,11 @@ public class CollectionsResource {
 	@Path("/stream")
 	@Produces(MediaType.SERVER_SENT_EVENTS)
 	public Publisher<String> publishers() {
+//        https://quarkus.io/guides/rest-json
+        // Being reactive
+//        You can return reactive types to handle asynchronous processing. Quarkus recommends the usage of Mutiny to write reactive and asynchronous code.
+//To integrate Mutiny and RESTEasy, you need to add the quarkus-resteasy-mutiny dependency to your project:
+
 //		List<Flowable<Pair<String, Stream<String>>>> flowables = Async.mapToFutures(users().values().stream(), toPair.andThen(pair -> mapRight(pair, nameStringExtractor))).stream().map(Flowable::fromFuture).collect(Collectors.toList());
 //		return Flowable
 //				.concat(flowables)
@@ -98,10 +92,10 @@ public class CollectionsResource {
                 .flatMap(pair -> Flowable.fromIterable(pair.getRight().map(game -> String.format("%s (%s)", game, pair.getLeft())).toList()));
     }
 
-	@GET
-	@Path("/users")
-	@Produces(MediaType.TEXT_PLAIN)
-    public String infoByIds(@QueryParam("usernames") String usernames, @QueryParam("firstnames") String firstnames, @QueryParam("playercount") Integer playercount, @QueryParam("maxtime") Integer maxtime) {
+    @GET
+    @Path("/users")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String infoByIds(@QueryParam("usernames") String usernames) {
 //		https://www.callicoder.com/java-8-completablefuture-tutorial/
 //		http://tabulator.info/
         Set<String> collectedNames = Async.map(Arrays.stream(StringUtils.split(usernames, ",")), this::usernameToCollection)
