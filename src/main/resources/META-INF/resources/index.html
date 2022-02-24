@@ -1,8 +1,14 @@
-<!DOCTYPE html>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>collections-explorer - 1.0-SNAPSHOT</title>
+    <title>Collections Explorer</title>
+    <link rel="stylesheet" href="https://unpkg.com/purecss@2.0.6/build/pure-min.css" integrity="sha384-Uu6IeWbM+gzNVXJcM9XV3SohHtmWE+3VGi496jvgX1jyvDTXfdK+rfZc8C1Aehk5" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://unpkg.com/purecss@2.0.6/build/grids-responsive-min.css">
+    <link rel="stylesheet" href="./collection-explorer.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css" integrity="sha384-5sAR7xN1Nv6T6+dT2mhtzEpVJvfS3NScPQTrOxhwjIuvcA67KV2R5Jz6kr4abQsz" crossorigin="anonymous">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         h1, h2, h3, h4, h5, h6 {
             margin-bottom: 0.5rem;
@@ -45,6 +51,10 @@
             padding: 2rem 1rem;
             background-color: #00A1E2;
             color: white;
+        }
+
+        .box {
+            padding: 1em;
         }
 
         body {
@@ -99,62 +109,140 @@
 </head>
 <body>
 
-<div class="banner lead">
-    Your new Cloud-Native application is ready!
-</div>
+<div class="banner lead">Collections Explorer</div>
 
-<div class="container">
-    <div class="left-column">
-        <p class="lead"> Congratulations, you have created a new Quarkus application.</p>
-
-        <h2>Why do you see this?</h2>
-
-        <p>This page is served by Quarkus. The source is in
-            <code>src/main/resources/META-INF/resources/index.html</code>.</p>
-
-        <h2>What can I do from here?</h2>
-
-        <p>If not already done, run the application in <em>dev mode</em> using: <code>mvn compile quarkus:dev</code>.
-        </p>
-        <ul>
-            <li>Add REST resources, Servlets, functions and other services in <code>src/main/java</code>.</li>
-            <li>Your static assets are located in <code>src/main/resources/META-INF/resources</code>.</li>
-            <li>Configure your application in <code>src/main/resources/application.properties</code>.
-            </li>
-        </ul>
-
-        <h2>How do I get rid of this page?</h2>
-        <p>Just delete the <code>src/main/resources/META-INF/resources/index.html</code> file.</p>
-
-        <h2>BoardGame On!</h2>
-        <div>
-            <form action="/shelves/wanttoreplay/duponter" method="get">
-                <label for="minimallyRated">Minimally Rated</label>
-                <input type="number" id="minimallyRated" name="minimallyRated" value="6" />
-                <input type="submit" />
-            </form>
-        </div>
+<div class="pure-g box">
+    <div class="pure-u-1 pure-u-md-1-3">
+        <h1>Collections Search</h1>
+        <form action="/shelves/play/{username}"
+              class="pure-form pure-form-stacked"
+              method="get"
+              onsubmit="this.action = '/shelves/play/' + this.username.value; this.submit();"
+        >
+            <fieldset>
+                <div class="pure-control-group">
+                    <label class="icon" for="f2-username">Perspective</label>
+                    <input type="text" name="username" id="f2-username" placeholder="Username" value="duponter" required/>
+                </div>
+                <div class="pure-control-group">
+                    <label for="f2-bestwith">Best with</label>
+                    <input type="number" name="bestWith" id="f2-bestwith" value="3"/>
+                </div>
+                <div class="pure-g bareelstraat">
+                    <div class="pure-u-1-3">
+                        <label for="f2-player-mine" class="pure-checkbox">
+                            <input type="checkbox" value="mine" id="f2-player-mine" name="collections" checked> Erwin
+                        </label>
+                    </div>
+                    <div class="pure-u-1-3">
+                        <label for="f2-player-wouteraerts" class="pure-checkbox">
+                            <input type="checkbox" value="WouterAerts" id="f2-player-wouteraerts" name="collections"/> Wouter
+                        </label>
+                    </div>
+                    <div class="pure-u-1-3">
+                        <label for="f2-player-jarrebesetoert" class="pure-checkbox">
+                            <input type="checkbox" value="jarrebesetoert" id="f2-player-jarrebesetoert" name="collections"/> Koen
+                        </label>
+                    </div>
+                </div>
+                <div class="pure-g forummortsel">
+                    <div class="pure-u-1-3">
+                        <label for="f2-player-bartie" class="pure-checkbox">
+                            <input type="checkbox" value="bartie" id="f2-player-bartie" name="collections"> Bart
+                        </label>
+                    </div>
+                    <div class="pure-u-1-3">
+                        <label for="f2-player-svennos" class="pure-checkbox">
+                            <input type="checkbox" value="Svennos" id="f2-player-svennos" name="collections"/> Sven
+                        </label>
+                    </div>
+                    <div class="pure-u-1-3">
+                        <label for="f2-player-turtler6" class="pure-checkbox">
+                            <input type="checkbox" value="TurtleR6" id="f2-player-turtler6" name="collections"/> Dirk
+                        </label>
+                    </div>
+                    <div class="pure-u-1-3">
+                        <label for="f2-player-derodebaron" class="pure-checkbox">
+                            <input type="checkbox" value="de rode baron" id="f2-player-derodebaron" name="collections"/> Steffen
+                        </label>
+                    </div>
+                    <div class="pure-u-1-3">
+                        <label for="f2-player-evildee" class="pure-checkbox">
+                            <input type="checkbox" value="evildee" id="f2-player-evildee" name="collections"/> Didier
+                        </label>
+                    </div>
+                    <div class="pure-u-1-3">
+                        <label for="f2-player-edou" class="pure-checkbox">
+                            <input type="checkbox" value="Edou" id="f2-player-edou" name="collections"/> Edouard
+                        </label>
+                    </div>
+                </div>
+                <div class="pure-g rupel">
+                    <div class="pure-u-1-3">
+                        <label for="f2-player-leys" class="pure-checkbox">
+                            <input type="checkbox" value="leys" id="f2-player-leys" name="collections"/> Pieter
+                        </label>
+                    </div>
+                    <div class="pure-u-1-3">
+                        <label for="f2-player-wallofshame" class="pure-checkbox">
+                            <input type="checkbox" value="wallofshame" id="f2-player-wallofshame" name="collections"/> Johan
+                        </label>
+                    </div>
+                    <div class="pure-u-1-3">
+                        <label for="f2-player-engelwi" class="pure-checkbox">
+                            <input type="checkbox" value="engelwi" id="f2-player-engelwi" name="collections"/> Wim
+                        </label>
+                    </div>
+                </div>
+                <div class="pure-g">
+                    <div class="pure-u-1-3">
+                        <label for="f2-format-full" class="radio"><input type="radio" value="FULL" id="f2-format-full" name="format" checked/> Full</label>
+                    </div>
+                    <div class="pure-u-1-3">
+                        <label for="f2-format-slim" class="radio"><input type="radio" value="SLIM" id="f2-format-slim" name="format"/> Slim</label>
+                    </div>
+                    <div class="pure-u-1-3">
+                        <label for="f2-format-bare" class="radio"><input type="radio" value="BARE" id="f2-format-bare" name="format"/> Bare</label>
+                    </div>
+                </div>
+                <button type="submit" class="pure-button pure-button-primary"><i class="fas fa-cog"></i> Submit</button>
+            </fieldset>
+        </form>
     </div>
-    <div class="right-column">
-        <div class="right-section">
-            <h3>Application</h3>
-            <ul>
-                <li>GroupId: edu.boardgames</li>
-                <li>ArtifactId: collections-explorer</li>
-                <li>Version: 1.0-SNAPSHOT</li>
-                <li>Quarkus Version: 0.12.0</li>
-            </ul>
-        </div>
-        <div class="right-section">
-            <h3>Next steps</h3>
-            <ul>
-                <li><a href="rest.html">These forms</a></li>
-                <li><a href="https://pikock.github.io/bootstrap-magic/app/index.html#!/editor" target="_blank">Nice Colors</a></li>
-            </ul>
-        </div>
+    <div class="pure-u-1 pure-u-md-1-3">
+        <h1>Mage Knight Solo Plays</h1>
+        <form action="/playinfo/plays/{username}/mksolo"
+              class="pure-form"
+              method="get"
+              onsubmit="this.action = '/playinfo/plays/' + this.username.value + '/mksolo'; this.submit();"
+        >
+            <fieldset>
+                <legend>Solo player</legend>
+                <label for="f3-username"></label>
+                <input type="text" name="username" id="f3-username" value="duponter"/>
+                <button type="submit" class="pure-button pure-button-primary">Submit</button>
+            </fieldset>
+        </form>
+    </div>
+    <div class="pure-u-1 pure-u-md-1-3">
+            <div class="right-section">
+                <h3>Application</h3>
+                <ul>
+                    <li>GroupId: edu.boardgames</li>
+                    <li>ArtifactId: collections-explorer</li>
+                    <li>Version: 1.0-SNAPSHOT</li>
+                    <li>Quarkus Version: 0.12.0</li>
+                </ul>
+            </div>
+            <div class="right-section">
+                <h3>Next steps</h3>
+                <ul>
+                    <li><a href="/q/swagger-ui">Swagger UI</a></li>
+                    <li><a href="https://purecss.io/">Pure CSS</a></li>
+                    <li><a href="https://pikock.github.io/bootstrap-magic/app/index.html#!/editor" target="_blank">Nice Colors</a></li>
+                </ul>
+            </div>
     </div>
 </div>
-
-
 </body>
 </html>
