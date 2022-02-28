@@ -3,7 +3,6 @@ package edu.boardgames.collections.explorer;
 import java.io.Serializable;
 import java.lang.System.Logger.Level;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -19,14 +18,10 @@ import javax.ws.rs.core.MediaType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
-import edu.boardgames.collections.explorer.domain.BoardGame;
 import edu.boardgames.collections.explorer.domain.CollectedBoardGame;
 import edu.boardgames.collections.explorer.domain.GeekBuddies;
 import edu.boardgames.collections.explorer.domain.GeekBuddy;
-import edu.boardgames.collections.explorer.domain.GeekList;
-import edu.boardgames.collections.explorer.domain.PlayerCount;
 import edu.boardgames.collections.explorer.infrastructure.Async;
-import edu.boardgames.collections.explorer.infrastructure.bgg.BggInit;
 import edu.boardgames.collections.explorer.infrastructure.bgg.CollectionEndpoint;
 import edu.boardgames.collections.explorer.infrastructure.bgg.GeekBuddiesBggInMemory;
 import io.reactivex.Flowable;
@@ -38,22 +33,6 @@ import static java.util.Map.entry;
 public class CollectionsResource {
 	private static final System.Logger LOGGER = System.getLogger(CollectionsResource.class.getName());
 
-    @GET
-	@Path("/geeklist/{geeklist}")
-	@Produces(MediaType.TEXT_PLAIN)
-	public String geeklist(@PathParam("geeklist") String geeklistId, @QueryParam("bestWith") Integer bestWith) {
-		LOGGER.log(Level.INFO, String.format("Lookup boardgames in geeklist %s for best with %s", geeklistId, bestWith));
-		GeekList geeklist = BggInit.get().geekLists().withId(geeklistId);
-		LOGGER.log(Level.INFO, "Geeklist fetched, processing best with filter");
-
-		String boardGames = geeklist.boardGames().stream()
-				.filter(bestWith == null ? always -> true : new PlayerCount(bestWith)::recommendedOnly)
-				.sorted(Comparator.comparing(BoardGame::name).thenComparing(BoardGame::year))
-				.map(BoardGameRender::playInfo)
-				.collect(Collectors.joining("\n"));
-		return String.format("Search all board games for best with %d of geeklist %s%n%n%s", bestWith, geeklist.name(), boardGames);
-	}
-
 	@GET
 	@Path("/{geekbuddy}/wanttoplay")
 	@Produces(MediaType.TEXT_PLAIN)
@@ -64,13 +43,6 @@ public class CollectionsResource {
 				.map(BoardGameRender::playInfo)
 				.collect(Collectors.joining("\n"));
 		return String.format("Search collections of all geekbuddies for best with %d want-to-play games of %s%n%n%s", bestWithFilter, geekbuddy, wantToPlay);
-	}
-
-    @GET
-	@Path("/xml/{username}")
-	@Produces(MediaType.TEXT_XML)
-	public String xml(@PathParam("username") String username, @QueryParam("password") String password) {
-        return new CollectionEndpoint(username, password).owned().asXml();
 	}
 
 	@GET
