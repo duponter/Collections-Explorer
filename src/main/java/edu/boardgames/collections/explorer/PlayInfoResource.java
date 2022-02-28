@@ -24,7 +24,7 @@ import edu.boardgames.collections.explorer.domain.MageKnightSoloPlay;
 import edu.boardgames.collections.explorer.domain.MageKnightSoloPlayAggregate;
 import edu.boardgames.collections.explorer.domain.Play;
 import edu.boardgames.collections.explorer.infrastructure.bgg.BggInit;
-import edu.boardgames.collections.explorer.ui.input.GeekbuddyInput;
+import edu.boardgames.collections.explorer.ui.input.GeekBuddyInput;
 import edu.boardgames.collections.explorer.ui.text.Chapter;
 import edu.boardgames.collections.explorer.ui.text.ChapterTitle;
 import edu.boardgames.collections.explorer.ui.text.Document;
@@ -134,7 +134,7 @@ public class PlayInfoResource {
 	@Produces(MediaType.TEXT_PLAIN)
 	public String shelfOfShame(@PathParam("username") String username) {
 		Instant now = Instant.now();
-		GeekbuddyInput geekbuddyInput = new GeekbuddyInput(username);
+		GeekBuddyInput geekbuddyInput = new GeekBuddyInput(username);
 
 		Map<String, List<Play>> plays = BggInit.get().plays().forUser(username).stream()
 				.collect(Collectors.groupingBy(Play::boardGameId, Collectors.toList()));

@@ -3,10 +3,10 @@ package edu.boardgames.collections.explorer.ui.input;
 import edu.boardgames.collections.explorer.domain.GeekBuddy;
 import edu.boardgames.collections.explorer.infrastructure.bgg.BggInit;
 
-public class GeekbuddyInput implements Input<GeekBuddy> {
+public class GeekBuddyInput implements Input<GeekBuddy> {
 	private final GeekBuddy geekBuddy;
 
-	public GeekbuddyInput(String username) {
+	public GeekBuddyInput(String username) {
 		this.geekBuddy = BggInit.get().geekBuddies().one(username);
 	}
 
