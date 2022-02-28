@@ -18,9 +18,11 @@ import javax.ws.rs.core.MediaType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
+import edu.boardgames.collections.explorer.domain.BoardGame;
 import edu.boardgames.collections.explorer.domain.CollectedBoardGame;
 import edu.boardgames.collections.explorer.domain.GeekBuddies;
 import edu.boardgames.collections.explorer.domain.GeekBuddy;
+import edu.boardgames.collections.explorer.domain.Range;
 import edu.boardgames.collections.explorer.infrastructure.Async;
 import edu.boardgames.collections.explorer.infrastructure.bgg.CollectionEndpoint;
 import edu.boardgames.collections.explorer.infrastructure.bgg.GeekBuddiesBggInMemory;
@@ -33,17 +35,30 @@ import static java.util.Map.entry;
 public class CollectionsResource {
 	private static final System.Logger LOGGER = System.getLogger(CollectionsResource.class.getName());
 
-	@GET
+    @GET
 	@Path("/{geekbuddy}/wanttoplay")
 	@Produces(MediaType.TEXT_PLAIN)
 	public String wantToPlay(@PathParam("geekbuddy") String geekbuddy, @QueryParam("bestWith") Integer bestWithFilter) {
 		LOGGER.log(Level.INFO, String.format("Search collections of all geekbuddies for best with %s want-to-play games of %s", bestWithFilter, geekbuddy));
 		String wantToPlay = geekBuddies().withUsername(geekbuddy).stream()
 				.flatMap(buddy -> buddy.wantToPlayCollection().stream())
-				.map(BoardGameRender::playInfo)
+				.map(this::playInfo)
 				.collect(Collectors.joining("\n"));
 		return String.format("Search collections of all geekbuddies for best with %d want-to-play games of %s%n%n%s", bestWithFilter, geekbuddy, wantToPlay);
 	}
+
+    private String playInfo(BoardGame boardGame) {
+        Range<String> communityPlayerCount = boardGame.bestWithPlayerCount()
+                .or(boardGame::recommendedWithPlayerCount)
+                .orElseGet(boardGame::playerCount);
+        return String.join(" - ",
+                "%s (%s)".formatted(boardGame.name(), boardGame.year()),
+                "%s>%sp".formatted(boardGame.playerCount().formatted(), communityPlayerCount.formatted()),
+                "%s min".formatted(boardGame.playtime().formatted()),
+                "%2.1f / 10".formatted(boardGame.bggScore()),
+                "%1.2f / 5".formatted(boardGame.averageWeight())
+        );
+    }
 
 	@GET
 	@Path("/stream")
