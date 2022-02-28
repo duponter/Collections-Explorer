@@ -1,12 +1,8 @@
 package edu.boardgames.collections.explorer;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +24,6 @@ import edu.boardgames.collections.explorer.domain.MageKnightSoloPlay;
 import edu.boardgames.collections.explorer.domain.MageKnightSoloPlayAggregate;
 import edu.boardgames.collections.explorer.domain.Play;
 import edu.boardgames.collections.explorer.infrastructure.bgg.BggInit;
-import edu.boardgames.collections.explorer.infrastructure.bgg.ThingEndpoint;
 import edu.boardgames.collections.explorer.ui.input.GeekbuddyInput;
 import edu.boardgames.collections.explorer.ui.text.Chapter;
 import edu.boardgames.collections.explorer.ui.text.ChapterTitle;
@@ -42,37 +37,6 @@ import static java.lang.System.Logger.Level.INFO;
 @Path("/playinfo")
 public class PlayInfoResource {
     private static final System.Logger LOGGER = System.getLogger(PlayInfoResource.class.getName());
-
-	@GET
-	@Path("/xsl")
-	@Produces(MediaType.TEXT_XML)
-	public String xsl() throws URISyntaxException, IOException {
-		return Files.readString(java.nio.file.Path.of(PlayInfoResource.class.getResource("play-info.xsl").toURI()));
-	}
-
-	@GET
-	@Path("/formatted/{id}")
-	@Produces(MediaType.TEXT_XML)
-	public String xml(@PathParam("id") String id) {
-		String response = new ThingEndpoint().forIds(Arrays.asList(id.split("\\s*,\\s*"))).asXml();
-
-		String xsl = """
-				<?xml version="1.0" encoding="UTF-8"?>
-				<?xml-stylesheet type="text/xsl" href="http://localhost:8080/playinfo/xsl"?>
-				""";
-		String result = String.format("%s%n%s", xsl, StringUtils.removeStartIgnoreCase(response, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"));
-        LOGGER.log(INFO, result);
-		return result;
-	}
-
-	@GET
-	@Path("/{id}")
-	@Produces(MediaType.TEXT_PLAIN)
-	public String infoByIds(@PathParam("id") String id) {
-		return BggInit.get().boardGames().withIds(Stream.of(id)).stream()
-				.map(BoardGameRender::playInfo)
-				.collect(Collectors.joining(System.lineSeparator()));
-	}
 
 	@GET
 	@Path("/plays/{username}/mksolo")

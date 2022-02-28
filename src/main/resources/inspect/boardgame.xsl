@@ -11,12 +11,14 @@
                 <table border="1">
                     <tr>
                         <th>Name</th>
-                        <th>Year Published</th>
+                        <th>Players</th>
+                        <th>Playtime</th>
                     </tr>
                     <xsl:for-each select="items/item">
                         <tr>
-                            <td><xsl:value-of select="name/@value" /></td>
-                            <td><xsl:value-of select="yearpublished/@value" /></td>
+                            <td><xsl:value-of select="name/@value" /> (<xsl:value-of select="yearpublished/@value" />)</td>
+                            <td><xsl:value-of select="minplayers/@value" />-<xsl:value-of select="maxplayers/@value" /></td>
+                            <td><xsl:value-of select="minplaytime/@value" />-<xsl:value-of select="maxplaytime/@value" /> mins</td>
                         </tr>
                     </xsl:for-each>
                 </table>

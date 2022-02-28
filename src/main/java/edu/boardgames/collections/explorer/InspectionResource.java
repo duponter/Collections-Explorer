@@ -1,8 +1,5 @@
 package edu.boardgames.collections.explorer;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -15,11 +12,13 @@ import edu.boardgames.collections.explorer.ui.input.BoardGameIdInput;
 
 @Path("/inspect")
 public class InspectionResource {
+    private static final XslStylesheet BOARDGAME_STYLESHEET = new XslStylesheet("/inspect/boardgame/xsl");
+
     @GET
     @Path("/boardgame/xsl")
     @Produces(MediaType.TEXT_XML)
-    public String xsl() throws URISyntaxException, IOException {
-        return Files.readString(java.nio.file.Path.of(InspectionResource.class.getResource("play-info.xsl").toURI()));
+    public String xsl() {
+        return BOARDGAME_STYLESHEET.read();
     }
 
     @GET
@@ -33,6 +32,6 @@ public class InspectionResource {
     @Path("/boardgame/{ids}/formatted")
     @Produces(MediaType.TEXT_XML)
     public String formatInspectedBoardgames(@PathParam("ids") String ids) {
-        return new XslStylesheet("/inspect/boardgame/xsl").includeInXml(inspectBoardgames(ids));
+        return BOARDGAME_STYLESHEET.includeInXml(inspectBoardgames(ids));
     }
 }
