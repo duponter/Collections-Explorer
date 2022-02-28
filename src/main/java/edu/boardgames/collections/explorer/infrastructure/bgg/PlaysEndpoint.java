@@ -33,6 +33,11 @@ public class PlaysEndpoint implements BggEndpoint {
         return this;
     }
 
+    @Override
+    public String asXml() {
+        return this.bggRequest.asXml();
+    }
+
     public Stream<Play> execute() {
         Node firstPage = this.bggRequest.asNode();
         Integer total = XmlNode.nodes(firstPage, "/plays")

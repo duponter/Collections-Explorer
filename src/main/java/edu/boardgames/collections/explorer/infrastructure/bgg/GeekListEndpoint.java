@@ -12,9 +12,18 @@ public final class GeekListEndpoint implements BggEndpoint {
     }
 
     public GeekList execute() {
-        return XmlNode.nodes(new XmlHttpRequest(BggApi.V1.create(String.format("geeklist/%s", geekListId))).asNode(), "//geeklist")
+        return XmlNode.nodes(this.createRequest().asNode(), "//geeklist")
                 .map(GeekListBggXml::new)
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException(String.format("Unable to find GeekList with id %s in BGG", geekListId)));
+    }
+
+    @Override
+    public String asXml() {
+        return this.createRequest().asXml();
+    }
+
+    private XmlHttpRequest createRequest() {
+        return new XmlHttpRequest(BggApi.V1.create(String.format("geeklist/%s", geekListId)));
     }
 }
