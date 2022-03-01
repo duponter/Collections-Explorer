@@ -23,20 +23,16 @@ import org.apache.commons.lang3.StringUtils;
 
 import edu.boardgames.collections.explorer.domain.BoardGame;
 import edu.boardgames.collections.explorer.domain.GeekBuddy;
-import edu.boardgames.collections.explorer.domain.PlayerCount;
-import edu.boardgames.collections.explorer.domain.poll.Filter;
 import edu.boardgames.collections.explorer.infrastructure.bgg.BggInit;
+import edu.boardgames.collections.explorer.ui.input.BestWithInput;
 import edu.boardgames.collections.explorer.ui.input.OwnedBoardGameFormatInput;
 import edu.boardgames.collections.explorer.ui.text.Chapter;
 import edu.boardgames.collections.explorer.ui.text.ChapterTitle;
-import edu.boardgames.collections.explorer.ui.text.Column;
 import edu.boardgames.collections.explorer.ui.text.Document;
 import edu.boardgames.collections.explorer.ui.text.DocumentTitle;
 import edu.boardgames.collections.explorer.ui.text.Line;
 import edu.boardgames.collections.explorer.ui.text.LinesParagraph;
-import edu.boardgames.collections.explorer.ui.text.Table;
 import edu.boardgames.collections.explorer.ui.text.format.OwnedBoardGameFormat;
-import edu.boardgames.collections.explorer.ui.text.format.Score;
 
 @Path("/shelves")
 public class ShelvesResource {
@@ -50,7 +46,7 @@ public class ShelvesResource {
 		LOGGER.log(Level.INFO, "Search currently playable collections {0} to play a best with {1} game", Arrays.toString(collectionNames), ObjectUtils.defaultIfNull(bestWith, "n/a"));
 		List<Line> boardGames = BggInit.get().collections().withNames(collectionNames).copiesPerBoardGame()
 				.entrySet().stream()
-				.filter(entry -> bestWithFilter(bestWith).test(entry.getKey()))
+				.filter(entry -> BestWithInput.of(bestWith).resolve().test(entry.getKey()))
 				.map(entry -> OwnedBoardGameFormat.FULL.apply(entry.getKey(), entry.getValue()))
 				.sorted()
 				.map(Line::of)
@@ -77,7 +73,7 @@ public class ShelvesResource {
 		List<BoardGame> topRated = buddy.ratedCollection(8);
 		Map<PlayGroup, Collection<PlayableCopy>> boardGames = BggInit.get().collections().withNames(collectionNames).copiesPerBoardGame()
 				.entrySet().stream()
-				.filter(entry -> bestWithFilter(bestWith).test(entry.getKey()))
+				.filter(entry -> BestWithInput.of(bestWith).resolve().test(entry.getKey()))
 				.map(entry -> new PlayableCopy(group(entry.getKey(), wantToPlay, played, topRated), entry.getKey(), entry.getValue()))
 				.collect(Collectors.groupingBy(PlayableCopy::group, TreeMap::new, Collectors.toCollection(TreeSet::new)));
 
@@ -133,30 +129,6 @@ public class ShelvesResource {
 	}
 
 	@GET
-	@Path("/wanttoreplay/{geekbuddy}")
-	@Produces(MediaType.TEXT_PLAIN)
-	public String wantToReplay(@PathParam("geekbuddy") String geekbuddy, @QueryParam("bestWith") Integer bestWith, @QueryParam("minimallyRated") Integer minimallyRated) {
-		LOGGER.log(Level.INFO, "{0} wants to replay best with {1,number,integer} games minimally rated {2,number,integer}", geekbuddy, bestWith, minimallyRated);
-
-		GeekBuddy buddy = BggInit.get().geekBuddies().one(geekbuddy);
-		List<BoardGame> rated = buddy.ratedCollection(minimallyRated);
-		LOGGER.log(Level.INFO, "Collection fetched: {0} rated {1,number,integer} boardgames {1,number,integer} or more.", geekbuddy, rated.size(), minimallyRated);
-
-		return new Document(
-				new DocumentTitle("Show replay options for %s's want-to-play best with %d games rated at least %d".formatted(geekbuddy, bestWith, minimallyRated)),
-				new LinesParagraph(rated.stream().map(bg -> OwnedBoardGameFormat.SLIM.apply(bg, Set.of())).map(Line::of).toList()),
-				new Table<>(
-						List.of(
-								new Column<>("Boardgame", 70, bg -> "%-70s".formatted(StringUtils.abbreviate(bg.name(), 70))),
-								new Column<>("Year", 4, BoardGame::year),
-								new Column<>("BGG Score", 10, bg -> Score.score10().fullString(bg.bggScore()))
-						),
-						rated
-				)
-		).toText();
-	}
-
-	@GET
 	@Path("/lookup/{bgId}")
 	@Produces(MediaType.TEXT_PLAIN)
 	public String lookup(@PathParam("bgId") String boardGameId) {
@@ -174,9 +146,5 @@ public class ShelvesResource {
 				.map(entry -> OwnedBoardGameFormat.FULL.apply(entry.getKey(), entry.getValue()))
 				.orElse(">>> not found in known collections");
 		return String.format("Searched all known collections for game %s:%n%n%s", boardGameName, copies);
-	}
-
-	private Filter<BoardGame> bestWithFilter(Integer bestWith) {
-		return bestWith != null ? new PlayerCount(bestWith)::bestOnly : bg -> true;
 	}
 }
