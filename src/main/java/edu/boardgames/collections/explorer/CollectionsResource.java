@@ -3,9 +3,11 @@ package edu.boardgames.collections.explorer;
 import java.io.Serializable;
 import java.lang.System.Logger.Level;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.ws.rs.GET;
@@ -21,10 +23,16 @@ import org.apache.commons.lang3.tuple.Pair;
 import edu.boardgames.collections.explorer.domain.BoardGame;
 import edu.boardgames.collections.explorer.domain.CollectedBoardGame;
 import edu.boardgames.collections.explorer.domain.GeekBuddy;
-import edu.boardgames.collections.explorer.domain.Range;
 import edu.boardgames.collections.explorer.infrastructure.Async;
 import edu.boardgames.collections.explorer.infrastructure.bgg.BggInit;
 import edu.boardgames.collections.explorer.infrastructure.bgg.CollectionEndpoint;
+import edu.boardgames.collections.explorer.ui.input.BestWithInput;
+import edu.boardgames.collections.explorer.ui.input.Input;
+import edu.boardgames.collections.explorer.ui.text.Document;
+import edu.boardgames.collections.explorer.ui.text.DocumentTitle;
+import edu.boardgames.collections.explorer.ui.text.Line;
+import edu.boardgames.collections.explorer.ui.text.LinesParagraph;
+import edu.boardgames.collections.explorer.ui.text.format.OwnedBoardGameFormat;
 import io.reactivex.Flowable;
 import org.reactivestreams.Publisher;
 
@@ -35,28 +43,36 @@ public class CollectionsResource {
 	private static final System.Logger LOGGER = System.getLogger(CollectionsResource.class.getName());
 
     @GET
-	@Path("/{geekbuddy}/wanttoplay")
-	@Produces(MediaType.TEXT_PLAIN)
-	public String wantToPlay(@PathParam("geekbuddy") String geekbuddy, @QueryParam("bestWith") Integer bestWithFilter) {
-		LOGGER.log(Level.INFO, String.format("Search collections of all geekbuddies for best with %s want-to-play games of %s", bestWithFilter, geekbuddy));
-        String wantToPlay = BggInit.get().geekBuddies().withUsername(geekbuddy).stream()
-				.flatMap(buddy -> buddy.wantToPlayCollection().stream())
-				.map(this::playInfo)
-				.collect(Collectors.joining("\n"));
-		return String.format("Search collections of all geekbuddies for best with %d want-to-play games of %s%n%n%s", bestWithFilter, geekbuddy, wantToPlay);
-	}
+    @Path("/wanttoplay/{geekbuddy}")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String wantToPlay(@PathParam("geekbuddy") String geekbuddy, @QueryParam("bestWith") Integer bestWith, @QueryParam("includeRated") Integer minimallyRated) {
+        LOGGER.log(Level.INFO, "Search collections of all geekbuddies for {0}'s want-to-play best with {1,number,integer} games", geekbuddy, bestWith);
 
-    private String playInfo(BoardGame boardGame) {
-        Range<String> communityPlayerCount = boardGame.bestWithPlayerCount()
-                .or(boardGame::recommendedWithPlayerCount)
-                .orElseGet(boardGame::playerCount);
-        return String.join(" - ",
-                "%s (%s)".formatted(boardGame.name(), boardGame.year()),
-                "%s>%sp".formatted(boardGame.playerCount().formatted(), communityPlayerCount.formatted()),
-                "%s min".formatted(boardGame.playtime().formatted()),
-                "%2.1f / 10".formatted(boardGame.bggScore()),
-                "%1.2f / 5".formatted(boardGame.averageWeight())
-        );
+        GeekBuddy buddy = BggInit.get().geekBuddies().one(geekbuddy);
+        List<BoardGame> wantToPlay = buddy.wantToPlayCollection();
+        LOGGER.log(Level.INFO, "Collection fetched: {0} wants to play {1,number,integer} boardgames.", geekbuddy, wantToPlay.size());
+
+        Stream<BoardGame> all = wantToPlay.stream();
+        if (minimallyRated != null) {
+            List<BoardGame> rated = buddy.ratedCollection(minimallyRated);
+            LOGGER.log(Level.INFO, "Collection fetched: {0} rated {1,number,integer} boardgames {1,number,integer} or more.", geekbuddy, rated.size(), minimallyRated);
+            all = Stream.concat(all, rated.stream());
+        }
+
+        Map<BoardGame, Set<String>> available = BggInit.get().collections().all().copiesPerBoardGame();
+
+        Input<Predicate<BoardGame>> bestWithInput = BestWithInput.of(bestWith);
+        List<Line> copies = all.filter(bestWithInput.resolve())
+                .map(bg -> OwnedBoardGameFormat.FULL.apply(bg, available.getOrDefault(bg, Set.of())))
+                .sorted()
+                .map(Line::of)
+                .toList();
+        LOGGER.log(Level.INFO, "All owned collections matched against want to play collection");
+
+        return new Document(
+                new DocumentTitle("Search collections of all geekbuddies for %s's want-to-play %s games".formatted(geekbuddy, bestWithInput.asText())),
+                new LinesParagraph(copies)
+        ).toText();
     }
 
 	@GET

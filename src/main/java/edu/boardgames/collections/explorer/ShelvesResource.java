@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.ws.rs.GET;
@@ -131,37 +130,6 @@ public class ShelvesResource {
 		public String title() {
 			return title;
 		}
-	}
-
-	@GET
-	@Path("/wanttoplay/{geekbuddy}")
-	@Produces(MediaType.TEXT_PLAIN)
-	public String wantToPlay(@PathParam("geekbuddy") String geekbuddy, @QueryParam("bestWith") Integer bestWith, @QueryParam("includeRated") Integer minimallyRated) {
-		LOGGER.log(Level.INFO, "Search collections of all geekbuddies for {0}'s want-to-play best with {1,number,integer} games", geekbuddy, bestWith);
-
-		GeekBuddy buddy = BggInit.get().geekBuddies().one(geekbuddy);
-		List<BoardGame> wantToPlay = buddy.wantToPlayCollection();
-		LOGGER.log(Level.INFO, "Collection fetched: {0} wants to play {1,number,integer} boardgames.", geekbuddy, wantToPlay.size());
-		if (minimallyRated != null) {
-			List<BoardGame> rated = buddy.ratedCollection(minimallyRated);
-			LOGGER.log(Level.INFO, "Collection fetched: {0} rated {1,number,integer} boardgames {1,number,integer} or more.", geekbuddy, rated.size(), minimallyRated);
-			wantToPlay = Stream.concat(wantToPlay.stream(), rated.stream()).toList();
-		}
-		Predicate<BoardGame> wantsToPlay = wantToPlay::contains;
-
-		List<Line> copies = BggInit.get().collections().all().copiesPerBoardGame()
-				.entrySet().stream()
-				.filter(entry -> bestWithFilter(bestWith).and(wantsToPlay).test(entry.getKey()))
-				.map(entry -> OwnedBoardGameFormat.FULL.apply(entry.getKey(), entry.getValue()))
-				.sorted()
-				.map(Line::of)
-				.toList();
-		LOGGER.log(Level.INFO, "All owned collections matched against want to play collection");
-
-		return new Document(
-				new DocumentTitle("Search collections of all geekbuddies for %s's want-to-play best with %d games".formatted(geekbuddy, bestWith)),
-				new LinesParagraph(copies)
-		).toText();
 	}
 
 	@GET

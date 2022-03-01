@@ -1,5 +1,9 @@
 package edu.boardgames.collections.explorer.infrastructure.cache;
 
+import java.util.Arrays;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import edu.boardgames.collections.explorer.domain.BoardGameCollection;
@@ -8,9 +12,6 @@ import edu.boardgames.collections.explorer.domain.BoardGameCollections;
 import edu.boardgames.collections.explorer.domain.GeekBuddies;
 import edu.boardgames.collections.explorer.domain.GeekLists;
 import io.vavr.Lazy;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.Arrays;
 
 public class BoardGameCollectionsCache implements BoardGameCollections {
 	private final Cache<String, BoardGameCollection> collections = Caffeine.newBuilder().build();
@@ -23,7 +24,7 @@ public class BoardGameCollectionsCache implements BoardGameCollections {
 		collections.put("bareelstraat", this.asGroup("bareelstraat", "mine", "wouteraerts", "jarrebesetoert"));
 		collections.put("fmlimited", this.asGroup("fmlimited", "mine", "bartie", "de rode baron", "edou", "evildee", "svennos", "turtler6"));
 		collections.put("sirplayalot", this.asGroup("sirplayalot", "wallofshame", "leys"));
-		collections.put("forum", this.asGroup("forum", "forummortsel", "ffed"));
+//		collections.put("forum", this.asGroup("forum", "forummortsel", "ffed"));
 	}
 
 	@Override
