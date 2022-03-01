@@ -2,7 +2,6 @@ package edu.boardgames.collections.explorer.infrastructure.xml;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -12,21 +11,13 @@ import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
 public final class XmlInput {
-	public Node read(URI uri) {
-		try {
-			return newDocumentBuilder().parse(uri.toString());
-		} catch (SAXException | IOException e) {
-			throw new IllegalArgumentException("Unable to parse XML from " + uri, e);
-		}
-	}
-
-	public Node read(InputStream inputStream) {
-		try {
-			return newDocumentBuilder().parse(inputStream);
-		} catch (SAXException | IOException e) {
-			throw new IllegalArgumentException("Unable to parse XML from InputStream", e);
-		}
-	}
+    public Node read(InputStream inputStream) {
+        try {
+            return newDocumentBuilder().parse(inputStream);
+        } catch (SAXException | IOException e) {
+            throw new IllegalArgumentException("Unable to parse XML from InputStream", e);
+        }
+    }
 
 	private DocumentBuilder newDocumentBuilder() {
 		try {

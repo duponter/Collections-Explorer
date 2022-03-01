@@ -20,12 +20,11 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import edu.boardgames.collections.explorer.domain.BoardGame;
 import edu.boardgames.collections.explorer.domain.CollectedBoardGame;
-import edu.boardgames.collections.explorer.domain.GeekBuddies;
 import edu.boardgames.collections.explorer.domain.GeekBuddy;
 import edu.boardgames.collections.explorer.domain.Range;
 import edu.boardgames.collections.explorer.infrastructure.Async;
+import edu.boardgames.collections.explorer.infrastructure.bgg.BggInit;
 import edu.boardgames.collections.explorer.infrastructure.bgg.CollectionEndpoint;
-import edu.boardgames.collections.explorer.infrastructure.bgg.GeekBuddiesBggInMemory;
 import io.reactivex.Flowable;
 import org.reactivestreams.Publisher;
 
@@ -40,7 +39,7 @@ public class CollectionsResource {
 	@Produces(MediaType.TEXT_PLAIN)
 	public String wantToPlay(@PathParam("geekbuddy") String geekbuddy, @QueryParam("bestWith") Integer bestWithFilter) {
 		LOGGER.log(Level.INFO, String.format("Search collections of all geekbuddies for best with %s want-to-play games of %s", bestWithFilter, geekbuddy));
-		String wantToPlay = geekBuddies().withUsername(geekbuddy).stream()
+        String wantToPlay = BggInit.get().geekBuddies().withUsername(geekbuddy).stream()
 				.flatMap(buddy -> buddy.wantToPlayCollection().stream())
 				.map(this::playInfo)
 				.collect(Collectors.joining("\n"));
@@ -73,7 +72,7 @@ public class CollectionsResource {
 //		return Flowable
 //				.concat(flowables)
 //				.flatMap(pair -> Flowable.fromIterable(pair.getRight().map(game -> String.format("%s (%s)", game, pair.getLeft())).collect(Collectors.toList())));
-        return Flowable.just(geekBuddies().one("duponter"))
+        return Flowable.just(BggInit.get().geekBuddies().one("duponter"))
                 .map(GeekBuddy::username)
                 .map(this::usernameToCollection)
                 .flatMap(pair -> Flowable.fromIterable(pair.getRight().map(game -> String.format("%s (%s)", game, pair.getLeft())).toList()));
@@ -121,8 +120,4 @@ public class CollectionsResource {
                 entry("publicComment", cbg.publicComment())
         );
     }
-
-	private GeekBuddies geekBuddies() {
-		return new GeekBuddiesBggInMemory();
-	}
 }

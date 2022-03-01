@@ -1,11 +1,11 @@
 package edu.boardgames.collections.explorer.infrastructure.bgg;
 
-import edu.boardgames.collections.explorer.domain.GeekBuddies;
-import edu.boardgames.collections.explorer.domain.GeekBuddy;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import edu.boardgames.collections.explorer.domain.GeekBuddies;
+import edu.boardgames.collections.explorer.domain.GeekBuddy;
 
 /*
 GeekBuddy groups:
@@ -28,7 +28,7 @@ public class GeekBuddiesBggInMemory implements GeekBuddies {
 				new GeekBuddyBgg("Edou", "Edouard Van Belle"),
 				new GeekBuddyBgg("evildee", "Didier De Breuck"),
 				new GeekBuddyBgg("ForumMortsel", "FORUM Mortsel"),
-				new GeekBuddyBgg("FFED", "FORUM Federatie"),
+//				new GeekBuddyBgg("FFED", "FORUM Federatie"),
 				new GeekBuddyBgg("Svennos", "Sven Talboom"),
 				new GeekBuddyBgg("TurtleR6", "Dirk Frederickx"),
 				new GeekBuddyBgg("engelwi", "Wim Engels"),
