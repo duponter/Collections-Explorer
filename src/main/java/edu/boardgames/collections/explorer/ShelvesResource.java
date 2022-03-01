@@ -10,7 +10,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -126,25 +125,5 @@ public class ShelvesResource {
 		public String title() {
 			return title;
 		}
-	}
-
-	@GET
-	@Path("/lookup/{bgId}")
-	@Produces(MediaType.TEXT_PLAIN)
-	public String lookup(@PathParam("bgId") String boardGameId) {
-		List<BoardGame> boardGames = BggInit.get().boardGames().withIds(Stream.of(boardGameId));
-		if (boardGames.isEmpty()) {
-			return String.format("Board Game with id [%s] not found or does not exists on BGG", boardGameId);
-		}
-
-		String boardGameName = boardGames.stream().findFirst().map(BoardGame::name).orElseThrow();
-		LOGGER.log(Level.INFO, "Searching all collections for game {0}", boardGameName);
-		String copies = BggInit.get().collections().all().copiesPerBoardGame()
-				.entrySet().stream()
-				.filter(entry -> StringUtils.equals(entry.getKey().id(), boardGameId))
-				.findFirst()
-				.map(entry -> OwnedBoardGameFormat.FULL.apply(entry.getKey(), entry.getValue()))
-				.orElse(">>> not found in known collections");
-		return String.format("Searched all known collections for game %s:%n%n%s", boardGameName, copies);
 	}
 }

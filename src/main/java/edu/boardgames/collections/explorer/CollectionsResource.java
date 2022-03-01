@@ -27,6 +27,7 @@ import edu.boardgames.collections.explorer.infrastructure.Async;
 import edu.boardgames.collections.explorer.infrastructure.bgg.BggInit;
 import edu.boardgames.collections.explorer.infrastructure.bgg.CollectionEndpoint;
 import edu.boardgames.collections.explorer.ui.input.BestWithInput;
+import edu.boardgames.collections.explorer.ui.input.BoardGameIdInput;
 import edu.boardgames.collections.explorer.ui.input.Input;
 import edu.boardgames.collections.explorer.ui.text.Document;
 import edu.boardgames.collections.explorer.ui.text.DocumentTitle;
@@ -59,18 +60,34 @@ public class CollectionsResource {
             all = Stream.concat(all, rated.stream());
         }
 
+        Input<Predicate<BoardGame>> bestWithInput = BestWithInput.of(bestWith);
+        return matchAgainstAllCollections(all.filter(bestWithInput.resolve()), "Search collections of all geekbuddies for %s's want-to-play %s games".formatted(geekbuddy, bestWithInput.asText()));
+    }
+
+    @GET
+    @Path("/boardgame/{ids}")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String lookup(@PathParam("ids") String ids) {
+        BoardGameIdInput boardGameIdInput = new BoardGameIdInput(ids);
+        List<BoardGame> boardGames = BggInit.get().boardGames().withIds(boardGameIdInput.resolve().stream());
+        if (boardGames.isEmpty()) {
+            return "BoardGame(s) with id [%s] not found or does not exists on BGG".formatted(boardGameIdInput.asText());
+        }
+        return matchAgainstAllCollections(boardGames.stream(), "Search collections of all geekbuddies for " + boardGameIdInput.asText());
+    }
+
+    private String matchAgainstAllCollections(Stream<BoardGame> all, String title) {
         Map<BoardGame, Set<String>> available = BggInit.get().collections().all().copiesPerBoardGame();
 
-        Input<Predicate<BoardGame>> bestWithInput = BestWithInput.of(bestWith);
-        List<Line> copies = all.filter(bestWithInput.resolve())
+        List<Line> copies = all
                 .map(bg -> OwnedBoardGameFormat.FULL.apply(bg, available.getOrDefault(bg, Set.of())))
                 .sorted()
                 .map(Line::of)
                 .toList();
-        LOGGER.log(Level.INFO, "All owned collections matched against want to play collection");
+        LOGGER.log(Level.INFO, "All owned collections matched against list of board games");
 
         return new Document(
-                new DocumentTitle("Search collections of all geekbuddies for %s's want-to-play %s games".formatted(geekbuddy, bestWithInput.asText())),
+                new DocumentTitle(title),
                 new LinesParagraph(copies)
         ).toText();
     }
