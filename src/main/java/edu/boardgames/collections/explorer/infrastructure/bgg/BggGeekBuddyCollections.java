@@ -31,33 +31,19 @@ public class BggGeekBuddyCollections implements GeekBuddyCollections {
 		return this.requestCollection(geekBuddy, request -> request.minimallyRated(minrating));
 	}
 
-	public BoardGameCollection wantInTrade(GeekBuddy geekBuddy) {
-		return this.requestCollection(geekBuddy, UnaryOperator.identity());
-	}
-
-	public BoardGameCollection wantToBuy(GeekBuddy geekBuddy) {
-		return this.requestCollection(geekBuddy, UnaryOperator.identity());
-	}
-
-	public BoardGameCollection previouslyOwned(GeekBuddy geekBuddy) {
-		return this.requestCollection(geekBuddy, UnaryOperator.identity());
-	}
-
-	public BoardGameCollection wishlist(GeekBuddy geekBuddy) {
-		return this.requestCollection(geekBuddy, UnaryOperator.identity());
-	}
-
+    @Override
 	public BoardGameCollection rated(GeekBuddy geekBuddy) {
-		return this.requestCollection(geekBuddy, UnaryOperator.identity());
+		return this.requestCollection(geekBuddy, CollectionEndpoint::rated);
 	}
 
+    @Override
 	public BoardGameCollection played(GeekBuddy geekBuddy) {
-		//TODO_EDU with play stats?
-		return this.requestCollection(geekBuddy, UnaryOperator.identity());
+        return this.requestCollection(geekBuddy, CollectionEndpoint::played);
 	}
 
+    @Override
 	public BoardGameCollection preordered(GeekBuddy geekBuddy) {
-		return this.requestCollection(geekBuddy, UnaryOperator.identity());
+        return this.requestCollection(geekBuddy, CollectionEndpoint::preordered);
 	}
 
 	private BoardGameCollection requestCollection(GeekBuddy geekBuddy, UnaryOperator<CollectionEndpoint> processor) {

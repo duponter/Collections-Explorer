@@ -33,8 +33,23 @@ public final class CollectionEndpoint implements BggEndpoint {
         return this;
     }
 
+    public CollectionEndpoint preordered() {
+        this.bggRequest.enableOption("preordered");
+        return this;
+    }
+
     public CollectionEndpoint wantToPlay() {
         this.bggRequest.enableOption("wanttoplay");
+        return this;
+    }
+
+    public CollectionEndpoint played() {
+        this.bggRequest.enableOption("played");
+        return this;
+    }
+
+    public CollectionEndpoint rated() {
+        this.bggRequest.enableOption("rated");
         return this;
     }
 

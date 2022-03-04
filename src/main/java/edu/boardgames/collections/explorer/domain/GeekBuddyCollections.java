@@ -1,9 +1,15 @@
 package edu.boardgames.collections.explorer.domain;
 
 public interface GeekBuddyCollections {
-	BoardGameCollection owned(GeekBuddy geekBuddy);
+    BoardGameCollection owned(GeekBuddy geekBuddy);
 
-	BoardGameCollection wantToPlay(GeekBuddy geekBuddy);
+    BoardGameCollection preordered(GeekBuddy geekBuddy);
 
-	BoardGameCollection minimallyRated(GeekBuddy geekBuddy, int minrating);
+    BoardGameCollection wantToPlay(GeekBuddy geekBuddy);
+
+    BoardGameCollection rated(GeekBuddy geekBuddy);
+
+    BoardGameCollection played(GeekBuddy geekBuddy);
+
+    BoardGameCollection minimallyRated(GeekBuddy geekBuddy, int minrating);
 }

@@ -1,11 +1,11 @@
 package edu.boardgames.collections.explorer.infrastructure.bgg;
 
-import edu.boardgames.collections.explorer.domain.BoardGame;
-import edu.boardgames.collections.explorer.domain.GeekBuddy;
-
 import java.util.List;
 import java.util.Objects;
 import java.util.StringJoiner;
+
+import edu.boardgames.collections.explorer.domain.BoardGame;
+import edu.boardgames.collections.explorer.domain.GeekBuddy;
 
 public class GeekBuddyBgg implements GeekBuddy {
 	private final String username;
@@ -31,10 +31,25 @@ public class GeekBuddyBgg implements GeekBuddy {
 		return BggInit.get().geekBuddyCollections().owned(this).boardGames();
 	}
 
-	@Override
-	public List<BoardGame> wantToPlayCollection() {
-		return BggInit.get().geekBuddyCollections().wantToPlay(this).boardGames();
-	}
+    @Override
+    public List<BoardGame> preorderedCollection() {
+        return BggInit.get().geekBuddyCollections().preordered(this).boardGames();
+    }
+
+    @Override
+    public List<BoardGame> wantToPlayCollection() {
+        return BggInit.get().geekBuddyCollections().wantToPlay(this).boardGames();
+    }
+
+    @Override
+    public List<BoardGame> playedCollection() {
+        return BggInit.get().geekBuddyCollections().played(this).boardGames();
+    }
+
+    @Override
+    public List<BoardGame> ratedCollection() {
+        return BggInit.get().geekBuddyCollections().rated(this).boardGames();
+    }
 
 	@Override
 	public List<BoardGame> ratedCollection(int minrating) {

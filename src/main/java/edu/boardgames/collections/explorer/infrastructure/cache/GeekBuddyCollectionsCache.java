@@ -1,15 +1,15 @@
 package edu.boardgames.collections.explorer.infrastructure.cache;
 
+import java.time.Duration;
+import java.util.List;
+import java.util.Objects;
+
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import edu.boardgames.collections.explorer.domain.BoardGameCollection;
 import edu.boardgames.collections.explorer.domain.GeekBuddy;
 import edu.boardgames.collections.explorer.domain.GeekBuddyCollection;
 import edu.boardgames.collections.explorer.domain.GeekBuddyCollections;
-
-import java.time.Duration;
-import java.util.List;
-import java.util.Objects;
 
 public class GeekBuddyCollectionsCache implements GeekBuddyCollections {
 	private final LoadingCache<GeekBuddy, BoardGameCollection> ownedCollections;
@@ -31,7 +31,22 @@ public class GeekBuddyCollectionsCache implements GeekBuddyCollections {
 		return Objects.requireNonNullElseGet(ownedCollections.get(geekBuddy), () -> emptyCollection(geekBuddy));
 	}
 
-	@Override
+    @Override
+    public BoardGameCollection preordered(GeekBuddy geekBuddy) {
+        return delegate.preordered(geekBuddy);
+    }
+
+    @Override
+    public BoardGameCollection rated(GeekBuddy geekBuddy) {
+        return delegate.rated(geekBuddy);
+    }
+
+    @Override
+    public BoardGameCollection played(GeekBuddy geekBuddy) {
+        return delegate.played(geekBuddy);
+    }
+
+    @Override
 	public BoardGameCollection wantToPlay(GeekBuddy geekBuddy) {
 		return Objects.requireNonNullElseGet(wantToPlayCollections.get(geekBuddy), () -> emptyCollection(geekBuddy));
 	}

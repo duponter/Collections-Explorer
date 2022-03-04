@@ -3,13 +3,19 @@ package edu.boardgames.collections.explorer.domain;
 import java.util.List;
 
 public interface GeekBuddy {
-	String username();
+    String username();
 
-	String name();
+    String name();
 
-	List<BoardGame> ownedCollection();
+    List<BoardGame> ownedCollection();
 
-	List<BoardGame> wantToPlayCollection();
+    List<BoardGame> preorderedCollection();
 
-	List<BoardGame> ratedCollection(int rating);
+    List<BoardGame> wantToPlayCollection();
+
+    List<BoardGame> playedCollection();
+
+    List<BoardGame> ratedCollection();
+
+    List<BoardGame> ratedCollection(int rating);
 }

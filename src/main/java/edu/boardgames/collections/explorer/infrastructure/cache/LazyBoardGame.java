@@ -97,12 +97,15 @@ public class LazyBoardGame implements BoardGame {
 	}
 
 	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-		LazyBoardGame that = (LazyBoardGame) o;
-		return id().equals(that.id());
-	}
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o instanceof BoardGame that) {
+            return id().equals(that.id());
+        }
+        return false;
+    }
 
 	@Override
 	public int hashCode() {

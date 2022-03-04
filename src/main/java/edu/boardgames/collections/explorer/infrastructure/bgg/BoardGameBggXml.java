@@ -106,12 +106,11 @@ public class BoardGameBggXml extends XmlNode implements BoardGame {
 		if (this == o) {
 			return true;
 		}
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
-		BoardGameBggXml that = (BoardGameBggXml) o;
-		return id.equals(that.id);
-	}
+        if (o instanceof BoardGame that) {
+            return id.equals(that.id());
+        }
+        return false;
+    }
 
 	@Override
 	public int hashCode() {
