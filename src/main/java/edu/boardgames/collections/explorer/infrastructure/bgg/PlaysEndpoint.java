@@ -40,30 +40,19 @@ public class PlaysEndpoint implements BggEndpoint {
 
     public Stream<Play> execute() {
         Node firstPage = this.bggRequest.asNode();
-        Integer total = XmlNode.nodes(firstPage, "/plays")
+        int total = XmlNode.nodes(firstPage, "/plays")
                 .findFirst()
                 .map(TotalPlaysBggXml::new)
                 .map(TotalPlaysBggXml::total)
                 .orElse(0);
         int pageCount = PAGING.count(total);
-        if (pageCount < 2) {
-            return this.readPlays(firstPage);
-        }
         LOGGER.log(INFO, "Performing {0,number,integer} paged requests to fetch {1,number,integer} plays", pageCount, total);
-        return Stream.concat(
-                Stream.of(firstPage),
-                Async.map(
-                        IntStream.rangeClosed(2, pageCount)
+        return Async.map(IntStream.rangeClosed(1, pageCount)
                                 .mapToObj(Integer::toString)
                                 .map(p -> this.bggRequest.copy().addOption("page", p)),
-                        XmlHttpRequest::asNode
-                )
-        ).flatMap(this::readPlays);
-    }
-
-
-    private Stream<Play> readPlays(Node node) {
-        return XmlNode.nodes(node, "//play").map(PlayBggXml::new);
+                        XmlHttpRequest::asNode)
+                .flatMap(node -> XmlNode.nodes(node, "//play"))
+                .map(PlayBggXml::new);
     }
 
     private static class TotalPlaysBggXml extends XmlNode {
@@ -73,6 +62,10 @@ public class PlaysEndpoint implements BggEndpoint {
 
         public int total() {
             return number("@total").intValue();
+        }
+
+        public int page() {
+            return number("@page").intValue();
         }
     }
 }
