@@ -16,8 +16,8 @@ import javax.ws.rs.core.MediaType;
 import org.apache.commons.lang3.StringUtils;
 
 import edu.boardgames.collections.explorer.domain.BoardGame;
+import edu.boardgames.collections.explorer.domain.poll.PlayerCountPoll;
 import edu.boardgames.collections.explorer.infrastructure.bgg.BggInit;
-import edu.boardgames.collections.explorer.infrastructure.bgg.PlayerCountPoll;
 import edu.boardgames.collections.explorer.ui.text.Column;
 import edu.boardgames.collections.explorer.ui.text.Document;
 import edu.boardgames.collections.explorer.ui.text.DocumentTitle;

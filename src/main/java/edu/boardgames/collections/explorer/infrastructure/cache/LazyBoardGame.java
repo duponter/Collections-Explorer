@@ -6,7 +6,7 @@ import java.util.Optional;
 
 import edu.boardgames.collections.explorer.domain.BoardGame;
 import edu.boardgames.collections.explorer.domain.Range;
-import edu.boardgames.collections.explorer.infrastructure.bgg.PlayerCountPoll;
+import edu.boardgames.collections.explorer.domain.poll.PlayerCountPoll;
 import io.vavr.Lazy;
 
 public class LazyBoardGame implements BoardGame {

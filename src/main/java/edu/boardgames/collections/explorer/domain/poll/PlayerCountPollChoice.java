@@ -1,4 +1,4 @@
-package edu.boardgames.collections.explorer.infrastructure.bgg;
+package edu.boardgames.collections.explorer.domain.poll;
 
 public enum PlayerCountPollChoice {
 	BEST("Best"),

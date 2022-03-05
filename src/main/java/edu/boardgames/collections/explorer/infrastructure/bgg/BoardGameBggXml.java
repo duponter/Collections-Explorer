@@ -6,8 +6,11 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 import edu.boardgames.collections.explorer.domain.BoardGame;
-import edu.boardgames.collections.explorer.domain.NumberOfPlayers;
 import edu.boardgames.collections.explorer.domain.Range;
+import edu.boardgames.collections.explorer.domain.poll.NumberOfPlayers;
+import edu.boardgames.collections.explorer.domain.poll.PlayerCountPoll;
+import edu.boardgames.collections.explorer.domain.poll.PlayerCountPollChoice;
+import edu.boardgames.collections.explorer.domain.poll.PlayerCountVotes;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
 import io.vavr.Lazy;
 import org.eclipse.collections.api.RichIterable;
@@ -24,8 +27,7 @@ public class BoardGameBggXml extends XmlNode implements BoardGame {
 		this.id = id();
 		this.playerCountVotes = Lazy.of(
                 () -> Lists.immutable.fromStream(this.nodes("poll[@name='suggested_numplayers']/results/result")
-                                .map(PlayerCountVotesBggXml::new)
-                                .map(LazyPlayerCountVotes::new))
+                                .map(PlayerCountVotesBggXml::new))
                         .groupBy(PlayerCountVotes::numberOfPlayers)
                         .toMap()
                         .collectValues((playerCount, votes) -> new PlayerCountPoll(votes))

@@ -3,7 +3,7 @@ package edu.boardgames.collections.explorer.domain;
 import java.util.List;
 import java.util.Optional;
 
-import edu.boardgames.collections.explorer.infrastructure.bgg.PlayerCountPoll;
+import edu.boardgames.collections.explorer.domain.poll.PlayerCountPoll;
 
 public interface BoardGame {
 	String id();

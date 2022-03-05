@@ -1,12 +1,12 @@
-package edu.boardgames.collections.explorer.domain;
-
-import org.apache.commons.lang3.StringUtils;
+package edu.boardgames.collections.explorer.domain.poll;
 
 import java.util.EnumSet;
 import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.commons.lang3.StringUtils;
 
 public final class NumberOfPlayers implements Comparable<NumberOfPlayers> {
 	private static final Pattern PATTERN = Pattern.compile("(\\d+)(.*)");

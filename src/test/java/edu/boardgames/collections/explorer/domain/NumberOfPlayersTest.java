@@ -3,6 +3,7 @@ package edu.boardgames.collections.explorer.domain;
 import java.util.List;
 import java.util.TreeSet;
 
+import edu.boardgames.collections.explorer.domain.poll.NumberOfPlayers;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EmptySource;
