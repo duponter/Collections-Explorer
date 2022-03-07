@@ -5,13 +5,7 @@ import java.util.Optional;
 
 import edu.boardgames.collections.explorer.domain.poll.PlayerCountPoll;
 
-public interface BoardGame {
-	String id();
-
-	String name();
-
-	String year();
-
+public interface BoardGame extends BoardGameSummary {
 	Double bggScore();
 
 	Range<String> playerCount();

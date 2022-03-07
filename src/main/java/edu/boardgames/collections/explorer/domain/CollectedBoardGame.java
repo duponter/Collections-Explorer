@@ -1,13 +1,7 @@
 package edu.boardgames.collections.explorer.domain;
 
-public interface CollectedBoardGame {
-    String id();
-
-    String name();
-
+public interface CollectedBoardGame extends BoardGameSummary {
     String originalName();
-
-    String year();
 
     Integer rating();
 
