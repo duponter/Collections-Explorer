@@ -47,7 +47,7 @@ public class BggGeekBuddyCollections implements GeekBuddyCollections {
 	}
 
 	private BoardGameCollection requestCollection(GeekBuddy geekBuddy, UnaryOperator<CollectionEndpoint> processor) {
-		CollectionEndpoint collectionRequest = processor.apply(new CollectionEndpoint(geekBuddy.username()).abbreviatedResults().withoutExpansions());
+		CollectionEndpoint collectionRequest = processor.apply(new CollectionEndpoint(geekBuddy.username()).withStats().withoutExpansions());
         return new GeekBuddyCollection(geekBuddy, boardGames.withIds(collectionRequest.execute().map(CollectedBoardGame::id)));
 	}
 }

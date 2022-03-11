@@ -36,7 +36,6 @@ public final class BoardGameCollectionGroup implements BoardGameCollection {
 	@Override
 	public Stream<Copy> copyStream() {
 		return Arrays.stream(this.groupedCollections)
-				.map(BoardGameCollection::boardGameCopies)
-				.flatMap(Collection::stream);
+				.flatMap(BoardGameCollection::copyStream);
 	}
 }
