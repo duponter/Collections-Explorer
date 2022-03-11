@@ -1,6 +1,8 @@
 package edu.boardgames.collections.explorer.domain;
 
 public interface CollectedBoardGame extends BoardGameSummary {
+    String collection();
+
     String originalName();
 
     Integer rating();

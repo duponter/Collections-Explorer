@@ -12,6 +12,7 @@ import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
 
 public final class CollectionEndpoint implements BggEndpoint {
     private final XmlHttpRequest bggRequest;
+    private final String username;
 
     public CollectionEndpoint(String username) {
         this(username, () -> HttpClient.newBuilder().build());
@@ -26,6 +27,7 @@ public final class CollectionEndpoint implements BggEndpoint {
         this.bggRequest = new XmlHttpRequest(BggApi.V2.create("collection"), httpClientSupplier)
                 .addOption("username", username)
                 .addOption("subtype", "boardgame");
+        this.username = username;
     }
 
     public CollectionEndpoint owned() {
@@ -76,7 +78,8 @@ public final class CollectionEndpoint implements BggEndpoint {
 
     public Stream<CollectedBoardGame> execute() {
         return XmlNode.nodes(this.bggRequest.asNode(), "//item")
-                .map(CollectedBoardGameBggXml::new);
+                .map(CollectedBoardGameBggXml::new)
+                .map(bg -> new CollectedBoardGameCopy(this.username, bg));
     }
 
     public String asXml() {

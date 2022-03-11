@@ -17,6 +17,11 @@ public final class CollectedBoardGameBggXml extends XmlNode implements Collected
     }
 
     @Override
+    public String collection() {
+        throw new UnsupportedOperationException("CollectedBoardGameBggXml does not support collection()");
+    }
+
+    @Override
     public String id() {
         return string("@objectid");
     }
