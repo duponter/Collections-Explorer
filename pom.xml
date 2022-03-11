@@ -14,8 +14,8 @@
 
         <surefire-plugin.version>2.22.2</surefire-plugin.version>
 
-        <quarkus.version>2.7.2.Final</quarkus.version>
-        <failsafe.version>3.2.2</failsafe.version>
+        <quarkus.version>2.7.4.Final</quarkus.version>
+        <failsafe.version>3.2.3</failsafe.version>
         <caffeine.version>3.0.5</caffeine.version>
         <eclipse-collections.version>11.0.0</eclipse-collections.version>
         <vavr.version>0.10.4</vavr.version>
@@ -23,7 +23,7 @@
 
         <junit.version>5.8.2</junit.version>
         <assertj.version>3.22.0</assertj.version>
-        <jqwik.version>1.6.4</jqwik.version>
+        <jqwik.version>1.6.5</jqwik.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -60,14 +60,8 @@
         </dependency>
         <dependency>
             <groupId>org.eclipse.collections</groupId>
-            <artifactId>eclipse-collections-api</artifactId>
-            <version>${eclipse-collections.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.collections</groupId>
             <artifactId>eclipse-collections</artifactId>
             <version>${eclipse-collections.version}</version>
-            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -164,7 +158,6 @@
                                     <systemPropertyVariables>
                                         <native.image.path>${project.build.directory}/${project.build.finalName}-runner</native.image.path>
                                         <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
-<!--                                        <maven.home>${maven.home}</maven.home>-->
                                     </systemPropertyVariables>
                                 </configuration>
                             </execution>
