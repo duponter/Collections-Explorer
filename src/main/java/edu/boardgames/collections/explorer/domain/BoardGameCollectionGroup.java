@@ -7,17 +7,19 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 public final class BoardGameCollectionGroup implements BoardGameCollection {
+    private final String id;
 	private final String name;
 	private final BoardGameCollection[] groupedCollections;
 
 	public BoardGameCollectionGroup(String name, BoardGameCollection... groupedCollections) {
 		this.name = Objects.requireNonNull(name);
+        this.id = "GROUP[%s]".formatted(this.name);
 		this.groupedCollections = groupedCollections;
 	}
 
 	@Override
 	public String id() {
-		return String.format("GROUP[%s]", name);
+		return id;
 	}
 
 	@Override

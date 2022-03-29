@@ -40,5 +40,5 @@ public enum OwnedBoardGameFormat implements BiFunction<BoardGame, Set<String>, S
 					Score.score5().fullString(boardGame.averageWeight()),
 					String.join(", ", owners));
 		}
-	};
+	}
 }
