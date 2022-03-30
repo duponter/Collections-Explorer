@@ -3,27 +3,31 @@ package edu.boardgames.collections.explorer.domain;
 import java.util.List;
 import java.util.Objects;
 
-public final class GeekBuddyCollection implements BoardGameCollection {
-	private final GeekBuddy owner;
-	private final List<BoardGame> boardGames;
+import edu.boardgames.collections.explorer.infrastructure.bgg.BggInit;
 
-	public GeekBuddyCollection(GeekBuddy owner, List<BoardGame> boardGames) {
-		this.owner = Objects.requireNonNull(owner);
+public final class GeekBuddyCollection implements BoardGameCollection {
+	private final String id;
+    private final String name;
+	private final List<CollectedBoardGame> boardGames;
+
+    public GeekBuddyCollection(String id, String name, List<CollectedBoardGame> boardGames) {
+		this.id = Objects.requireNonNull(id);
+		this.name = Objects.requireNonNull(name);
 		this.boardGames = Objects.requireNonNull(boardGames);
 	}
 
 	@Override
 	public String id() {
-		return owner.username();
+		return id;
 	}
 
 	@Override
 	public String name() {
-		return owner.name();
+		return name;
 	}
 
 	@Override
 	public List<BoardGame> boardGames() {
-		return boardGames;
+        return BggInit.get().boardGames().withIds(boardGames.stream().map(CollectedBoardGame::id));
 	}
 }

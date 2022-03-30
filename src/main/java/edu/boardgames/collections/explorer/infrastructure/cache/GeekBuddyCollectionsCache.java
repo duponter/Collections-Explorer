@@ -57,6 +57,6 @@ public class GeekBuddyCollectionsCache implements GeekBuddyCollections {
 	}
 
 	private BoardGameCollection emptyCollection(GeekBuddy geekBuddy) {
-		return new GeekBuddyCollection(geekBuddy, List.of());
+		return new GeekBuddyCollection(geekBuddy.username(), geekBuddy.name(), List.of());
 	}
 }
