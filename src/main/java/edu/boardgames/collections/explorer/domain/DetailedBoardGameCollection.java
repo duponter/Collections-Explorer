@@ -5,12 +5,12 @@ import java.util.Objects;
 
 import edu.boardgames.collections.explorer.infrastructure.bgg.BggInit;
 
-public final class GeekBuddyCollection implements BoardGameCollection {
+public final class DetailedBoardGameCollection implements BoardGameCollection {
 	private final String id;
     private final String name;
 	private final List<CollectedBoardGame> boardGames;
 
-    public GeekBuddyCollection(String id, String name, List<CollectedBoardGame> boardGames) {
+    public DetailedBoardGameCollection(String id, String name, List<CollectedBoardGame> boardGames) {
 		this.id = Objects.requireNonNull(id);
 		this.name = Objects.requireNonNull(name);
 		this.boardGames = Objects.requireNonNull(boardGames);

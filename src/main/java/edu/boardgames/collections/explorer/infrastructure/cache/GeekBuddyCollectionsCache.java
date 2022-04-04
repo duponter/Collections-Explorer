@@ -7,8 +7,8 @@ import java.util.Objects;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import edu.boardgames.collections.explorer.domain.BoardGameCollection;
+import edu.boardgames.collections.explorer.domain.DetailedBoardGameCollection;
 import edu.boardgames.collections.explorer.domain.GeekBuddy;
-import edu.boardgames.collections.explorer.domain.GeekBuddyCollection;
 import edu.boardgames.collections.explorer.domain.GeekBuddyCollections;
 
 public class GeekBuddyCollectionsCache implements GeekBuddyCollections {
@@ -57,6 +57,6 @@ public class GeekBuddyCollectionsCache implements GeekBuddyCollections {
 	}
 
 	private BoardGameCollection emptyCollection(GeekBuddy geekBuddy) {
-		return new GeekBuddyCollection(geekBuddy.username(), geekBuddy.name(), List.of());
+		return new DetailedBoardGameCollection(geekBuddy.username(), geekBuddy.name(), List.of());
 	}
 }
