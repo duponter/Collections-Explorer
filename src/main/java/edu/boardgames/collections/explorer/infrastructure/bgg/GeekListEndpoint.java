@@ -1,6 +1,6 @@
 package edu.boardgames.collections.explorer.infrastructure.bgg;
 
-import edu.boardgames.collections.explorer.domain.GeekList;
+import edu.boardgames.collections.explorer.domain.GeekListCollection;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlHttpRequest;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
 
@@ -11,7 +11,7 @@ public final class GeekListEndpoint implements BggEndpoint {
         this.geekListId = id;
     }
 
-    public GeekList execute() {
+    public GeekListCollection execute() {
         return XmlNode.nodes(this.createRequest().asNode(), "//geeklist")
                 .map(GeekListBggXml::new)
                 .findFirst()

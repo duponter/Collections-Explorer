@@ -31,7 +31,7 @@ public class BoardGameGeekApi implements BoardGameGeek {
 
 	@Override
 	public GeekLists geekLists() {
-		return new BggGeekLists();
+		return new GeekListsBggInMemory();
 	}
 
 	@Override

@@ -1,8 +1,6 @@
 package edu.boardgames.collections.explorer.infrastructure.bgg;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import edu.boardgames.collections.explorer.domain.GeekBuddies;
 import edu.boardgames.collections.explorer.domain.GeekBuddy;
@@ -41,12 +39,5 @@ public class GeekBuddiesBggInMemory implements GeekBuddies {
 	@Override
 	public GeekBuddy one(String username) {
 		return new GeekBuddyBgg(username, username);
-	}
-
-	@Override
-	public List<GeekBuddy> withUsername(String... usernames) {
-		return Arrays.stream(usernames)
-				.map(this::one)
-				.collect(Collectors.toList());
 	}
 }

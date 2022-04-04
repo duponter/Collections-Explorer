@@ -1,11 +1,16 @@
 package edu.boardgames.collections.explorer.domain;
 
+import java.util.Arrays;
 import java.util.List;
 
 public interface GeekLists {
-	default List<GeekList> all() {
-		return List.of(withId("274761"));   // Borrowed Board Games
-	}
+    List<GeekList> all();
 
-	GeekList withId(String id);
+    GeekList one(String id);
+
+    default List<GeekList> withId(String... ids) {
+        return Arrays.stream(ids)
+                .map(this::one)
+                .toList();
+    }
 }

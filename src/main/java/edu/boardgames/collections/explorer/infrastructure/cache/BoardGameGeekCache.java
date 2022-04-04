@@ -23,7 +23,7 @@ public class BoardGameGeekCache implements BoardGameGeek {
 		this.geekBuddyCollections = new GeekBuddyCollectionsCache(delegate.geekBuddyCollections());
 		this.geekBuddies = delegate.geekBuddies();
 		this.boardGames = new BoardGamesCache(delegate.boardGames());
-		this.geekLists = new GeekListsCache(delegate.geekLists());
+		this.geekLists = delegate.geekLists();
 		this.collections = new BoardGameCollectionsCache(this.geekBuddies, this.geekLists);
 		this.plays = delegate.plays();
 	}
