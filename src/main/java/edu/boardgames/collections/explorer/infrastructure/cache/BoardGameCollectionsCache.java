@@ -17,7 +17,7 @@ public class BoardGameCollectionsCache implements BoardGameCollections {
 	private final Cache<String, BoardGameCollection> collections = Caffeine.newBuilder().build();
 
 	public BoardGameCollectionsCache(GeekBuddies geekBuddies, GeekLists geekLists) {
-		geekBuddies.all().forEach(geekBuddy -> collections.put(StringUtils.lowerCase(geekBuddy.username()), new LazyBoardGameCollection(geekBuddy.username(), geekBuddy.name(), Lazy.of(geekBuddy::ownedCollection))));
+        geekBuddies.all().forEach(geekBuddy -> collections.put(StringUtils.lowerCase(geekBuddy.username()), new LazyBoardGameCollection(geekBuddy.username(), geekBuddy.name(), Lazy.of(() -> geekBuddy.ownedCollection().boardGames()))));
 		geekLists.all().forEach(geekList -> collections.put(geekList.id(), new LazyBoardGameCollection(geekList.id(), geekList.name(), Lazy.of(geekList::boardGames))));
 
 		collections.put("mine", this.asGroup("mine", "duponter", "274761"));
