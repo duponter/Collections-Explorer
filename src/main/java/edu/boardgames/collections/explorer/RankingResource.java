@@ -1,7 +1,6 @@
 package edu.boardgames.collections.explorer;
 
 import java.lang.System.Logger;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -17,7 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import edu.boardgames.collections.explorer.domain.BoardGame;
 import edu.boardgames.collections.explorer.domain.poll.PlayerCountPoll;
-import edu.boardgames.collections.explorer.infrastructure.bgg.BggInit;
+import edu.boardgames.collections.explorer.ui.input.CollectionsInput;
 import edu.boardgames.collections.explorer.ui.text.Column;
 import edu.boardgames.collections.explorer.ui.text.Document;
 import edu.boardgames.collections.explorer.ui.text.DocumentTitle;
@@ -34,8 +33,8 @@ public class RankingResource {
     @Path("/playercount/{count}")
     @Produces(MediaType.TEXT_PLAIN)
     public String current(@PathParam("count") Integer playerCount, @QueryParam("collections") String collections) {
-        String[] collectionNames = StringUtils.split(collections, ",");
-        LOGGER.log(Logger.Level.INFO, "Search currently playable collections {0} to rank games for {1} players", Arrays.toString(collectionNames), playerCount);
+        CollectionsInput collectionsInput = new CollectionsInput(collections);
+        LOGGER.log(Logger.Level.INFO, "Search currently playable collections {0} to rank games for {1} players", collectionsInput.asText(), playerCount);
         return new Document(
                 new DocumentTitle("Search currently playable collections %s to rank games for %s players".formatted(collections, playerCount)),
                 new Table<>(
@@ -52,7 +51,7 @@ public class RankingResource {
                                 new Column<>("Not Rec.", 9, r -> r.votingPercentage().notRecommendedVotes()),
                                 new Column<>("Owners", 40, r -> "%-40s".formatted(r.owners()))
                         ),
-                        BggInit.get().collections().withNames(collectionNames).copiesPerBoardGame()
+                        collectionsInput.resolve().copiesPerBoardGame()
                                 .entrySet().stream()
                                 .map(entry -> new Ranking(entry.getKey(), String.join(", ", entry.getValue()), playerCount))
                                 .sorted(Comparator.comparing(r1 -> r1.boardGame().name())).toList()
