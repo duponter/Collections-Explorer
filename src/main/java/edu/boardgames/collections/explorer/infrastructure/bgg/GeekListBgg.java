@@ -12,6 +12,6 @@ public record GeekListBgg(String id) implements GeekList {
 
     @Override
     public BoardGameCollection asCollection() {
-        return new BggGeekListCollections().resolved(this);
+        return BggInit.get().geekListCollections().resolved(this);
     }
 }

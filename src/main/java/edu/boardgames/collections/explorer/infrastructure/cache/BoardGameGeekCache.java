@@ -7,26 +7,29 @@ import edu.boardgames.collections.explorer.domain.BoardGameGeek;
 import edu.boardgames.collections.explorer.domain.BoardGames;
 import edu.boardgames.collections.explorer.domain.GeekBuddies;
 import edu.boardgames.collections.explorer.domain.GeekBuddyCollections;
+import edu.boardgames.collections.explorer.domain.GeekListCollections;
 import edu.boardgames.collections.explorer.domain.GeekLists;
 import edu.boardgames.collections.explorer.domain.Plays;
 
 public class BoardGameGeekCache implements BoardGameGeek {
 	private final BoardGameCollections collections;
-	private final GeekBuddyCollections geekBuddyCollections;
-	private final GeekBuddies geekBuddies;
-	private final BoardGames boardGames;
-	private final GeekLists geekLists;
-	private final Plays plays;
+    private final GeekBuddyCollections geekBuddyCollections;
+    private final GeekListCollections geekListCollections;
+    private final GeekBuddies geekBuddies;
+    private final BoardGames boardGames;
+    private final GeekLists geekLists;
+    private final Plays plays;
 
-	public BoardGameGeekCache(BoardGameGeek delegate) {
+    public BoardGameGeekCache(BoardGameGeek delegate) {
 		Objects.requireNonNull(delegate);
-		this.geekBuddyCollections = new GeekBuddyCollectionsCache(delegate.geekBuddyCollections());
-		this.geekBuddies = delegate.geekBuddies();
-		this.boardGames = new BoardGamesCache(delegate.boardGames());
-		this.geekLists = delegate.geekLists();
-		this.collections = new BoardGameCollectionsCache(this.geekBuddies, this.geekLists);
-		this.plays = delegate.plays();
-	}
+        this.boardGames = new BoardGamesCache(delegate.boardGames());
+        this.geekBuddyCollections = new GeekBuddyCollectionsCache(delegate.geekBuddyCollections());
+        this.geekListCollections = new GeekListCollectionsCache(delegate.geekListCollections());
+        this.geekBuddies = delegate.geekBuddies();
+        this.geekLists = delegate.geekLists();
+        this.collections = new BoardGameCollectionsCache(this.geekBuddies, this.geekLists);
+        this.plays = delegate.plays();
+    }
 
 	@Override
 	public BoardGameCollections collections() {
@@ -38,7 +41,12 @@ public class BoardGameGeekCache implements BoardGameGeek {
 		return geekBuddyCollections;
 	}
 
-	@Override
+    @Override
+    public GeekListCollections geekListCollections() {
+        return geekListCollections;
+    }
+
+    @Override
 	public GeekBuddies geekBuddies() {
 		return geekBuddies;
 	}

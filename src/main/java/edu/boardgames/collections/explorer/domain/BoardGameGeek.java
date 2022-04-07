@@ -5,6 +5,8 @@ public interface BoardGameGeek {
 
 	GeekBuddyCollections geekBuddyCollections();
 
+	GeekListCollections geekListCollections();
+
 	GeekBuddies geekBuddies();
 
 	BoardGames boardGames();
