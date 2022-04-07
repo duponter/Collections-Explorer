@@ -26,7 +26,12 @@ public class GeekBuddyCollectionsCache implements GeekBuddyCollections {
 				.build(delegate::wantToPlay);
 	}
 
-	@Override
+    @Override
+    public BoardGameCollection complete(GeekBuddy geekBuddy) {
+        return delegate.complete(geekBuddy);
+    }
+
+    @Override
 	public BoardGameCollection owned(GeekBuddy geekBuddy) {
 		return Objects.requireNonNullElseGet(ownedCollections.get(geekBuddy), () -> emptyCollection(geekBuddy));
 	}

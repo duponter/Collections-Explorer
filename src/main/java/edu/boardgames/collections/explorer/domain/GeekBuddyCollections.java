@@ -1,6 +1,8 @@
 package edu.boardgames.collections.explorer.domain;
 
 public interface GeekBuddyCollections {
+    BoardGameCollection complete(GeekBuddy geekBuddy);
+
     BoardGameCollection owned(GeekBuddy geekBuddy);
 
     BoardGameCollection preordered(GeekBuddy geekBuddy);

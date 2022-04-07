@@ -6,7 +6,16 @@ import edu.boardgames.collections.explorer.domain.GeekBuddy;
 import edu.boardgames.collections.explorer.domain.GeekBuddyCollections;
 
 public class BggGeekBuddyCollections implements GeekBuddyCollections {
-	@Override
+    @Override
+    public BoardGameCollection complete(GeekBuddy geekBuddy) {
+        return new DetailedBoardGameCollection(
+                geekBuddy.username(),
+                geekBuddy.name(),
+                newRequestFor(geekBuddy).execute().toList()
+        );
+    }
+
+    @Override
 	public BoardGameCollection owned(GeekBuddy geekBuddy) {
         return new DetailedBoardGameCollection(
                 geekBuddy.username() + ".owned",
