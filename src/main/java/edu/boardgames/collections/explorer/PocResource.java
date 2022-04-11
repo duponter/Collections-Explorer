@@ -43,7 +43,7 @@ public class PocResource {
         CollectionsInput searchableCollections = new CollectionsInput(collections);
         var bestWithInput = BestWithInput.of(bestWith);
         LOGGER.log(Level.INFO, "Search currently playable collections {0} to play a best with {1} game", searchableCollections.asText(), bestWithInput.asText());
-        return searchableCollections.resolve().boardGames()
+        return searchableCollections.resolve().boardGamesDetailed()
                 .stream()
                 .filter(bestWithInput.resolve())
                 .distinct()

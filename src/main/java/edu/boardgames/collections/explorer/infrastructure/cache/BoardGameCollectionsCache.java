@@ -1,7 +1,6 @@
 package edu.boardgames.collections.explorer.infrastructure.cache;
 
 import java.util.Arrays;
-import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -10,7 +9,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import edu.boardgames.collections.explorer.domain.BoardGameCollection;
 import edu.boardgames.collections.explorer.domain.BoardGameCollectionGroup;
 import edu.boardgames.collections.explorer.domain.BoardGameCollections;
-import edu.boardgames.collections.explorer.domain.CollectedBoardGame;
+import edu.boardgames.collections.explorer.domain.DetailedBoardGameCollection;
 import edu.boardgames.collections.explorer.domain.GeekBuddies;
 import edu.boardgames.collections.explorer.domain.GeekBuddy;
 import edu.boardgames.collections.explorer.domain.GeekLists;
@@ -34,22 +33,7 @@ public class BoardGameCollectionsCache implements BoardGameCollections {
 
     private BoardGameCollection fromGeekBuddy(GeekBuddy geekBuddy) {
         BoardGameCollection owned = geekBuddy.ownedCollection();
-        return new BoardGameCollection() {
-            @Override
-            public String id() {
-                return owned.id();
-            }
-
-            @Override
-            public String name() {
-                return geekBuddy.name();
-            }
-
-            @Override
-            public List<CollectedBoardGame> boardGames() {
-                return owned.boardGames();
-            }
-        };
+        return new DetailedBoardGameCollection(owned.id(), geekBuddy.name(), owned.boardGames());
     }
 
     @Override

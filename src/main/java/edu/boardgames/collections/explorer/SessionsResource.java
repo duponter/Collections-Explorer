@@ -111,7 +111,7 @@ public class SessionsResource {
 
     private record GeekBuddyGrouping(List<BoardGame> wantToPlay, List<BoardGame> played, List<BoardGame> topRated) implements BoardGameGrouping {
         private GeekBuddyGrouping(GeekBuddy buddy) {
-            this(buddy.wantToPlayCollection().boardGames(), buddy.playedCollection().boardGames(), buddy.ratedCollection(8).boardGames());
+            this(buddy.wantToPlayCollection().boardGamesDetailed(), buddy.playedCollection().boardGamesDetailed(), buddy.ratedCollection(8).boardGamesDetailed());
         }
 
         @Override

@@ -7,15 +7,21 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import edu.boardgames.collections.explorer.infrastructure.bgg.BggInit;
+
 public interface BoardGameCollection {
 	String id();
 
 	String name();
 
-	List<BoardGame> boardGames();
+	List<CollectedBoardGame> boardGames();
+
+    default List<BoardGame> boardGamesDetailed() {
+        return BggInit.get().boardGames().withIds(boardGames().stream().map(CollectedBoardGame::id));
+    }
 
     default Stream<Copy> copyStream() {
-        return this.boardGames().stream().map(bg -> new Copy(bg, this));
+        return this.boardGamesDetailed().stream().map(bg -> new Copy(bg, this));
     }
 
 	default Map<BoardGame, Set<String>> copiesPerBoardGame() {

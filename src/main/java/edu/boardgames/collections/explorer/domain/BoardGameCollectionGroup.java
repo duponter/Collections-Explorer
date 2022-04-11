@@ -1,10 +1,11 @@
 package edu.boardgames.collections.explorer.domain;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
+
+import org.eclipse.collections.api.factory.Lists;
 
 public final class BoardGameCollectionGroup implements BoardGameCollection {
     private final String id;
@@ -17,27 +18,26 @@ public final class BoardGameCollectionGroup implements BoardGameCollection {
 		this.groupedCollections = groupedCollections;
 	}
 
-	@Override
-	public String id() {
-		return id;
-	}
+    @Override
+    public String id() {
+        return id;
+    }
 
-	@Override
-	public String name() {
-		return name;
-	}
+    @Override
+    public String name() {
+        return name;
+    }
 
-	@Override
-	public List<BoardGame> boardGames() {
-		return Arrays.stream(this.groupedCollections)
-				.map(BoardGameCollection::boardGames)
-				.flatMap(Collection::stream)
-				.toList();
-	}
+    @Override
+    public List<CollectedBoardGame> boardGames() {
+        return Lists.immutable.of(groupedCollections)
+                .flatCollect(BoardGameCollection::boardGames)
+                .toList();
+    }
 
-	@Override
-	public Stream<Copy> copyStream() {
-		return Arrays.stream(this.groupedCollections)
-				.flatMap(BoardGameCollection::copyStream);
-	}
+    @Override
+    public Stream<Copy> copyStream() {
+        return Arrays.stream(this.groupedCollections)
+                .flatMap(BoardGameCollection::copyStream);
+    }
 }

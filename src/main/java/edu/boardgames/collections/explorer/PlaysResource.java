@@ -87,7 +87,7 @@ public class PlaysResource {
 		https://boardgamegeek.com/xmlapi2/collection?id=8195,204583&type=boardgame&username=duponter&stats=1&version=1
 		<name sortindex="1">Children: Viva Topo!</name> <version> <other>Children</other> </version>
 		 */
-        List<BoardGamePlaySummary> stats = geekbuddyInput.resolve().ownedCollection().boardGames().stream()
+        List<BoardGamePlaySummary> stats = geekbuddyInput.resolve().ownedCollection().boardGamesDetailed().stream()
                 .map(bg -> joinPlays(bg, plays))
                 .map(BoardGamePlays::summarize)
                 .toList();

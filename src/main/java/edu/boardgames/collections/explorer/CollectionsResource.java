@@ -36,12 +36,12 @@ public class CollectionsResource {
         LOGGER.log(Level.INFO, "Search collections of all geekbuddies for {0}'s want-to-play best with {1,number,integer} games", geekbuddy, bestWith);
 
         GeekBuddy buddy = BggInit.get().geekBuddies().one(geekbuddy);
-        List<BoardGame> wantToPlay = buddy.wantToPlayCollection().boardGames();
+        List<BoardGame> wantToPlay = buddy.wantToPlayCollection().boardGamesDetailed();
         LOGGER.log(Level.INFO, "Collection fetched: {0} wants to play {1,number,integer} boardgames.", geekbuddy, wantToPlay.size());
 
         Stream<BoardGame> all = wantToPlay.stream();
         if (minimallyRated != null) {
-            List<BoardGame> rated = buddy.ratedCollection(minimallyRated).boardGames();
+            List<BoardGame> rated = buddy.ratedCollection(minimallyRated).boardGamesDetailed();
             LOGGER.log(Level.INFO, "Collection fetched: {0} rated {1,number,integer} boardgames {1,number,integer} or more.", geekbuddy, rated.size(), minimallyRated);
             all = Stream.concat(all, rated.stream());
         }
