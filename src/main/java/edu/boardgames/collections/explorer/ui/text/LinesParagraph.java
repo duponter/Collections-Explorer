@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
 
-public record LinesParagraph(Collection<Line> lines) implements Paragraph {
+public record LinesParagraph(Collection<? extends Line> lines) implements Paragraph {
 	public LinesParagraph(Line... lines) {
 		this(List.of(lines));
 	}

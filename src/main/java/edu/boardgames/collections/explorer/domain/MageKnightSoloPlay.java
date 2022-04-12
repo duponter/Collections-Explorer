@@ -53,13 +53,13 @@ public class MageKnightSoloPlay {
 	@Override
 	public String toString() {
 		return new StringJoiner(", ", MageKnightSoloPlay.class.getSimpleName() + "[", "]")
-				.add(String.format("date=%s", this.date()))
-				.add(String.format("length=%s", this.length()))
-				.add(String.format("outcome=%s", this.outcome()))
-				.add(String.format("score=%s", this.score()))
-				.add(String.format("scenario=%s", this.scenario()))
-				.add(String.format("mageKnight=%s", this.mageKnight()))
-				.add(String.format("dummyPlayer=%s", this.dummyPlayer()))
+				.add("date=" + this.date())
+				.add("length=" + this.length())
+				.add("outcome=" + this.outcome())
+				.add("score=" + this.score())
+				.add("scenario=" + this.scenario())
+				.add("mageKnight=" + this.mageKnight())
+				.add("dummyPlayer=" + this.dummyPlayer())
 				.toString();
 	}
 }

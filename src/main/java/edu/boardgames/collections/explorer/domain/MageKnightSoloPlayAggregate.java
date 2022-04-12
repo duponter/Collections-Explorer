@@ -4,38 +4,27 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.eclipse.collections.api.bag.ImmutableBag;
+import org.eclipse.collections.api.factory.Lists;
+import org.eclipse.collections.api.list.ImmutableList;
+
 public class MageKnightSoloPlayAggregate {
-	private final Collection<MageKnightSoloPlay> plays;
+    private final ImmutableList<MageKnightSoloPlay> plays;
 
 	public MageKnightSoloPlayAggregate(Collection<MageKnightSoloPlay> plays) {
-		this.plays = plays;
-	}
-
-	public Map<String, Map<String, MageKnightSoloPlayAggregate>> group() {
-		return this.plays.stream()
-				.collect(Collectors.groupingBy(
-						MageKnightSoloPlay::scenario,
-						Collectors.groupingBy(
-								MageKnightSoloPlay::mageKnight,
-								Collectors.collectingAndThen(
-										Collectors.toList(),
-										MageKnightSoloPlayAggregate::new
-								)
-						)
-				));
+        this.plays = Lists.immutable.ofAll(plays);
 	}
 
 	public MageKnightSoloPlayStats stats() {
-		Map<PlayOutcome, Long> outcomeCounts = this.plays.stream().collect(Collectors.groupingBy(MageKnightSoloPlay::outcome, Collectors.counting()));
+        ImmutableBag<PlayOutcome> outcomeCounts = plays.countBy(MageKnightSoloPlay::outcome);
 		return new MageKnightSoloPlayStats.Builder()
-				.withCount(this.plays.size())
-				.withLastPlayed(this.plays.stream().map(MageKnightSoloPlay::date).max(Comparator.naturalOrder()).orElse(LocalDate.of(2000, Month.JANUARY, 1)))
-				.withWins(outcomeCounts.getOrDefault(PlayOutcome.WIN, 0L).intValue())
-				.withLosses(outcomeCounts.getOrDefault(PlayOutcome.LOSE, 0L).intValue())
-				.withIncomplete(outcomeCounts.getOrDefault(PlayOutcome.INCOMPLETE, 0L).intValue())
+                .withCount(this.plays.size())
+                .withLastPlayed(this.plays.stream().map(MageKnightSoloPlay::date).max(Comparator.naturalOrder()).orElse(LocalDate.of(2000, Month.JANUARY, 1)))
+                .withWins(outcomeCounts.occurrencesOf(PlayOutcome.WIN))
+                .withLosses(outcomeCounts.occurrencesOf(PlayOutcome.LOSE))
+                .withIncomplete(outcomeCounts.occurrencesOf(PlayOutcome.INCOMPLETE))
 				.withAvgScore(this.plays.stream().collect(Collectors.averagingInt(MageKnightSoloPlay::score)).intValue())
 				.withAvgLength(this.plays.stream().collect(Collectors.averagingInt(MageKnightSoloPlay::length)).intValue())
 				.build();

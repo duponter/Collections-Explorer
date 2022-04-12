@@ -7,7 +7,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -27,10 +26,15 @@ import edu.boardgames.collections.explorer.infrastructure.bgg.BggInit;
 import edu.boardgames.collections.explorer.ui.input.GeekBuddyInput;
 import edu.boardgames.collections.explorer.ui.text.Chapter;
 import edu.boardgames.collections.explorer.ui.text.ChapterTitle;
+import edu.boardgames.collections.explorer.ui.text.Column;
 import edu.boardgames.collections.explorer.ui.text.Document;
 import edu.boardgames.collections.explorer.ui.text.DocumentTitle;
 import edu.boardgames.collections.explorer.ui.text.Line;
 import edu.boardgames.collections.explorer.ui.text.LinesParagraph;
+import edu.boardgames.collections.explorer.ui.text.Table;
+import org.eclipse.collections.api.RichIterable;
+import org.eclipse.collections.api.factory.Lists;
+import org.eclipse.collections.api.list.ImmutableList;
 
 import static java.lang.System.Logger.Level.INFO;
 
@@ -151,42 +155,41 @@ public class PlaysResource {
 	@GET
 	@Path("/{username}/mksolo")
 	public String mageKnightSoloPlays(@PathParam("username") String username) {
-		List<MageKnightSoloPlay> plays = BggInit.get().plays().forUserAndGame(username, "248562").stream()
-				.map(MageKnightSoloPlay::new)
-				.toList();
-		Map<String, Map<String, Long>> dummyPlayerCounts = plays.stream()
-				.collect(Collectors.groupingBy(
-						MageKnightSoloPlay::scenario,
-						Collectors.groupingBy(
-								MageKnightSoloPlay::dummyPlayer,
-								Collectors.counting()
-						)
-				));
-		Map<String, Map<String, MageKnightSoloPlayAggregate>> stats = plays.stream()
-				.collect(Collectors.groupingBy(
-						MageKnightSoloPlay::scenario,
-						Collectors.groupingBy(
-								MageKnightSoloPlay::mageKnight,
-								TreeMap::new,
-								Collectors.collectingAndThen(
-										Collectors.toList(),
-										MageKnightSoloPlayAggregate::new
-								)
-						)
-				));
+        ImmutableList<MageKnightSoloPlay> plays = Lists.immutable.fromStream(BggInit.get().plays().forUserAndGame(username, "248562").stream().map(MageKnightSoloPlay::new));
+        return new Document(
+                new DocumentTitle("Overview of %d Mage Knight Solo Plays by %s".formatted(plays.size(), new GeekBuddyInput(username).asText())),
+                new LinesParagraph(
+                        plays.groupBy(p -> new ScenarioMageKnight(p.scenario(), p.mageKnight()))
+                                .keyMultiValuePairsView()
+                                .collect(p -> new LineStats(p.getOne().scenario(), p.getOne().mageKnight(), new MageKnightSoloPlayAggregate(p.getTwo().toList())))
+                                .toSortedList(Comparator.comparing(LineStats::scenario).thenComparing(s -> s.aggregate().stats().count()).thenComparing(s -> s.aggregate().stats().lastPlayed()))
+                ),
+                new LinesParagraph(Line.EMPTY, Line.EMPTY, Line.of("-".repeat(120)), Line.EMPTY, Line.EMPTY),
+                new Table<>(
+                        List.of(
+                                new Column<>("Dummy Player", 25, dp -> "%-25s".formatted(dp.dummyPlayer())),
+                                new Column<>("Count", 5, dp -> String.valueOf(dp.count())),
+                                new Column<>("Last", 15, dp -> dp.last().toString())
+                        ),
+                        plays.groupBy(MageKnightSoloPlay::dummyPlayer).multiValuesView()
+                                .collect(DummyPlayer::new)
+                                .toSortedList(
+                                        Comparator.comparing(DummyPlayer::count)
+                                                .thenComparing(DummyPlayer::last)
+                                                .thenComparing(DummyPlayer::dummyPlayer)
+                                )
+                )
+        ).toText();
+    }
 
-		return Stream.concat(
-						stats.entrySet().stream()
-								.flatMap(scenarioEntry -> scenarioEntry.getValue().keySet().stream()
-										.map(mageKnight -> new ScenarioMageKnight(scenarioEntry.getKey(), mageKnight))),
-                        dummyPlayerCounts.entrySet().stream()
-                                .flatMap(scenarioEntry -> scenarioEntry.getValue().keySet().stream()
-                                        .map(dummyPlayer -> new ScenarioMageKnight(scenarioEntry.getKey(), dummyPlayer)))
-                ).distinct().sorted()
-                .map(smk -> new LineStats(smk.scenario(), smk.mageKnight(), stats.get(smk.scenario()).getOrDefault(smk.mageKnight(), new MageKnightSoloPlayAggregate(List.of())), dummyPlayerCounts))
-                .sorted(Comparator.comparing(LineStats::scenario).thenComparing(s -> s.aggregate().stats().count()).thenComparing(s -> s.aggregate().stats().lastPlayed()))
-                .map(LineStats::formatted)
-                .collect(Collectors.joining(System.lineSeparator()));
+    private record DummyPlayer(String dummyPlayer, int count, LocalDate last) {
+        public DummyPlayer(RichIterable<MageKnightSoloPlay> plays) {
+            this(
+                    StringUtils.defaultIfEmpty(plays.minBy(MageKnightSoloPlay::dummyPlayer).dummyPlayer(), "<unknown>"),
+                    plays.size(),
+                    plays.maxBy(MageKnightSoloPlay::date).date()
+            );
+        }
     }
 
     private record ScenarioMageKnight(String scenario, String mageKnight) implements Comparable<ScenarioMageKnight> {
@@ -199,9 +202,10 @@ public class PlaysResource {
         }
     }
 
-    private record LineStats(String scenario, String mageKnight, MageKnightSoloPlayAggregate aggregate, Map<String, Map<String, Long>> dummyPlayerCounts) {
-        private String formatted() {
-            return "%-20s with %-17s : %s - %2dx dummy".formatted(scenario, StringUtils.defaultIfEmpty(mageKnight, "<unknown>"), aggregate.stats().formatted(), dummyPlayerCounts.get(scenario).getOrDefault(mageKnight, 0L));
+    private record LineStats(String scenario, String mageKnight, MageKnightSoloPlayAggregate aggregate) implements Line {
+        @Override
+        public String line() {
+            return "%-20s with %-17s : %s".formatted(scenario, StringUtils.defaultIfEmpty(mageKnight, "<unknown>"), aggregate.stats().formatted());
         }
     }
 }

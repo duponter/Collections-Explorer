@@ -24,8 +24,7 @@ public class MageKnightSoloPlayStats {
 	}
 
 	public String formatted() {
-		return String.format(
-				"%1$2d plays (%2$2d W, %3$2d L, %4$2d I) - %5$td-%5$tb-%5$tY - %6$3d pts - %7$3d mins",
+		return "%1$2d plays (%2$2d W, %3$2d L, %4$2d I) - %5$td-%5$tb-%5$tY - %6$3d pts - %7$3d mins".formatted(
 				this.count(),
 				this.wins(),
 				this.losses(),
