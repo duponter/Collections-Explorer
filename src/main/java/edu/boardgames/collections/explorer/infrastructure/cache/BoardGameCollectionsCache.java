@@ -9,9 +9,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import edu.boardgames.collections.explorer.domain.BoardGameCollection;
 import edu.boardgames.collections.explorer.domain.BoardGameCollectionGroup;
 import edu.boardgames.collections.explorer.domain.BoardGameCollections;
-import edu.boardgames.collections.explorer.domain.DetailedBoardGameCollection;
 import edu.boardgames.collections.explorer.domain.GeekBuddies;
-import edu.boardgames.collections.explorer.domain.GeekBuddy;
 import edu.boardgames.collections.explorer.domain.GeekLists;
 import io.vavr.Lazy;
 
@@ -20,7 +18,7 @@ public class BoardGameCollectionsCache implements BoardGameCollections {
     private final Cache<String, Lazy<BoardGameCollection>> collections = Caffeine.newBuilder().build();
 
 	public BoardGameCollectionsCache(GeekBuddies geekBuddies, GeekLists geekLists) {
-        geekBuddies.all().forEach(geekBuddy -> collections.put(StringUtils.lowerCase(geekBuddy.username()), Lazy.of(() -> fromGeekBuddy(geekBuddy))));
+        geekBuddies.all().forEach(geekBuddy -> collections.put(StringUtils.lowerCase(geekBuddy.username()), Lazy.of(() -> geekBuddy.ownedCollection().withName(geekBuddy.name()))));
         geekLists.all().forEach(geekList -> collections.put(geekList.id(), Lazy.of(geekList::asCollection)));
 
         collections.put("all", Lazy.of(() -> this.asGroup("all", collections.asMap().keySet().toArray(String[]::new))));
@@ -29,11 +27,6 @@ public class BoardGameCollectionsCache implements BoardGameCollections {
         collections.put("fmlimited", Lazy.of(() -> this.asGroup("fmlimited", "mine", "bartie", "de rode baron", "edou", "evildee", "svennos", "turtler6")));
         collections.put("sirplayalot", Lazy.of(() -> this.asGroup("sirplayalot", "wallofshame", "leys")));
 //		collections.put("forum", this.asGroup("forum", "forummortsel", "ffed"));
-    }
-
-    private BoardGameCollection fromGeekBuddy(GeekBuddy geekBuddy) {
-        BoardGameCollection owned = geekBuddy.ownedCollection();
-        return new DetailedBoardGameCollection(owned.id(), geekBuddy.name(), owned.boardGames());
     }
 
     @Override

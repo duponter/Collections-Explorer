@@ -34,6 +34,11 @@ public final class BoardGameCollectionGroup implements BoardGameCollection {
                 .flatCollect(BoardGameCollection::boardGames);
     }
 
+    @Override
+    public BoardGameCollection withName(String name) {
+        return new BoardGameCollectionGroup(name, this.groupedCollections);
+    }
+
     /**
      * Keep this method to render the collection names correctly.
      *

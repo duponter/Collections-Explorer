@@ -11,6 +11,7 @@ import edu.boardgames.collections.explorer.infrastructure.bgg.BggInit;
 import org.eclipse.collections.api.RichIterable;
 import org.eclipse.collections.api.block.function.Function2;
 import org.eclipse.collections.api.list.ImmutableList;
+import org.eclipse.collections.impl.block.factory.Predicates2;
 
 public interface BoardGameCollection {
     String id();
@@ -19,8 +20,10 @@ public interface BoardGameCollection {
 
     ImmutableList<CollectedBoardGame> boardGames();
 
+    BoardGameCollection withName(String name);
+
     default boolean contains(BoardGameSummary boardGameSummary) {
-        return boardGames().collect(CollectedBoardGame::id).anySatisfyWith(String::equals, boardGameSummary.id());
+        return boardGames().anySatisfyWith(Predicates2.attributeEqual(CollectedBoardGame::id), boardGameSummary.id());
     }
 
     default <T> RichIterable<T> map(Function2<CollectedBoardGame, String, T> mapper) {

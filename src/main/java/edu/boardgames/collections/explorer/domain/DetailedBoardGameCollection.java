@@ -35,4 +35,9 @@ public final class DetailedBoardGameCollection implements BoardGameCollection {
     public ImmutableList<CollectedBoardGame> boardGames() {
         return this.boardGames;
     }
+
+    @Override
+    public BoardGameCollection withName(String name) {
+        return new DetailedBoardGameCollection(id(), name, boardGames());
+    }
 }
