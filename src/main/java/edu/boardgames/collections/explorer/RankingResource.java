@@ -38,7 +38,10 @@ public class RankingResource {
         return new Document(
                 new DocumentTitle("Search currently playable collections %s to rank games for %s players".formatted(collections, playerCount)),
                 new Table<>(
-                        List.of(
+                        collectionsInput.resolve().copiesPerBoardGame()
+                                .entrySet().stream()
+                                .map(entry -> new Ranking(entry.getKey(), String.join(", ", entry.getValue()), playerCount))
+                                .sorted(Comparator.comparing(r1 -> r1.boardGame().name())).toList(), List.of(
                                 new Column<>("Boardgame", 70, r -> "%-70s".formatted(StringUtils.abbreviate(r.boardGame().name(), 70))),
                                 new Column<>("Year", 4, r -> r.boardGame().year()),
                                 new Column<>("Players", 7, r -> String.format("%5sp", r.boardGame().playerCount().formatted())),
@@ -50,11 +53,7 @@ public class RankingResource {
                                 new Column<>("Recommend", 9, r -> r.votingPercentage().recommendedVotes()),
                                 new Column<>("Not Rec.", 9, r -> r.votingPercentage().notRecommendedVotes()),
                                 new Column<>("Owners", 40, r -> "%-40s".formatted(r.owners()))
-                        ),
-                        collectionsInput.resolve().copiesPerBoardGame()
-                                .entrySet().stream()
-                                .map(entry -> new Ranking(entry.getKey(), String.join(", ", entry.getValue()), playerCount))
-                                .sorted(Comparator.comparing(r1 -> r1.boardGame().name())).toList()
+                        )
                 )
         ).toText();
     }

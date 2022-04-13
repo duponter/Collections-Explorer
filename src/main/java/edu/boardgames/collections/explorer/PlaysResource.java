@@ -36,6 +36,7 @@ import org.eclipse.collections.api.RichIterable;
 import org.eclipse.collections.api.bag.Bag;
 import org.eclipse.collections.api.factory.Lists;
 import org.eclipse.collections.api.list.ImmutableList;
+import org.eclipse.collections.impl.factory.primitive.IntLists;
 
 import static java.lang.System.Logger.Level.INFO;
 
@@ -161,35 +162,35 @@ public class PlaysResource {
                 new DocumentTitle("Overview of %d Mage Knight Solo Plays by %s".formatted(plays.size(), new GeekBuddyInput(username).asText())),
                 new LinesParagraph(Line.EMPTY),
                 new Table<>(
-                        List.of(
-                                new Column<>("Mage Knight", 25, new Column.Formatted("%-25s").compose(MageKnightSoloStats::mageKnight)),
-                                new Column<>("Count", 5, mk -> String.valueOf(mk.count())),
-                                new Column<>(String.join(" - ", "W", "L", "I"), 15, mk -> String.join(" - ", String.valueOf(mk.wins()), String.valueOf(mk.losses()), String.valueOf(mk.incomplete()))),
-                                new Column<>("Last", 15, new Column.Date().compose(MageKnightSoloStats::lastPlayed)),
-                                new Column<>("Scenarios", 40, new Column.Formatted("%-40s").compose(MageKnightSoloStats::scenarios))
+                    plays.groupBy(MageKnightSoloPlay::mageKnight).multiValuesView()
+                        .collect(MageKnightSoloStats::from)
+                        .toSortedList(
+                            Comparator.comparing(MageKnightSoloStats::count)
+                                .thenComparing(MageKnightSoloStats::lastPlayed)
+                                .thenComparing(MageKnightSoloStats::mageKnight)
                         ),
-                        plays.groupBy(MageKnightSoloPlay::mageKnight).multiValuesView()
-                                .collect(MageKnightSoloStats::from)
-                                .toSortedList(
-                                        Comparator.comparing(MageKnightSoloStats::count)
-                                                .thenComparing(MageKnightSoloStats::lastPlayed)
-                                                .thenComparing(MageKnightSoloStats::mageKnight)
-                                )
+                    List.of(
+                        new Column<>("Mage Knight", 25, new Column.Formatted("%-25s").compose(MageKnightSoloStats::mageKnight)),
+                        new Column<>("Count", 5, mk -> String.valueOf(mk.count())),
+                        new Column<>(String.join(" - ", "W", "L", "I"), 15, mk -> IntLists.immutable.of(mk.wins(), mk.losses(), mk.incomplete()).makeString(" - ")),
+                        new Column<>("Last", 15, new Column.Date().compose(MageKnightSoloStats::lastPlayed)),
+                        new Column<>("Scenarios", 40, new Column.Formatted("%-40s").compose(MageKnightSoloStats::scenarios))
+                    )
                 ),
                 new LinesParagraph(Line.EMPTY, Line.EMPTY, Line.of("-".repeat(120)), Line.EMPTY, Line.EMPTY),
                 new Table<>(
-                        List.of(
-                                new Column<>("Dummy Player", 25, new Column.Formatted("%-25s").compose(DummyPlayerSoloStats::dummyPlayer)),
-                                new Column<>("Count", 5, dp -> String.valueOf(dp.count())),
-                                new Column<>("Last", 15, new Column.Date().compose(DummyPlayerSoloStats::lastPlayed))
+                    plays.groupBy(MageKnightSoloPlay::dummyPlayer).multiValuesView()
+                        .collect(DummyPlayerSoloStats::from)
+                        .toSortedList(
+                            Comparator.comparing(DummyPlayerSoloStats::count)
+                                .thenComparing(DummyPlayerSoloStats::lastPlayed)
+                                .thenComparing(DummyPlayerSoloStats::dummyPlayer)
                         ),
-                        plays.groupBy(MageKnightSoloPlay::dummyPlayer).multiValuesView()
-                                .collect(DummyPlayerSoloStats::from)
-                                .toSortedList(
-                                        Comparator.comparing(DummyPlayerSoloStats::count)
-                                                .thenComparing(DummyPlayerSoloStats::lastPlayed)
-                                                .thenComparing(DummyPlayerSoloStats::dummyPlayer)
-                                )
+                    List.of(
+                        new Column<>("Dummy Player", 25, new Column.Formatted("%-25s").compose(DummyPlayerSoloStats::dummyPlayer)),
+                        new Column<>("Count", 5, dp -> String.valueOf(dp.count())),
+                        new Column<>("Last", 15, new Column.Date().compose(DummyPlayerSoloStats::lastPlayed))
+                    )
                 )
         ).toText();
     }

@@ -5,7 +5,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public record Table<T>(List<Column<T>> columns, List<T> rows) implements Paragraph {
+public record Table<T>(List<T> rows, List<Column<T>> columns) implements Paragraph {
 	private static final String VALUE_PREFIX = " ";
 	private static final String VALUE_SUFFIX = " |";
 
