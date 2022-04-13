@@ -14,9 +14,9 @@
 
         <surefire-plugin.version>2.22.2</surefire-plugin.version>
 
-        <quarkus.version>2.7.5.Final</quarkus.version>
+        <quarkus.version>2.8.0.Final</quarkus.version>
         <failsafe.version>3.2.3</failsafe.version>
-        <caffeine.version>3.0.5</caffeine.version>
+        <caffeine.version>3.0.6</caffeine.version>
         <eclipse-collections.version>11.0.0</eclipse-collections.version>
         <vavr.version>0.10.4</vavr.version>
         <commons-lang3.version>3.12.0</commons-lang3.version>
