@@ -20,8 +20,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import edu.boardgames.collections.explorer.domain.BoardGame;
 import edu.boardgames.collections.explorer.domain.MageKnightSoloPlay;
-import edu.boardgames.collections.explorer.domain.MageKnightSoloPlayAggregate;
 import edu.boardgames.collections.explorer.domain.Play;
+import edu.boardgames.collections.explorer.domain.PlayOutcome;
 import edu.boardgames.collections.explorer.infrastructure.bgg.BggInit;
 import edu.boardgames.collections.explorer.ui.input.GeekBuddyInput;
 import edu.boardgames.collections.explorer.ui.text.Chapter;
@@ -33,6 +33,7 @@ import edu.boardgames.collections.explorer.ui.text.Line;
 import edu.boardgames.collections.explorer.ui.text.LinesParagraph;
 import edu.boardgames.collections.explorer.ui.text.Table;
 import org.eclipse.collections.api.RichIterable;
+import org.eclipse.collections.api.bag.Bag;
 import org.eclipse.collections.api.factory.Lists;
 import org.eclipse.collections.api.list.ImmutableList;
 
@@ -158,54 +159,63 @@ public class PlaysResource {
         ImmutableList<MageKnightSoloPlay> plays = Lists.immutable.fromStream(BggInit.get().plays().forUserAndGame(username, "248562").stream().map(MageKnightSoloPlay::new));
         return new Document(
                 new DocumentTitle("Overview of %d Mage Knight Solo Plays by %s".formatted(plays.size(), new GeekBuddyInput(username).asText())),
-                new LinesParagraph(
-                        plays.groupBy(p -> new ScenarioMageKnight(p.scenario(), p.mageKnight()))
-                                .keyMultiValuePairsView()
-                                .collect(p -> new LineStats(p.getOne().scenario(), p.getOne().mageKnight(), new MageKnightSoloPlayAggregate(p.getTwo().toList())))
-                                .toSortedList(Comparator.comparing(LineStats::scenario).thenComparing(s -> s.aggregate().stats().count()).thenComparing(s -> s.aggregate().stats().lastPlayed()))
+                new LinesParagraph(Line.EMPTY),
+                new Table<>(
+                        List.of(
+                                new Column<>("Mage Knight", 25, new Column.Formatted("%-25s").compose(MageKnightSoloStats::mageKnight)),
+                                new Column<>("Count", 5, mk -> String.valueOf(mk.count())),
+                                new Column<>(String.join(" - ", "W", "L", "I"), 15, mk -> String.join(" - ", String.valueOf(mk.wins()), String.valueOf(mk.losses()), String.valueOf(mk.incomplete()))),
+                                new Column<>("Last", 15, new Column.Date().compose(MageKnightSoloStats::lastPlayed)),
+                                new Column<>("Scenarios", 40, new Column.Formatted("%-40s").compose(MageKnightSoloStats::scenarios))
+                        ),
+                        plays.groupBy(MageKnightSoloPlay::mageKnight).multiValuesView()
+                                .collect(MageKnightSoloStats::from)
+                                .toSortedList(
+                                        Comparator.comparing(MageKnightSoloStats::count)
+                                                .thenComparing(MageKnightSoloStats::lastPlayed)
+                                                .thenComparing(MageKnightSoloStats::mageKnight)
+                                )
                 ),
                 new LinesParagraph(Line.EMPTY, Line.EMPTY, Line.of("-".repeat(120)), Line.EMPTY, Line.EMPTY),
                 new Table<>(
                         List.of(
-                                new Column<>("Dummy Player", 25, dp -> "%-25s".formatted(dp.dummyPlayer())),
+                                new Column<>("Dummy Player", 25, new Column.Formatted("%-25s").compose(DummyPlayerSoloStats::dummyPlayer)),
                                 new Column<>("Count", 5, dp -> String.valueOf(dp.count())),
-                                new Column<>("Last", 15, dp -> dp.last().toString())
+                                new Column<>("Last", 15, new Column.Date().compose(DummyPlayerSoloStats::lastPlayed))
                         ),
                         plays.groupBy(MageKnightSoloPlay::dummyPlayer).multiValuesView()
-                                .collect(DummyPlayer::new)
+                                .collect(DummyPlayerSoloStats::from)
                                 .toSortedList(
-                                        Comparator.comparing(DummyPlayer::count)
-                                                .thenComparing(DummyPlayer::last)
-                                                .thenComparing(DummyPlayer::dummyPlayer)
+                                        Comparator.comparing(DummyPlayerSoloStats::count)
+                                                .thenComparing(DummyPlayerSoloStats::lastPlayed)
+                                                .thenComparing(DummyPlayerSoloStats::dummyPlayer)
                                 )
                 )
         ).toText();
     }
 
-    private record DummyPlayer(String dummyPlayer, int count, LocalDate last) {
-        public DummyPlayer(RichIterable<MageKnightSoloPlay> plays) {
-            this(
-                    StringUtils.defaultIfEmpty(plays.minBy(MageKnightSoloPlay::dummyPlayer).dummyPlayer(), "<unknown>"),
+    private record MageKnightSoloStats(String mageKnight, int count, int wins, int losses, int incomplete, LocalDate lastPlayed, String scenarios) {
+        private static MageKnightSoloStats from(RichIterable<MageKnightSoloPlay> plays) {
+            Bag<PlayOutcome> outcomeCounts = plays.countBy(MageKnightSoloPlay::outcome);
+            return new MageKnightSoloStats(
+                    StringUtils.defaultIfEmpty(plays.minBy(MageKnightSoloPlay::mageKnight).mageKnight(), "<unknown>"),
                     plays.size(),
-                    plays.maxBy(MageKnightSoloPlay::date).date()
+                    outcomeCounts.occurrencesOf(PlayOutcome.WIN),
+                    outcomeCounts.occurrencesOf(PlayOutcome.LOSE),
+                    outcomeCounts.occurrencesOf(PlayOutcome.INCOMPLETE),
+                    plays.maxBy(MageKnightSoloPlay::date).date(),
+                    plays.collect(MageKnightSoloPlay::scenario).toSortedSet().makeString(", ")
             );
         }
     }
 
-    private record ScenarioMageKnight(String scenario, String mageKnight) implements Comparable<ScenarioMageKnight> {
-        private static final Comparator<ScenarioMageKnight> COMPARATOR = Comparator.comparing(ScenarioMageKnight::scenario)
-                .thenComparing(ScenarioMageKnight::mageKnight);
-
-        @Override
-        public int compareTo(ScenarioMageKnight other) {
-            return COMPARATOR.compare(this, other);
-        }
-    }
-
-    private record LineStats(String scenario, String mageKnight, MageKnightSoloPlayAggregate aggregate) implements Line {
-        @Override
-        public String line() {
-            return "%-20s with %-17s : %s".formatted(scenario, StringUtils.defaultIfEmpty(mageKnight, "<unknown>"), aggregate.stats().formatted());
+    private record DummyPlayerSoloStats(String dummyPlayer, int count, LocalDate lastPlayed) {
+        private static DummyPlayerSoloStats from(RichIterable<MageKnightSoloPlay> plays) {
+            return new DummyPlayerSoloStats(
+                    StringUtils.defaultIfEmpty(plays.minBy(MageKnightSoloPlay::dummyPlayer).dummyPlayer(), "<unknown>"),
+                    plays.size(),
+                    plays.maxBy(MageKnightSoloPlay::date).date()
+            );
         }
     }
 }
