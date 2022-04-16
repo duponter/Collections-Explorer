@@ -11,4 +11,6 @@ public interface BoardGameCollections {
 	BoardGameCollection all();
 
 	BoardGameCollection withNames(String... names);
+
+    BoardGameCollection one(String name);
 }

@@ -4,6 +4,7 @@ import java.lang.System.Logger.Level;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -17,7 +18,10 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import edu.boardgames.collections.explorer.domain.BoardGame;
+import edu.boardgames.collections.explorer.domain.BoardGameCollection;
 import edu.boardgames.collections.explorer.domain.GeekBuddy;
+import edu.boardgames.collections.explorer.domain.MutableBoardGameCollection;
+import edu.boardgames.collections.explorer.domain.MutableCollectedBoardGame;
 import edu.boardgames.collections.explorer.ui.input.BestWithInput;
 import edu.boardgames.collections.explorer.ui.input.CollectionsInput;
 import edu.boardgames.collections.explorer.ui.input.GeekBuddyInput;
@@ -71,20 +75,46 @@ public class SessionsResource {
 
         OwnedBoardGameFormat outputFormat = formatInput.resolve();
         return new Document(
-                new DocumentTitle(documentTitle),
-                groupAvailableBoardGames(searchableCollections, new GeekBuddyGrouping(geekBuddyInput.resolve()), bestWithInput)
-                        .entrySet().stream()
-                        .map(entry -> new Chapter(new ChapterTitle(entry.getKey().title()), new LinesParagraph(entry.getValue().stream().map(pc -> pc.asLine(outputFormat)).toList())))
-                        .toArray(Chapter[]::new)
+            new DocumentTitle(documentTitle),
+            groupAvailableBoardGames(searchableCollections, new GeekBuddyGrouping(geekBuddyInput.resolve()), bestWithInput)
+                .entrySet().stream()
+                .map(entry -> new Chapter(new ChapterTitle(entry.getKey().title()), new LinesParagraph(entry.getValue().stream().map(pc -> pc.asLine(outputFormat)).toList())))
+                .toArray(Chapter[]::new)
+        ).toText();
+    }
+
+    @GET
+    @Path("/play2/{geekbuddy}")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String current2(@PathParam("geekbuddy") String geekbuddy, @QueryParam("collections") List<String> collections, @QueryParam("bestWith") Integer bestWith, @QueryParam("format") String format) {
+        CollectionsInput searchableCollections = new CollectionsInput(collections);
+        var bestWithInput = BestWithInput.of(bestWith);
+        OwnedBoardGameFormatInput formatInput = new OwnedBoardGameFormatInput(format);
+        GeekBuddyInput geekBuddyInput = new GeekBuddyInput(geekbuddy);
+        String documentTitle = "Search collections %s to play a best with %s game, tailored for %s, %s".formatted(searchableCollections.asText(), bestWithInput.asText(), geekBuddyInput.asText(), formatInput.asText());
+        LOGGER.log(Level.INFO, documentTitle);
+
+        OwnedBoardGameFormat outputFormat = formatInput.resolve();
+        GeekBuddy buddy = geekBuddyInput.resolve();
+        List<Line> map = new MutableBoardGameCollection(searchableCollections.resolve())
+            .flatten()
+            .merge(buddy.playedCollection(), (mbg, cbg) -> new MutableCollectedBoardGame(mbg).numberOfPlays(cbg.numberOfPlays()).rating(cbg.rating()))
+            .merge(buddy.wantToPlayCollection(), (mbg, cbg) -> new MutableCollectedBoardGame(mbg).wantToPlay(true))
+            .map((mbg, bg) -> Line.of((mbg.wantToPlay() ? "W" : " ") + (mbg.played() ? "P" : " ") + Objects.toString(mbg.rating(), "-") + outputFormat.apply(bg, Set.of()) + mbg.collection()))
+            .toSortedListBy(Line::line);
+
+        return new Document(
+            new DocumentTitle(documentTitle),
+            new Chapter(new ChapterTitle("Chapitre"), new LinesParagraph(map))
         ).toText();
     }
 
     private Map<PlayGroup, Set<GroupedBoardGame>> groupAvailableBoardGames(CollectionsInput searchableCollections, BoardGameGrouping grouping, Input<Predicate<BoardGame>> bestWithInput) {
         return searchableCollections.resolve().copiesPerBoardGame()
-                .entrySet().stream()
-                .filter(entry -> bestWithInput.resolve().test(entry.getKey()))
-                .map(entry -> new GroupedBoardGame(grouping.group(entry.getKey()), entry.getKey(), entry.getValue()))
-                .collect(Collectors.groupingBy(GroupedBoardGame::group, TreeMap::new, Collectors.toCollection(TreeSet::new)));
+            .entrySet().stream()
+            .filter(entry -> bestWithInput.resolve().test(entry.getKey()))
+            .map(entry -> new GroupedBoardGame(grouping.group(entry.getKey()), entry.getKey(), entry.getValue()))
+            .collect(Collectors.groupingBy(GroupedBoardGame::group, TreeMap::new, Collectors.toCollection(TreeSet::new)));
     }
 
     private record GroupedBoardGame(PlayGroup group, BoardGame boardGame, Set<String> owners) implements Comparable<GroupedBoardGame> {
@@ -109,18 +139,15 @@ public class SessionsResource {
         PlayGroup group(BoardGame boardGame);
     }
 
-    private record GeekBuddyGrouping(List<BoardGame> wantToPlay, List<BoardGame> played, List<BoardGame> topRated) implements BoardGameGrouping {
+    private record GeekBuddyGrouping(BoardGameCollection wantToPlay, BoardGameCollection played) implements BoardGameGrouping {
         private GeekBuddyGrouping(GeekBuddy buddy) {
-            this(buddy.wantToPlayCollection().boardGamesDetailed(), buddy.playedCollection().boardGamesDetailed(), buddy.ratedCollection(8).boardGamesDetailed());
+            this(buddy.wantToPlayCollection(), buddy.playedCollection());
         }
 
         @Override
         public PlayGroup group(BoardGame boardGame) {
             if (wantToPlay.contains(boardGame)) {
                 return played.contains(boardGame) ? PlayGroup.WANT_ALREADY_PLAYED : PlayGroup.WANT_NEVER_PLAYED;
-            }
-            if (topRated.contains(boardGame)) {
-                return PlayGroup.WANT_TOP_RATED;
             }
             return played.contains(boardGame) ? PlayGroup.ALREADY_PLAYED : PlayGroup.NEVER_PLAYED;
         }

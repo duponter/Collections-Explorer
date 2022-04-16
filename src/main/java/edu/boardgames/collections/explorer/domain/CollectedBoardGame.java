@@ -8,7 +8,7 @@ public interface CollectedBoardGame extends BoardGameSummary {
     Integer rating();
 
     default boolean rated() {
-        return rating() > 0;
+        return rating() != null && rating() > 0;
     }
 
     boolean owned();
@@ -28,7 +28,7 @@ public interface CollectedBoardGame extends BoardGameSummary {
     boolean preordered();
 
     default boolean played() {
-        return numberOfPlays() > 0;
+        return numberOfPlays() != null && numberOfPlays() > 0;
     }
 
     Integer numberOfPlays();

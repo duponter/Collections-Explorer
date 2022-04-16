@@ -39,7 +39,8 @@ public class BoardGameCollectionsCache implements BoardGameCollections {
         return this.asGroup(Arrays.toString(names), names);
     }
 
-    private BoardGameCollection one(String name) {
+    @Override
+    public BoardGameCollection one(String name) {
         return collections.getIfPresent(StringUtils.lowerCase(name)).get();
     }
 
