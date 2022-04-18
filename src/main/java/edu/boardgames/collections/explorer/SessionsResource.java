@@ -18,10 +18,10 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import edu.boardgames.collections.explorer.domain.BoardGame;
+import edu.boardgames.collections.explorer.domain.BoardGameAggregate;
+import edu.boardgames.collections.explorer.domain.BoardGameAggregates;
 import edu.boardgames.collections.explorer.domain.BoardGameCollection;
 import edu.boardgames.collections.explorer.domain.GeekBuddy;
-import edu.boardgames.collections.explorer.domain.MutableBoardGameCollection;
-import edu.boardgames.collections.explorer.domain.MutableCollectedBoardGame;
 import edu.boardgames.collections.explorer.ui.input.BestWithInput;
 import edu.boardgames.collections.explorer.ui.input.CollectionsInput;
 import edu.boardgames.collections.explorer.ui.input.GeekBuddyInput;
@@ -96,10 +96,11 @@ public class SessionsResource {
 
         OwnedBoardGameFormat outputFormat = formatInput.resolve();
         GeekBuddy buddy = geekBuddyInput.resolve();
-        List<Line> map = new MutableBoardGameCollection(searchableCollections.resolve())
-            .flatten()
-            .merge(buddy.playedCollection(), (mbg, cbg) -> new MutableCollectedBoardGame(mbg).numberOfPlays(cbg.numberOfPlays()).rating(cbg.rating()))
-            .merge(buddy.wantToPlayCollection(), (mbg, cbg) -> new MutableCollectedBoardGame(mbg).wantToPlay(true))
+        List<Line> map = new BoardGameAggregate(searchableCollections.resolve())
+            .flatten(BoardGameAggregates::joinCollectionNames)
+            .filter(BoardGameAggregates.boardGame(bestWithInput.resolve()))
+            .merge(buddy.playedCollection(), BoardGameAggregates::addsPlayedInfo)
+            .merge(buddy.wantToPlayCollection(), BoardGameAggregates::toggleWantToPlay)
             .map((mbg, bg) -> Line.of((mbg.wantToPlay() ? "W" : " ") + (mbg.played() ? "P" : " ") + Objects.toString(mbg.rating(), "-") + outputFormat.apply(bg, Set.of()) + mbg.collection()))
             .toSortedListBy(Line::line);
 
