@@ -4,7 +4,7 @@ import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 
-public interface Line extends Text {
+public interface Line extends Text, Comparable<Line> {
 	Line EMPTY = Line.of(StringUtils.EMPTY);
 
 	static Line of(String value) {
@@ -22,4 +22,9 @@ public interface Line extends Text {
 	default String toText() {
 		return line();
 	}
+
+    @Override
+    default int compareTo(Line line) {
+        return StringUtils.compare(this.line(), line.line(), true);
+    }
 }

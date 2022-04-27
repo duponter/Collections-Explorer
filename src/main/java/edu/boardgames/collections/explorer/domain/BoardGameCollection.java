@@ -38,7 +38,8 @@ public interface BoardGameCollection {
         return this.boardGamesDetailed().stream().map(bg -> new Copy(bg, this));
     }
 
-	default Map<BoardGame, Set<String>> copiesPerBoardGame() {
+	@Deprecated(forRemoval = true)
+    default Map<BoardGame, Set<String>> copiesPerBoardGame() {
         return copyStream().collect(
                 Collectors.groupingBy(
                         Copy::boardGame,
