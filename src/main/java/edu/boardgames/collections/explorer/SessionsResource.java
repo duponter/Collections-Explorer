@@ -21,6 +21,7 @@ import edu.boardgames.collections.explorer.domain.BoardGame;
 import edu.boardgames.collections.explorer.domain.BoardGameAggregate;
 import edu.boardgames.collections.explorer.domain.BoardGameAggregates;
 import edu.boardgames.collections.explorer.domain.BoardGameCollection;
+import edu.boardgames.collections.explorer.domain.CollectedBoardGame;
 import edu.boardgames.collections.explorer.domain.GeekBuddy;
 import edu.boardgames.collections.explorer.ui.input.BestWithInput;
 import edu.boardgames.collections.explorer.ui.input.CollectionsInput;
@@ -34,6 +35,8 @@ import edu.boardgames.collections.explorer.ui.text.DocumentTitle;
 import edu.boardgames.collections.explorer.ui.text.Line;
 import edu.boardgames.collections.explorer.ui.text.LinesParagraph;
 import edu.boardgames.collections.explorer.ui.text.format.OwnedBoardGameFormat;
+import org.eclipse.collections.api.RichIterable;
+import org.eclipse.collections.api.multimap.Multimap;
 
 @Path("/session")
 public class SessionsResource {
@@ -96,18 +99,32 @@ public class SessionsResource {
 
         OwnedBoardGameFormat outputFormat = formatInput.resolve();
         GeekBuddy buddy = geekBuddyInput.resolve();
-        List<Line> map = new BoardGameAggregate(searchableCollections.resolve())
+        Multimap<PlayGroup, GroupableBoardGame> grouped = new BoardGameAggregate(searchableCollections.resolve())
             .flatten(BoardGameAggregates::joinCollectionNames)
             .filter(BoardGameAggregates.boardGame(bestWithInput.resolve()))
             .merge(buddy.playedCollection(), BoardGameAggregates::addsPlayedInfo)
             .merge(buddy.wantToPlayCollection(), BoardGameAggregates::toggleWantToPlay)
-            .map((mbg, bg) -> Line.of((mbg.wantToPlay() ? "W" : " ") + (mbg.played() ? "P" : " ") + Objects.toString(mbg.rating(), "-") + outputFormat.apply(bg, Set.of()) + mbg.collection()))
-            .toSortedListBy(Line::line);
+            .map(GroupableBoardGame::new)
+            .groupBy(GroupableBoardGame::group);
 
         return new Document(
             new DocumentTitle(documentTitle),
-            new Chapter(new ChapterTitle("Chapitre"), new LinesParagraph(map))
+            grouped.keyMultiValuePairsView().toSortedList(Comparator.comparing(p -> p.getOne().ordinal())).collect(p -> toChapter(p.getOne(), p.getTwo(), outputFormat)).toArray(new Chapter[0])
+
         ).toText();
+    }
+
+    private Chapter toChapter(PlayGroup group, RichIterable<GroupableBoardGame> boardGames, OwnedBoardGameFormat outputFormat) {
+        Comparator<GroupableBoardGame> comparator = Comparator.comparing((GroupableBoardGame gbg) -> -Objects.requireNonNullElse(gbg.collectedBoardGame().rating(), 0))
+            .thenComparing(gbg -> gbg.boardGame().name());
+        return new Chapter(
+            new ChapterTitle(group.title()),
+            new LinesParagraph(
+                boardGames.toImmutableSortedList(comparator)
+                    .collect(gbg -> Line.of((gbg.collectedBoardGame().played() ? Objects.toString(gbg.collectedBoardGame().rating(), " ") : " ") + " " + outputFormat.apply(gbg.boardGame(), Set.of()) + gbg.collectedBoardGame().collection()))
+                    .toArray(new Line[0])
+            )
+        );
     }
 
     private Map<PlayGroup, Set<GroupedBoardGame>> groupAvailableBoardGames(CollectionsInput searchableCollections, BoardGameGrouping grouping, Input<Predicate<BoardGame>> bestWithInput) {
@@ -116,6 +133,15 @@ public class SessionsResource {
             .filter(entry -> bestWithInput.resolve().test(entry.getKey()))
             .map(entry -> new GroupedBoardGame(grouping.group(entry.getKey()), entry.getKey(), entry.getValue()))
             .collect(Collectors.groupingBy(GroupedBoardGame::group, TreeMap::new, Collectors.toCollection(TreeSet::new)));
+    }
+
+    private record GroupableBoardGame(CollectedBoardGame collectedBoardGame, BoardGame boardGame) {
+        public PlayGroup group() {
+            if (collectedBoardGame().wantToPlay()) {
+                return collectedBoardGame.played() ? PlayGroup.WANT_ALREADY_PLAYED : PlayGroup.WANT_NEVER_PLAYED;
+            }
+            return collectedBoardGame.played() ? PlayGroup.ALREADY_PLAYED : PlayGroup.NEVER_PLAYED;
+        }
     }
 
     private record GroupedBoardGame(PlayGroup group, BoardGame boardGame, Set<String> owners) implements Comparable<GroupedBoardGame> {

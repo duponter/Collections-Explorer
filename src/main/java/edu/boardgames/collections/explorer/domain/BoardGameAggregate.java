@@ -51,11 +51,11 @@ public final class BoardGameAggregate {
         return new BoardGameAggregate(this.collection.select(mcbg -> filter.accept(mcbg, boardGames.get().get(mcbg.id()))), boardGames);
     }
 
-    public <T> RichIterable<T> map(Function<MutableCollectedBoardGame, T> mapper) {
+    public <T> RichIterable<T> map(Function<? super MutableCollectedBoardGame, T> mapper) {
         return collection.collect(mapper);
     }
 
-    public <T> RichIterable<T> map(Function2<MutableCollectedBoardGame, BoardGame, T> mapper) {
+    public <T> RichIterable<T> map(Function2<? super MutableCollectedBoardGame, BoardGame, T> mapper) {
         return collection.collect(mcbg -> mapper.apply(mcbg, boardGames.get().get(mcbg.id())));
     }
 
