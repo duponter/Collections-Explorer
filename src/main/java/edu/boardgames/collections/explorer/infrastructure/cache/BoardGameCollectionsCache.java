@@ -26,6 +26,7 @@ public class BoardGameCollectionsCache implements BoardGameCollections {
         collections.put("bareelstraat", Lazy.of(() -> this.asGroup("bareelstraat", "mine", "wouteraerts", "jarrebesetoert")));
         collections.put("fmlimited", Lazy.of(() -> this.asGroup("fmlimited", "mine", "bartie", "de rode baron", "edou", "evildee", "svennos", "turtler6")));
         collections.put("sirplayalot", Lazy.of(() -> this.asGroup("sirplayalot", "wallofshame", "leys")));
+        collections.put("fmschelle", Lazy.of(() -> this.asGroup("fmschelle", "matee", "sirplayalot")));
 //		collections.put("forum", this.asGroup("forum", "forummortsel", "ffed"));
     }
 

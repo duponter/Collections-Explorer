@@ -33,6 +33,7 @@ public class GeekBuddiesBggInMemory implements GeekBuddies {
             entry("engelwi", new GeekBuddyBgg("engelwi", "Wim Engels")),
             entry("wallofshame", new GeekBuddyBgg("wallofshame", "Johan Drubbel")),
             entry("leys", new GeekBuddyBgg("leys", "Pieter Leys")),
+            entry("MateE", new GeekBuddyBgg("MateE", "Erwin Cloostermans")),
             entry("dierenh", new GeekBuddyBgg("dierenh", "Hilde Vandierendonck"))
 
     );
