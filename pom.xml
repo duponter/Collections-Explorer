@@ -13,9 +13,10 @@
         <maven.compiler.release>17</maven.compiler.release>
 
         <surefire-plugin.version>2.22.2</surefire-plugin.version>
+        <versions-maven-plugin.version>2.10.0</versions-maven-plugin.version>
 
-        <quarkus.version>2.9.0.Final</quarkus.version>
-        <failsafe.version>3.2.3</failsafe.version>
+        <quarkus.version>2.9.1.Final</quarkus.version>
+        <failsafe.version>3.2.4</failsafe.version>
         <caffeine.version>3.1.0</caffeine.version>
         <eclipse-collections.version>11.0.0</eclipse-collections.version>
         <vavr.version>0.10.4</vavr.version>
@@ -128,6 +129,14 @@
                     <systemProperties>
                         <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
                     </systemProperties>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>versions-maven-plugin</artifactId>
+                <version>${versions-maven-plugin.version}</version>
+                <configuration>
+                    <rulesUri>file:///${session.executionRootDirectory}/maven-version-rules.xml</rulesUri>
                 </configuration>
             </plugin>
         </plugins>
