@@ -1,6 +1,7 @@
 package edu.boardgames.collections.explorer;
 
 import java.lang.System.Logger.Level;
+import java.time.Year;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -105,26 +106,32 @@ public class SessionsResource {
             if (collectedBoardGame().wantToPlay()) {
                 return collectedBoardGame.played() ? PlayGroup.WANT_ALREADY_PLAYED : PlayGroup.WANT_NEVER_PLAYED;
             }
-            return collectedBoardGame.played() ? PlayGroup.ALREADY_PLAYED : PlayGroup.NEVER_PLAYED;
+            if (collectedBoardGame.played()) {
+                return PlayGroup.ALREADY_PLAYED;
+            } else if (Integer.parseInt(boardGame.year()) >= Year.now().getValue() - 2) {
+                return PlayGroup.NOT_YET_PLAYED_NEW;
+            }
+            return PlayGroup.NEVER_PLAYED;
         }
     }
 
-    private enum PlayGroup {
-        WANT_NEVER_PLAYED("Want to play (never played)"),
-        WANT_ALREADY_PLAYED("Want to play again (long time ago or to give another chance)"),
-        WANT_TOP_RATED("Want to play again (rated 8 or higher)"),
-        ALREADY_PLAYED("Already played"),
-        NEVER_PLAYED("Never played"),
-        NOT_GROUPED("");
+private enum PlayGroup {
+    WANT_NEVER_PLAYED("Want to play (never played)"),
+    WANT_ALREADY_PLAYED("Want to play again (long time ago or to give another chance)"),
+    WANT_TOP_RATED("Want to play again (rated 8 or higher)"),
+    ALREADY_PLAYED("Already played"),
+    NOT_YET_PLAYED_NEW("Not yet played this new game"),
+    NEVER_PLAYED("Never played"),
+    NOT_GROUPED("");
 
-        private final String title;
+    private final String title;
 
-        PlayGroup(String title) {
-            this.title = title;
-        }
-
-        public String title() {
-            return title;
-        }
+    PlayGroup(String title) {
+        this.title = title;
     }
+
+    public String title() {
+        return title;
+    }
+}
 }
