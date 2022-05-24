@@ -16,8 +16,10 @@ import io.vavr.Lazy;
 public class BoardGameCollectionsCache implements BoardGameCollections {
     // TODO_EDU is this cache needed?
     private final Cache<String, Lazy<BoardGameCollection>> collections = Caffeine.newBuilder().build();
+    private final GeekBuddies geekBuddies;
 
 	public BoardGameCollectionsCache(GeekBuddies geekBuddies, GeekLists geekLists) {
+        this.geekBuddies = geekBuddies;
         geekBuddies.all().forEach(geekBuddy -> collections.put(StringUtils.lowerCase(geekBuddy.username()), Lazy.of(() -> geekBuddy.ownedCollection().withName(geekBuddy.name()))));
         geekLists.all().forEach(geekList -> collections.put(geekList.id(), Lazy.of(geekList::asCollection)));
 
@@ -42,7 +44,7 @@ public class BoardGameCollectionsCache implements BoardGameCollections {
 
     @Override
     public BoardGameCollection one(String name) {
-        return collections.getIfPresent(StringUtils.lowerCase(name)).get();
+        return collections.get(StringUtils.lowerCase(name), key -> Lazy.of(() -> geekBuddies.one(key).ownedCollection().withName(name))).get();
     }
 
     private BoardGameCollection asGroup(String groupName, String... names) {
