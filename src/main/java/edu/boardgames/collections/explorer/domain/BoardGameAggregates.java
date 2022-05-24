@@ -15,7 +15,7 @@ public final class BoardGameAggregates {
     }
 
     public static MutableCollectedBoardGame joinCollectionNames(RichIterable<MutableCollectedBoardGame> group) {
-        return new MutableCollectedBoardGame(group.getAny())
+        return new MutableCollectedBoardGame((BoardGameSummary) group.getAny())
             .collection(
                 group.collect(MutableCollectedBoardGame::collection)
                     .collect(c -> BggInit.get().collections().one(c).name())
