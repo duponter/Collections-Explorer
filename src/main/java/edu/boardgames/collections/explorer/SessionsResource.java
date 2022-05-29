@@ -28,7 +28,9 @@ import edu.boardgames.collections.explorer.ui.text.Document;
 import edu.boardgames.collections.explorer.ui.text.DocumentTitle;
 import edu.boardgames.collections.explorer.ui.text.Line;
 import edu.boardgames.collections.explorer.ui.text.LinesParagraph;
+import edu.boardgames.collections.explorer.ui.text.TabbedRecordList;
 import edu.boardgames.collections.explorer.ui.text.format.OwnedBoardGameFormat;
+import edu.boardgames.collections.explorer.ui.text.format.PerspectivedBoardGame;
 import org.eclipse.collections.api.RichIterable;
 import org.eclipse.collections.api.multimap.Multimap;
 import org.eclipse.collections.api.tuple.Pair;
@@ -93,15 +95,11 @@ public class SessionsResource {
             .thenComparing(gbg -> gbg.boardGame().name());
         return new Chapter(
             new ChapterTitle(group.title()),
-            new LinesParagraph(
-                boardGames.toImmutableSortedList(comparator)
-                    .collect(gbg -> Line.of((gbg.collectedBoardGame().played() ? Objects.toString(gbg.collectedBoardGame().rating(), " ") : " ") + " " + outputFormat.apply(gbg.boardGame(), Set.of()) + gbg.collectedBoardGame().collection()))
-                    .toArray(new Line[0])
-            )
+            new TabbedRecordList<>(boardGames.toSortedList(comparator).stream().toList(), outputFormat.toColumnLayout())
         );
     }
 
-    private record GroupableBoardGame(CollectedBoardGame collectedBoardGame, BoardGame boardGame) {
+    private record GroupableBoardGame(CollectedBoardGame collectedBoardGame, BoardGame boardGame) implements PerspectivedBoardGame {
         public PlayGroup group() {
             if (collectedBoardGame().wantToPlay()) {
                 return collectedBoardGame.played() ? PlayGroup.WANT_ALREADY_PLAYED : PlayGroup.WANT_NEVER_PLAYED;
@@ -115,23 +113,23 @@ public class SessionsResource {
         }
     }
 
-private enum PlayGroup {
-    WANT_NEVER_PLAYED("Want to play (never played)"),
-    WANT_ALREADY_PLAYED("Want to play again (long time ago or to give another chance)"),
-    WANT_TOP_RATED("Want to play again (rated 8 or higher)"),
-    ALREADY_PLAYED("Already played"),
-    NOT_YET_PLAYED_NEW("Not yet played this new game"),
-    NEVER_PLAYED("Never played"),
-    NOT_GROUPED("");
+    private enum PlayGroup {
+        WANT_NEVER_PLAYED("Want to play (never played)"),
+        WANT_ALREADY_PLAYED("Want to play again (long time ago or to give another chance)"),
+        WANT_TOP_RATED("Want to play again (rated 8 or higher)"),
+        ALREADY_PLAYED("Already played"),
+        NOT_YET_PLAYED_NEW("Not yet played this new game"),
+        NEVER_PLAYED("Never played"),
+        NOT_GROUPED("");
 
-    private final String title;
+        private final String title;
 
-    PlayGroup(String title) {
-        this.title = title;
+        PlayGroup(String title) {
+            this.title = title;
+        }
+
+        public String title() {
+            return title;
+        }
     }
-
-    public String title() {
-        return title;
-    }
-}
 }
