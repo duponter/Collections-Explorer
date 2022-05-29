@@ -43,7 +43,8 @@ public final class CollectedBoardGameBggXml extends XmlNode implements Collected
 
     @Override
     public Integer rating() {
-        return numericValueAttribute("stats/rating").intValue();
+        String value = stringValueAttribute("stats/rating");
+        return !StringUtils.equalsIgnoreCase(value, "N/A") ? Integer.parseInt(value) : null;
     }
 
     @Override
