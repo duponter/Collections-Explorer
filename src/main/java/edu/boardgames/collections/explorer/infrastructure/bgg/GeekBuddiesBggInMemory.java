@@ -19,22 +19,22 @@ mine: duponter + borrowed
  */
 public class GeekBuddiesBggInMemory implements GeekBuddies {
     private static final Map<String, GeekBuddy> BUDDIES = Map.ofEntries(
-            entry("duponter", new GeekBuddyBgg("duponter", "Erwin Dupont")),
-            entry("jarrebesetoert", new GeekBuddyBgg("jarrebesetoert", "Koen Lostrie")),
-            entry("WouterAerts", new GeekBuddyBgg("WouterAerts", "Wouter Aerts")),
-            entry("bartie", new GeekBuddyBgg("bartie", "Bart De Vré")),
-            entry("de rode baron", new GeekBuddyBgg("de rode baron", "Steffen Wendelen")),
-            entry("Edou", new GeekBuddyBgg("Edou", "Edouard Van Belle")),
-            entry("evildee", new GeekBuddyBgg("evildee", "Didier De Breuck")),
+            entry("duponter", new GeekBuddyBgg("duponter", "Erwin", "Dupont")),
+            entry("jarrebesetoert", new GeekBuddyBgg("jarrebesetoert", "Koen", "Lostrie")),
+            entry("WouterAerts", new GeekBuddyBgg("WouterAerts", "Wouter", "Aerts")),
+            entry("bartie", new GeekBuddyBgg("bartie", "Bart", "De Vré")),
+            entry("de rode baron", new GeekBuddyBgg("de rode baron", "Steffen", "Wendelen")),
+            entry("Edou", new GeekBuddyBgg("Edou", "Edouard", "Van Belle")),
+            entry("evildee", new GeekBuddyBgg("evildee", "Didier", "De Breuck")),
             entry("ForumMortsel", new GeekBuddyBgg("ForumMortsel", "FORUM Mortsel")),
             entry("FFED", new GeekBuddyBgg("FFED", "FORUM Federatie")),
-            entry("Svennos", new GeekBuddyBgg("Svennos", "Sven Talboom")),
-            entry("TurtleR6", new GeekBuddyBgg("TurtleR6", "Dirk Frederickx")),
-            entry("engelwi", new GeekBuddyBgg("engelwi", "Wim Engels")),
-            entry("wallofshame", new GeekBuddyBgg("wallofshame", "Johan Drubbel")),
-            entry("leys", new GeekBuddyBgg("leys", "Pieter Leys")),
-            entry("MateE", new GeekBuddyBgg("MateE", "Erwin Cloostermans")),
-            entry("dierenh", new GeekBuddyBgg("dierenh", "Hilde Vandierendonck"))
+            entry("Svennos", new GeekBuddyBgg("Svennos", "Sven", "Talboom")),
+            entry("TurtleR6", new GeekBuddyBgg("TurtleR6", "Dirk", "Frederickx")),
+            entry("engelwi", new GeekBuddyBgg("engelwi", "Wim", "Engels")),
+            entry("wallofshame", new GeekBuddyBgg("wallofshame", "Johan", "Drubbel")),
+            entry("leys", new GeekBuddyBgg("leys", "Pieter", "Leys")),
+            entry("MateE", new GeekBuddyBgg("MateE", "Erwin C", "Cloostermans")),
+            entry("dierenh", new GeekBuddyBgg("dierenh", "Hilde", "Vandierendonck"))
 
     );
 

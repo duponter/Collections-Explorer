@@ -5,10 +5,15 @@ import java.util.Objects;
 import edu.boardgames.collections.explorer.domain.BoardGameCollection;
 import edu.boardgames.collections.explorer.domain.GeekBuddy;
 
-public record GeekBuddyBgg(String username, String name) implements GeekBuddy {
-    public GeekBuddyBgg(String username, String name) {
+public record GeekBuddyBgg(String username, String name, String lastName) implements GeekBuddy {
+    public GeekBuddyBgg(String username, String name, String lastName) {
         this.username = Objects.requireNonNull(username);
         this.name = Objects.requireNonNull(name);
+        this.lastName = lastName;
+    }
+
+    public GeekBuddyBgg(String username, String name) {
+        this(username, name, null);
     }
 
     @Override
