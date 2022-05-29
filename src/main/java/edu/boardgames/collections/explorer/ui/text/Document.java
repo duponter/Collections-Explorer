@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
 
-public record Document(DocumentTitle title, Collection<TextContainer> content) implements TextContainer {
+public record Document(DocumentTitle title, Collection<? extends TextContainer> content) implements TextContainer {
 	public Document(DocumentTitle title, TextContainer... content) {
 		this(title, List.of(content));
 	}

@@ -13,17 +13,28 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import org.apache.commons.lang3.StringUtils;
+
 import edu.boardgames.collections.explorer.domain.BoardGame;
+import edu.boardgames.collections.explorer.domain.BoardGameCollection;
+import edu.boardgames.collections.explorer.domain.CollectedBoardGame;
 import edu.boardgames.collections.explorer.domain.GeekBuddy;
+import edu.boardgames.collections.explorer.domain.GeekList;
+import edu.boardgames.collections.explorer.domain.MutableCollectedBoardGame;
 import edu.boardgames.collections.explorer.infrastructure.bgg.BggInit;
 import edu.boardgames.collections.explorer.ui.input.BestWithInput;
 import edu.boardgames.collections.explorer.ui.input.BoardGameIdInput;
+import edu.boardgames.collections.explorer.ui.input.GeekBuddyInput;
 import edu.boardgames.collections.explorer.ui.input.Input;
+import edu.boardgames.collections.explorer.ui.text.Chapter;
+import edu.boardgames.collections.explorer.ui.text.ChapterTitle;
 import edu.boardgames.collections.explorer.ui.text.Document;
 import edu.boardgames.collections.explorer.ui.text.DocumentTitle;
 import edu.boardgames.collections.explorer.ui.text.Line;
 import edu.boardgames.collections.explorer.ui.text.LinesParagraph;
+import edu.boardgames.collections.explorer.ui.text.TabbedRecordList;
 import edu.boardgames.collections.explorer.ui.text.format.OwnedBoardGameFormat;
+import edu.boardgames.collections.explorer.ui.text.format.PerspectivedBoardGame;
 
 @Path("/collections")
 public class CollectionsResource {
@@ -75,5 +86,59 @@ public class CollectionsResource {
             new DocumentTitle(title),
             new LinesParagraph(copies)
         ).toText();
+    }
+
+    @GET
+    @Path("/boardgame/{id}/decorated")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String decorate(@PathParam("id") String id, @QueryParam("geekbuddy") String geekbuddy) {
+        BoardGameIdInput boardGameIdInput = new BoardGameIdInput(id);
+        GeekBuddyInput geekBuddyInput = new GeekBuddyInput(geekbuddy);
+        String documentTitle = "Display details of %s decorated for %s with geeklist entries".formatted(boardGameIdInput.asText(), geekBuddyInput.asText());
+        LOGGER.log(Level.INFO, documentTitle);
+
+        List<BoardGame> boardGames = BggInit.get().boardGames().withIds(boardGameIdInput.resolve().stream());
+        if (boardGames.isEmpty()) {
+            return "BoardGame with id [%s] not found or does not exists on BGG".formatted(boardGameIdInput.asText());
+        }
+
+        List<GeekList> geekLists = BggInit.get().geekLists().withId("278886", "279856");
+
+        return new Document(
+            new DocumentTitle(documentTitle),
+            Stream.concat(
+                Stream.of(
+                    new Chapter(
+                        new ChapterTitle("General Information"),
+                        new TabbedRecordList<>(boardGames.stream().map(BoardGameWrapper::new).toList(), OwnedBoardGameFormat.FULL.toColumnLayout())
+                    ),
+                    new Chapter(
+                        new ChapterTitle("Personal Information"),
+                        new LinesParagraph(Line.of(geekBuddyInput.resolve().ownedCollection().name()))
+                    )
+                ),
+                geekLists.stream()
+                    .map(geekList -> toChapter(geekList.asCollection()))
+            ).toList()
+        ).toText();
+    }
+
+    private record BoardGameWrapper(BoardGame boardGame, CollectedBoardGame collectedBoardGame) implements PerspectivedBoardGame {
+        public BoardGameWrapper(BoardGame boardGame) {
+            this(boardGame, new MutableCollectedBoardGame(boardGame).collection(""));
+        }
+    }
+
+    private Chapter toChapter(BoardGameCollection collection) {
+        return new Chapter(
+            new ChapterTitle(collection.name()),
+            new LinesParagraph(
+                collection.boardGames()
+                    .collect(CollectedBoardGame::publicComment)
+                    .collect(c -> StringUtils.defaultIfEmpty(c, "n/a"))
+                    .collect(Line::of)
+                    .castToList()
+            )
+        );
     }
 }
