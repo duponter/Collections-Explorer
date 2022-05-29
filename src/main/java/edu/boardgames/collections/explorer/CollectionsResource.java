@@ -27,7 +27,7 @@ import edu.boardgames.collections.explorer.ui.text.format.OwnedBoardGameFormat;
 
 @Path("/collections")
 public class CollectionsResource {
-	private static final System.Logger LOGGER = System.getLogger(CollectionsResource.class.getName());
+    private static final System.Logger LOGGER = System.getLogger(CollectionsResource.class.getName());
 
     @GET
     @Path("/wanttoplay/{geekbuddy}")
@@ -64,17 +64,16 @@ public class CollectionsResource {
 
     private String matchAgainstAllCollections(Stream<BoardGame> all, String title) {
         Map<BoardGame, Set<String>> available = BggInit.get().collections().all().copiesPerBoardGame();
-
         List<Line> copies = all
-                .map(bg -> OwnedBoardGameFormat.FULL.apply(bg, available.getOrDefault(bg, Set.of())))
-                .sorted()
-                .map(Line::of)
-                .toList();
+            .map(bg -> OwnedBoardGameFormat.FULL.apply(bg, available.getOrDefault(bg, Set.of())))
+            .sorted()
+            .map(Line::of)
+            .toList();
         LOGGER.log(Level.INFO, "All owned collections matched against list of board games");
 
         return new Document(
-                new DocumentTitle(title),
-                new LinesParagraph(copies)
+            new DocumentTitle(title),
+            new LinesParagraph(copies)
         ).toText();
     }
 }
