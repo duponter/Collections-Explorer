@@ -15,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class NumberOfPlayersTest {
 	@Test
 	void throwsExceptionWhenConstructorArgumentIsNull() {
-		assertThatThrownBy(() -> new NumberOfPlayers(null))
+		assertThatThrownBy(() -> NumberOfPlayers.of(null))
 				.isInstanceOf(NullPointerException.class);
 	}
 
@@ -23,38 +23,38 @@ class NumberOfPlayersTest {
 	@EmptySource
 	@ValueSource(strings = {"  ", "s", "s1"})
 	void throwsExceptionWhenConstructorArgumentDoesNotMatchPattern(String input) {
-		assertThatThrownBy(() -> new NumberOfPlayers(input))
+		assertThatThrownBy(() -> NumberOfPlayers.of(input))
 				.isInstanceOf(IllegalArgumentException.class)
 				.hasMessage(String.format("Input [%s] is not supported as number of players", input));
 	}
 
 	@Test
 	void throwsExceptionWhenConstructorArgumentHasUnsupportedSuffix() {
-		assertThatThrownBy(() -> new NumberOfPlayers("5-"))
+		assertThatThrownBy(() -> NumberOfPlayers.of("5-"))
 				.isInstanceOf(IllegalArgumentException.class)
-				.hasMessage("Suffix [-] is not supported in number of players");
+				.hasMessage("Input [5-] is not supported as number of players");
 	}
 
 	@ParameterizedTest
 	@ValueSource(strings = {"0", "4", "5+", "10", "111"})
 	void constructsSuccessfully(String input) {
-		assertThat(new NumberOfPlayers(input)).isNotNull();
+		assertThat(NumberOfPlayers.of(input)).isNotNull();
 	}
 
 	@Test
 	void comparesCountFirstSuffixNext() {
 		List<NumberOfPlayers> numberOfPlayers = List.of(
-				new NumberOfPlayers("5"),
-				new NumberOfPlayers("4+"),
-				new NumberOfPlayers("1"),
-				new NumberOfPlayers("5+")
+				NumberOfPlayers.of("5"),
+				NumberOfPlayers.of("4+"),
+				NumberOfPlayers.of("1"),
+				NumberOfPlayers.of("5+")
 		);
 
 		assertThat(new TreeSet<>(numberOfPlayers)).containsExactly(
-				new NumberOfPlayers("1"),
-				new NumberOfPlayers("4+"),
-				new NumberOfPlayers("5"),
-				new NumberOfPlayers("5+")
+				NumberOfPlayers.of("1"),
+				NumberOfPlayers.of("4+"),
+				NumberOfPlayers.of("5"),
+				NumberOfPlayers.of("5+")
 		);
 	}
 }

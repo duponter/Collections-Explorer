@@ -12,7 +12,7 @@ public class PlayerCountVotesBggXml extends XmlNode implements PlayerCountVotes 
 
 	@Override
 	public NumberOfPlayers numberOfPlayers() {
-		return new NumberOfPlayers(this.string("../@numplayers"));
+		return NumberOfPlayers.of(this.string("../@numplayers"));
 	}
 
 	@Override

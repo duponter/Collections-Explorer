@@ -73,7 +73,7 @@ public class BoardGameBggXml extends XmlNode implements BoardGame {
 
 	@Override
 	public Optional<PlayerCountPoll> playerCountVotes(int playerCount) {
-        return Optional.ofNullable(this.playerCountVotes.get().get(new NumberOfPlayers(String.valueOf(playerCount))));
+        return Optional.ofNullable(this.playerCountVotes.get().get(NumberOfPlayers.of(String.valueOf(playerCount))));
 	}
 
 	@Override

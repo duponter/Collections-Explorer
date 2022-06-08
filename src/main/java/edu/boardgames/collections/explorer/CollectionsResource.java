@@ -111,7 +111,7 @@ public class CollectionsResource {
                 Stream.of(
                     new Chapter(
                         new ChapterTitle("General Information"),
-                        new TabbedRecordList<>(boardGames.stream().map(BoardGameWrapper::new).toList(), OwnedBoardGameFormat.BARE.toColumnLayout())
+                        new TabbedRecordList<>(boardGames.stream().map(BoardGameWrapper::new).toList(), OwnedBoardGameFormat.FULL.toColumnLayout())
                     ),
                     new Chapter(
                         new ChapterTitle("Player Count"),
