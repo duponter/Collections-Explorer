@@ -35,6 +35,7 @@ public final class PlayerCountPoll2 {
 
     private ImmutableList<VotesPercentage> asPercentageList() {
         return pollResults.results()
+            .reject(p -> p.votes() < 5)
             .collect(r -> new VotesPercentage(r.value(), r.numberOfPlayers(), ((double) r.votes() / pollResults.totalVotes())))
             .reject(VotesPercentage::isNotRecommended)
             .toImmutableSortedListBy(VotesPercentage::percentage);
@@ -44,8 +45,8 @@ public final class PlayerCountPoll2 {
         VotesPercentage last = votes.getLast();
         return Range.of(
             votes.toMap(VotesPercentage::playerCount, t -> t.percentage() / last.percentage())
-            .select((k, v) -> v >= 0.9)
-            .keySet()
+                .select((k, v) -> v >= 0.9)
+                .keySet()
         );
     }
 
