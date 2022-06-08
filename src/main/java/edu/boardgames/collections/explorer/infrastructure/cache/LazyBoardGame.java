@@ -7,6 +7,8 @@ import java.util.Optional;
 import edu.boardgames.collections.explorer.domain.BoardGame;
 import edu.boardgames.collections.explorer.domain.Range;
 import edu.boardgames.collections.explorer.domain.poll.PlayerCountPoll;
+import edu.boardgames.collections.explorer.domain.poll.PlayerCountPollResult;
+import edu.boardgames.collections.explorer.domain.poll.Poll;
 import io.vavr.Lazy;
 
 public class LazyBoardGame implements BoardGame {
@@ -56,7 +58,12 @@ public class LazyBoardGame implements BoardGame {
 		return this.bggScore.get();
 	}
 
-	@Override
+    @Override
+    public Poll<PlayerCountPollResult> playerCountPoll() {
+        return this.delegate.playerCountPoll();
+    }
+
+    @Override
 	public Range<String> playerCount() {
 		return this.playerCount.get();
 	}

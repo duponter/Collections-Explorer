@@ -10,7 +10,9 @@ import edu.boardgames.collections.explorer.domain.Range;
 import edu.boardgames.collections.explorer.domain.poll.NumberOfPlayers;
 import edu.boardgames.collections.explorer.domain.poll.PlayerCountPoll;
 import edu.boardgames.collections.explorer.domain.poll.PlayerCountPollChoice;
+import edu.boardgames.collections.explorer.domain.poll.PlayerCountPollResult;
 import edu.boardgames.collections.explorer.domain.poll.PlayerCountVotes;
+import edu.boardgames.collections.explorer.domain.poll.Poll;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
 import io.vavr.Lazy;
 import org.eclipse.collections.api.RichIterable;
@@ -54,7 +56,12 @@ public class BoardGameBggXml extends XmlNode implements BoardGame {
 		return numericValueAttribute("statistics/ratings/average").doubleValue();
 	}
 
-	@Override
+    @Override
+    public Poll<PlayerCountPollResult> playerCountPoll() {
+        return new PlayerCountPollBggXml(this.nodes("poll[@name='suggested_numplayers']").findFirst().orElseThrow(() -> new IllegalArgumentException("No Player Count Poll found for " + id())));
+    }
+
+    @Override
 	public Range<String> playerCount() {
 		return new Range<>(stringValueAttribute("minplayers"), stringValueAttribute("maxplayers"));
 	}

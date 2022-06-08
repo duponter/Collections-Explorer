@@ -4,9 +4,13 @@ import java.util.List;
 import java.util.Optional;
 
 import edu.boardgames.collections.explorer.domain.poll.PlayerCountPoll;
+import edu.boardgames.collections.explorer.domain.poll.PlayerCountPollResult;
+import edu.boardgames.collections.explorer.domain.poll.Poll;
 
 public interface BoardGame extends BoardGameSummary {
 	Double bggScore();
+
+	Poll<PlayerCountPollResult> playerCountPoll();
 
 	Range<String> playerCount();
 

@@ -21,6 +21,7 @@ import edu.boardgames.collections.explorer.domain.CollectedBoardGame;
 import edu.boardgames.collections.explorer.domain.GeekBuddy;
 import edu.boardgames.collections.explorer.domain.GeekList;
 import edu.boardgames.collections.explorer.domain.MutableCollectedBoardGame;
+import edu.boardgames.collections.explorer.domain.poll.PlayerCountPollResult;
 import edu.boardgames.collections.explorer.infrastructure.bgg.BggInit;
 import edu.boardgames.collections.explorer.ui.input.BestWithInput;
 import edu.boardgames.collections.explorer.ui.input.BoardGameIdInput;
@@ -110,7 +111,15 @@ public class CollectionsResource {
                 Stream.of(
                     new Chapter(
                         new ChapterTitle("General Information"),
-                        new TabbedRecordList<>(boardGames.stream().map(BoardGameWrapper::new).toList(), OwnedBoardGameFormat.FULL.toColumnLayout())
+                        new TabbedRecordList<>(boardGames.stream().map(BoardGameWrapper::new).toList(), OwnedBoardGameFormat.BARE.toColumnLayout())
+                    ),
+                    new Chapter(
+                        new ChapterTitle("Player Count"),
+                        new LinesParagraph(
+                            boardGames.stream()
+                                .flatMap(bg -> bg.playerCountPoll().results().collect(PlayerCountPollResultLine::new).toSortedList().stream())
+                                .toList()
+                        )
                     ),
                     new Chapter(
                         new ChapterTitle("Personal Information"),
@@ -121,6 +130,13 @@ public class CollectionsResource {
                     .map(geekList -> toChapter(geekList.asCollection()))
             ).toList()
         ).toText();
+    }
+
+    private record PlayerCountPollResultLine(PlayerCountPollResult result) implements Line {
+        @Override
+        public String line() {
+            return "%s %s: %d".formatted(result.value(), result.numberOfPlayers(), result.votes());
+        }
     }
 
     private record BoardGameWrapper(BoardGame boardGame, CollectedBoardGame collectedBoardGame) implements PerspectivedBoardGame {

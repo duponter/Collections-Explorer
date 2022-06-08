@@ -9,39 +9,6 @@ import org.eclipse.collections.api.RichIterable;
 import org.eclipse.collections.api.list.MutableList;
 
 public class PlayerCountPoll {
-    /**
-     * List<PlayerCountPollResult(int numplayers, String value, int numvotes)>
-     */
-    public static final String XML_INPUT = """
-            <poll name="suggested_numplayers" title="User Suggested Number of Players" totalvotes="67">
-                <results numplayers="1">
-                    <result value="Best" numvotes="13"/>
-                    <result value="Recommended" numvotes="23"/>
-                    <result value="Not Recommended" numvotes="5"/>
-                </results>
-                <results numplayers="2">
-                    <result value="Best" numvotes="30"/>
-                    <result value="Recommended" numvotes="21"/>
-                    <result value="Not Recommended" numvotes="2"/>
-                </results>
-                <results numplayers="3">
-                    <result value="Best" numvotes="17"/>
-                    <result value="Recommended" numvotes="29"/>
-                    <result value="Not Recommended" numvotes="1"/>
-                </results>
-                <results numplayers="4">
-                    <result value="Best" numvotes="15"/>
-                    <result value="Recommended" numvotes="12"/>
-                    <result value="Not Recommended" numvotes="17"/>
-                </results>
-                <results numplayers="4+">
-                    <result value="Best" numvotes="0"/>
-                    <result value="Recommended" numvotes="0"/>
-                    <result value="Not Recommended" numvotes="20"/>
-                </results>
-            </poll>
-            """;
-
     private final int bestVotes;
     private final int recommendedVotes;
     private final int notRecommendedVotes;
@@ -93,10 +60,10 @@ public class PlayerCountPoll {
     @Override
     public String toString() {
         return new StringJoiner(", ", PlayerCountPoll.class.getSimpleName() + "[", "]")
-                .add(String.format("bestVotes=%s", bestVotes))
-                .add(String.format("recommendedVotes=%s", recommendedVotes))
-                .add(String.format("notRecommendedVotes=%s", notRecommendedVotes))
-                .add(String.format("result=%s", result()))
-                .toString();
+            .add(String.format("bestVotes=%s", bestVotes))
+            .add(String.format("recommendedVotes=%s", recommendedVotes))
+            .add(String.format("notRecommendedVotes=%s", notRecommendedVotes))
+            .add(String.format("result=%s", result()))
+            .toString();
     }
 }
