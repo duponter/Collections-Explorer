@@ -8,7 +8,7 @@ import java.util.function.Predicate;
 import edu.boardgames.collections.explorer.domain.BoardGame;
 import edu.boardgames.collections.explorer.domain.Range;
 import edu.boardgames.collections.explorer.domain.poll.NumberOfPlayers;
-import edu.boardgames.collections.explorer.domain.poll.PlayerCountPoll;
+import edu.boardgames.collections.explorer.domain.poll.OldPlayerCountPoll;
 import edu.boardgames.collections.explorer.domain.poll.PlayerCountPollChoice;
 import edu.boardgames.collections.explorer.domain.poll.PlayerCountPollResult;
 import edu.boardgames.collections.explorer.domain.poll.PlayerCountVotes;
@@ -22,7 +22,7 @@ import org.w3c.dom.Node;
 
 public class BoardGameBggXml extends XmlNode implements BoardGame {
     private final String id;
-    private final Lazy<MutableMap<NumberOfPlayers, PlayerCountPoll>> playerCountVotes;
+    private final Lazy<MutableMap<NumberOfPlayers, OldPlayerCountPoll>> playerCountVotes;
 
 	public BoardGameBggXml(Node node) {
 		super(node);
@@ -32,7 +32,7 @@ public class BoardGameBggXml extends XmlNode implements BoardGame {
                                 .map(PlayerCountVotesBggXml::new))
                         .groupBy(PlayerCountVotes::numberOfPlayers)
                         .toMap()
-                        .collectValues((playerCount, votes) -> new PlayerCountPoll(votes))
+                        .collectValues((playerCount, votes) -> new OldPlayerCountPoll(votes))
         );
 	}
 
@@ -72,7 +72,7 @@ public class BoardGameBggXml extends XmlNode implements BoardGame {
 	}
 
 	@Override
-	public Optional<PlayerCountPoll> playerCountVotes(int playerCount) {
+	public Optional<OldPlayerCountPoll> playerCountVotes(int playerCount) {
         return Optional.ofNullable(this.playerCountVotes.get().get(NumberOfPlayers.of(String.valueOf(playerCount))));
 	}
 
@@ -86,7 +86,7 @@ public class BoardGameBggXml extends XmlNode implements BoardGame {
 		return pollResultAsRange(poll -> poll.result() != PlayerCountPollChoice.NOT_RECOMMENDED);
 	}
 
-	private Optional<Range<String>> pollResultAsRange(Predicate<PlayerCountPoll> pollPredicate) {
+	private Optional<Range<String>> pollResultAsRange(Predicate<OldPlayerCountPoll> pollPredicate) {
         RichIterable<NumberOfPlayers> filtered = this.playerCountVotes.get().select((pc, poll) -> pollPredicate.test(poll)).keysView();
         return filtered.minOptional().map(min -> new Range<>(min.value(), filtered.max().value()));
     }

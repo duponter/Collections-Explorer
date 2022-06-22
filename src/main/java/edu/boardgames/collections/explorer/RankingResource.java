@@ -15,7 +15,7 @@ import javax.ws.rs.core.MediaType;
 import org.apache.commons.lang3.StringUtils;
 
 import edu.boardgames.collections.explorer.domain.BoardGame;
-import edu.boardgames.collections.explorer.domain.poll.PlayerCountPoll;
+import edu.boardgames.collections.explorer.domain.poll.OldPlayerCountPoll;
 import edu.boardgames.collections.explorer.ui.input.CollectionsInput;
 import edu.boardgames.collections.explorer.ui.text.Column;
 import edu.boardgames.collections.explorer.ui.text.Document;
@@ -64,8 +64,8 @@ public class RankingResource {
         }
     }
 
-    private record VotingPercentage(Optional<PlayerCountPoll> playerCountPoll, double playerCountVoteCount, Score percentage) {
-        private VotingPercentage(Optional<PlayerCountPoll> playerCountPoll) {
+    private record VotingPercentage(Optional<OldPlayerCountPoll> playerCountPoll, double playerCountVoteCount, Score percentage) {
+        private VotingPercentage(Optional<OldPlayerCountPoll> playerCountPoll) {
             this(
                     playerCountPoll,
                     playerCountPoll
@@ -75,18 +75,18 @@ public class RankingResource {
         }
 
         public String bestVotes() {
-            return this.displayVotes(PlayerCountPoll::bestVotes);
+            return this.displayVotes(OldPlayerCountPoll::bestVotes);
         }
 
         public String recommendedVotes() {
-            return this.displayVotes(PlayerCountPoll::recommendedVotes);
+            return this.displayVotes(OldPlayerCountPoll::recommendedVotes);
         }
 
         public String notRecommendedVotes() {
-            return this.displayVotes(PlayerCountPoll::notRecommendedVotes);
+            return this.displayVotes(OldPlayerCountPoll::notRecommendedVotes);
         }
 
-        private String displayVotes(Function<PlayerCountPoll, Integer> voteSelector) {
+        private String displayVotes(Function<OldPlayerCountPoll, Integer> voteSelector) {
             return percentage.apply(playerCountPoll.map(voteSelector).orElse(0).doubleValue() / playerCountVoteCount);
         }
     }

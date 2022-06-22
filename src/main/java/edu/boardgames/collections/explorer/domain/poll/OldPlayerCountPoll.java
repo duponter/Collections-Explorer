@@ -8,12 +8,13 @@ import edu.boardgames.collections.explorer.domain.Range;
 import org.eclipse.collections.api.RichIterable;
 import org.eclipse.collections.api.list.MutableList;
 
-public class PlayerCountPoll {
+@Deprecated(since = "rename to OldPlayerCountPoll and replace with PlayerCountPoll2", forRemoval = true)
+public class OldPlayerCountPoll {
     private final int bestVotes;
     private final int recommendedVotes;
     private final int notRecommendedVotes;
 
-    public PlayerCountPoll(RichIterable<? extends PlayerCountVotes> votes) {
+    public OldPlayerCountPoll(RichIterable<? extends PlayerCountVotes> votes) {
         if (votes.size() != 3) {
             throw new IllegalArgumentException("Expecting only 3 vote elements: %s".formatted(String.join(", ", votes.collect(PlayerCountVotes::toString))));
         }
@@ -59,7 +60,7 @@ public class PlayerCountPoll {
 
     @Override
     public String toString() {
-        return new StringJoiner(", ", PlayerCountPoll.class.getSimpleName() + "[", "]")
+        return new StringJoiner(", ", OldPlayerCountPoll.class.getSimpleName() + "[", "]")
             .add(String.format("bestVotes=%s", bestVotes))
             .add(String.format("recommendedVotes=%s", recommendedVotes))
             .add(String.format("notRecommendedVotes=%s", notRecommendedVotes))

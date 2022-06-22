@@ -6,7 +6,7 @@ import java.util.Optional;
 
 import edu.boardgames.collections.explorer.domain.BoardGame;
 import edu.boardgames.collections.explorer.domain.Range;
-import edu.boardgames.collections.explorer.domain.poll.PlayerCountPoll;
+import edu.boardgames.collections.explorer.domain.poll.OldPlayerCountPoll;
 import edu.boardgames.collections.explorer.domain.poll.PlayerCountPollResult;
 import edu.boardgames.collections.explorer.domain.poll.Poll;
 import io.vavr.Lazy;
@@ -74,7 +74,7 @@ public class LazyBoardGame implements BoardGame {
 	}
 
 	@Override
-	public Optional<PlayerCountPoll> playerCountVotes(int playerCount) {
+	public Optional<OldPlayerCountPoll> playerCountVotes(int playerCount) {
 		return this.delegate.playerCountVotes(playerCount);
 	}
 
