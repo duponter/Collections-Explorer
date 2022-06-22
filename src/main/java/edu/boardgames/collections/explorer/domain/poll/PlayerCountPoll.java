@@ -12,10 +12,10 @@ import org.eclipse.collections.api.factory.Lists;
 import org.eclipse.collections.api.list.ImmutableList;
 import org.eclipse.collections.api.ordered.OrderedIterable;
 
-public final class PlayerCountPoll2 {
+public final class PlayerCountPoll {
     private final Poll<PlayerCountPollResult> pollResults;
 
-    public PlayerCountPoll2(Poll<PlayerCountPollResult> pollResults) {
+    public PlayerCountPoll(Poll<PlayerCountPollResult> pollResults) {
         this.pollResults = Objects.requireNonNull(pollResults);
     }
 

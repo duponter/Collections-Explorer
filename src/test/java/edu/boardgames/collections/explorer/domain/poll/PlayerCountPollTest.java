@@ -9,30 +9,30 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class PlayerCountPoll2Test {
+class PlayerCountPollTest {
     @Nested
     class Construction {
         @Test
         void failsWhenPollIsNull() {
-            assertThatThrownBy(() -> new PlayerCountPoll2(null))
+            assertThatThrownBy(() -> new PlayerCountPoll(null))
                 .isExactlyInstanceOf(NullPointerException.class);
         }
 
         @Test
         void succeedsWhenPollIsNotNull() {
-            assertThat(new PlayerCountPoll2(poll())).isNotNull();
+            assertThat(new PlayerCountPoll(poll())).isNotNull();
         }
     }
 
     @Test
     void bestOnlyReturnsTheMostFavorablePlayerCounts() {
-        PlayerCountPoll2 poll = new PlayerCountPoll2(poll());
+        PlayerCountPoll poll = new PlayerCountPoll(poll());
         assertThat(poll.bestOnly()).contains(new Range<>("3", "3"));
     }
 
     @Test
     void recommendedReturnsRecommendedPlayerCounts() {
-        PlayerCountPoll2 poll = new PlayerCountPoll2(poll());
+        PlayerCountPoll poll = new PlayerCountPoll(poll());
         assertThat(poll.recommended()).contains(new Range<>("2", "4"));
     }
 
