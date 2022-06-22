@@ -20,6 +20,7 @@ import edu.boardgames.collections.explorer.ui.text.Document;
 import edu.boardgames.collections.explorer.ui.text.DocumentTitle;
 import edu.boardgames.collections.explorer.ui.text.Table;
 import edu.boardgames.collections.explorer.ui.text.format.Score;
+import org.eclipse.collections.api.block.predicate.Predicate;
 import org.eclipse.collections.api.list.ImmutableList;
 
 import static java.lang.System.getLogger;
@@ -63,24 +64,25 @@ public class RankingResource {
         }
     }
 
-    private record VotingPercentage(ImmutableList<VotesPercentage> playerCountPoll, double playerCountVoteCount, Score percentage) {
+    private record VotingPercentage(ImmutableList<VotesPercentage> playerCountPoll, Score percentage) {
         private VotingPercentage(ImmutableList<VotesPercentage> playerCountPoll) {
-            this(
-                    playerCountPoll,
-                    0.0,
-                    Score.percentage());
+            this(playerCountPoll, Score.percentage());
         }
 
         public String bestVotes() {
-            return percentage.apply(playerCountPoll.detectOptional(VotesPercentage::isBest).map(VotesPercentage::percentage).orElse(0.0));
+            return formatVotes(VotesPercentage::isBest);
         }
 
         public String recommendedVotes() {
-            return percentage.apply(playerCountPoll.detectOptional(VotesPercentage::isRecommended).map(VotesPercentage::percentage).orElse(0.0));
+            return formatVotes(VotesPercentage::isRecommended);
         }
 
         public String notRecommendedVotes() {
-            return percentage.apply(playerCountPoll.detectOptional(VotesPercentage::isNotRecommended).map(VotesPercentage::percentage).orElse(0.0));
+            return formatVotes(VotesPercentage::isNotRecommended);
+        }
+
+        private String formatVotes(Predicate<VotesPercentage> predicate) {
+            return percentage.apply(playerCountPoll.detectOptional(predicate).map(VotesPercentage::percentage).map(d -> d * 100).orElse(0.0));
         }
     }
 }
