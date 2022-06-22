@@ -9,10 +9,9 @@ import edu.boardgames.collections.explorer.domain.BoardGame;
 import edu.boardgames.collections.explorer.domain.Range;
 import edu.boardgames.collections.explorer.domain.poll.NumberOfPlayers;
 import edu.boardgames.collections.explorer.domain.poll.OldPlayerCountPoll;
+import edu.boardgames.collections.explorer.domain.poll.PlayerCountPoll;
 import edu.boardgames.collections.explorer.domain.poll.PlayerCountPollChoice;
-import edu.boardgames.collections.explorer.domain.poll.PlayerCountPollResult;
 import edu.boardgames.collections.explorer.domain.poll.PlayerCountVotes;
-import edu.boardgames.collections.explorer.domain.poll.Poll;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
 import io.vavr.Lazy;
 import org.eclipse.collections.api.RichIterable;
@@ -24,6 +23,8 @@ public class BoardGameBggXml extends XmlNode implements BoardGame {
     private final String id;
     private final Lazy<MutableMap<NumberOfPlayers, OldPlayerCountPoll>> playerCountVotes;
 
+    private final Lazy<PlayerCountPoll> playerCountPoll;
+
 	public BoardGameBggXml(Node node) {
 		super(node);
 		this.id = id();
@@ -33,6 +34,13 @@ public class BoardGameBggXml extends XmlNode implements BoardGame {
                         .groupBy(PlayerCountVotes::numberOfPlayers)
                         .toMap()
                         .collectValues((playerCount, votes) -> new OldPlayerCountPoll(votes))
+        );
+        this.playerCountPoll = Lazy.of(
+            () -> new PlayerCountPoll(
+                new PlayerCountPollBggXml(
+                    this.nodes("poll[@name='suggested_numplayers']").findFirst().orElseThrow(() -> new IllegalArgumentException("No Player Count Poll found for " + id()))
+                )
+            )
         );
 	}
 
@@ -57,8 +65,8 @@ public class BoardGameBggXml extends XmlNode implements BoardGame {
 	}
 
     @Override
-    public Poll<PlayerCountPollResult> playerCountPoll() {
-        return new PlayerCountPollBggXml(this.nodes("poll[@name='suggested_numplayers']").findFirst().orElseThrow(() -> new IllegalArgumentException("No Player Count Poll found for " + id())));
+    public PlayerCountPoll playerCountPoll() {
+        return playerCountPoll.get();
     }
 
     @Override

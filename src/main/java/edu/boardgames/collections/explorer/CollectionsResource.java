@@ -3,6 +3,7 @@ package edu.boardgames.collections.explorer;
 import java.lang.System.Logger.Level;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -117,7 +118,11 @@ public class CollectionsResource {
                         new ChapterTitle("Player Count"),
                         new LinesParagraph(
                             boardGames.stream()
-                                .flatMap(bg -> bg.playerCountPoll().results().collect(PlayerCountPollResultLine::new).toSortedList().stream())
+                                .flatMap(bg ->
+                                    Stream.of(
+                                        bg.playerCountPoll().bestOnly().map(r -> "Best with " + r.formatted()),
+                                        bg.playerCountPoll().recommended().map(r -> "Recommended with " + r.formatted())
+                                    ).flatMap(Optional::stream).map(Line::of))
                                 .toList()
                         )
                     ),

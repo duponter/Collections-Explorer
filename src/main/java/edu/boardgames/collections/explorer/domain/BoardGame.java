@@ -4,27 +4,26 @@ import java.util.List;
 import java.util.Optional;
 
 import edu.boardgames.collections.explorer.domain.poll.OldPlayerCountPoll;
-import edu.boardgames.collections.explorer.domain.poll.PlayerCountPollResult;
-import edu.boardgames.collections.explorer.domain.poll.Poll;
+import edu.boardgames.collections.explorer.domain.poll.PlayerCountPoll;
 
 public interface BoardGame extends BoardGameSummary {
-	Double bggScore();
+    Double bggScore();
 
-	Poll<PlayerCountPollResult> playerCountPoll();
+    PlayerCountPoll playerCountPoll();
 
-	Range<String> playerCount();
+    Range<String> playerCount();
 
-	Integer playerCountTotalVoteCount();
+    Integer playerCountTotalVoteCount();
 
-	Optional<OldPlayerCountPoll> playerCountVotes(int playerCount);
+    Optional<OldPlayerCountPoll> playerCountVotes(int playerCount);
 
-	Optional<Range<String>> bestWithPlayerCount();
+    Optional<Range<String>> bestWithPlayerCount();
 
-	Optional<Range<String>> recommendedWithPlayerCount();
+    Optional<Range<String>> recommendedWithPlayerCount();
 
-	Range<String> playtime();
+    Range<String> playtime();
 
-	Double averageWeight();
+    Double averageWeight();
 
-	List<BoardGame> contains();
+    List<BoardGame> contains();
 }
