@@ -3,7 +3,6 @@ package edu.boardgames.collections.explorer.domain;
 import java.util.List;
 import java.util.Optional;
 
-import edu.boardgames.collections.explorer.domain.poll.OldPlayerCountPoll;
 import edu.boardgames.collections.explorer.domain.poll.PlayerCountPoll;
 
 public interface BoardGame extends BoardGameSummary {
@@ -14,8 +13,6 @@ public interface BoardGame extends BoardGameSummary {
     Range<String> playerCount();
 
     Integer playerCountTotalVoteCount();
-
-    Optional<OldPlayerCountPoll> playerCountVotes(int playerCount);
 
     Optional<Range<String>> bestWithPlayerCount();
 
