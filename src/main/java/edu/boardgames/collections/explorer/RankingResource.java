@@ -3,8 +3,6 @@ package edu.boardgames.collections.explorer;
 import java.lang.System.Logger;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
-import java.util.function.Function;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -15,13 +13,14 @@ import javax.ws.rs.core.MediaType;
 import org.apache.commons.lang3.StringUtils;
 
 import edu.boardgames.collections.explorer.domain.BoardGame;
-import edu.boardgames.collections.explorer.domain.poll.OldPlayerCountPoll;
+import edu.boardgames.collections.explorer.domain.poll.VotesPercentage;
 import edu.boardgames.collections.explorer.ui.input.CollectionsInput;
 import edu.boardgames.collections.explorer.ui.text.Column;
 import edu.boardgames.collections.explorer.ui.text.Document;
 import edu.boardgames.collections.explorer.ui.text.DocumentTitle;
 import edu.boardgames.collections.explorer.ui.text.Table;
 import edu.boardgames.collections.explorer.ui.text.format.Score;
+import org.eclipse.collections.api.list.ImmutableList;
 
 import static java.lang.System.getLogger;
 
@@ -60,34 +59,28 @@ public class RankingResource {
 
     private record Ranking(BoardGame boardGame, String owners, VotingPercentage votingPercentage) {
         public Ranking(BoardGame boardGame, String owners, int playerCount) {
-            this(boardGame, owners, new VotingPercentage(boardGame.playerCountVotes(playerCount)));
+            this(boardGame, owners, new VotingPercentage(boardGame.playerCountPoll().individualVotes(playerCount)));
         }
     }
 
-    private record VotingPercentage(Optional<OldPlayerCountPoll> playerCountPoll, double playerCountVoteCount, Score percentage) {
-        private VotingPercentage(Optional<OldPlayerCountPoll> playerCountPoll) {
+    private record VotingPercentage(ImmutableList<VotesPercentage> playerCountPoll, double playerCountVoteCount, Score percentage) {
+        private VotingPercentage(ImmutableList<VotesPercentage> playerCountPoll) {
             this(
                     playerCountPoll,
-                    playerCountPoll
-                            .map(poll -> poll.bestVotes() + poll.recommendedVotes() + poll.notRecommendedVotes())
-                            .orElse(1) / 100.0,
+                    0.0,
                     Score.percentage());
         }
 
         public String bestVotes() {
-            return this.displayVotes(OldPlayerCountPoll::bestVotes);
+            return percentage.apply(playerCountPoll.detectOptional(VotesPercentage::isBest).map(VotesPercentage::percentage).orElse(0.0));
         }
 
         public String recommendedVotes() {
-            return this.displayVotes(OldPlayerCountPoll::recommendedVotes);
+            return percentage.apply(playerCountPoll.detectOptional(VotesPercentage::isRecommended).map(VotesPercentage::percentage).orElse(0.0));
         }
 
         public String notRecommendedVotes() {
-            return this.displayVotes(OldPlayerCountPoll::notRecommendedVotes);
-        }
-
-        private String displayVotes(Function<OldPlayerCountPoll, Integer> voteSelector) {
-            return percentage.apply(playerCountPoll.map(voteSelector).orElse(0).doubleValue() / playerCountVoteCount);
+            return percentage.apply(playerCountPoll.detectOptional(VotesPercentage::isNotRecommended).map(VotesPercentage::percentage).orElse(0.0));
         }
     }
 }

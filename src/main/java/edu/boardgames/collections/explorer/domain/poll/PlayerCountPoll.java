@@ -1,7 +1,6 @@
 package edu.boardgames.collections.explorer.domain.poll;
 
 
-import java.util.Comparator;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -33,6 +32,12 @@ public final class PlayerCountPoll {
         );
     }
 
+    public ImmutableList<VotesPercentage> individualVotes(int playerCount) {
+        return pollResults.results()
+            .select(r -> StringUtils.equals(r.numberOfPlayers(), Integer.toString(playerCount)))
+            .collect(r -> new VotesPercentage(r.value(), r.numberOfPlayers(), ((double) r.votes() / pollResults.totalVotes())));
+    }
+
     private ImmutableList<VotesPercentage> asPercentageList() {
         return pollResults.results()
             .reject(p -> p.votes() < 5)
@@ -50,22 +55,4 @@ public final class PlayerCountPoll {
         );
     }
 
-    private record VotesPercentage(String value, String playerCount, Double percentage) implements Comparable<VotesPercentage> {
-        private static final Comparator<VotesPercentage> COMPARATOR = Comparator.comparing(VotesPercentage::percentage).reversed()
-            .thenComparing(VotesPercentage::value)
-            .thenComparing(VotesPercentage::playerCount);
-
-        private boolean isBest() {
-            return StringUtils.equals(value(), "Best");
-        }
-
-        private boolean isNotRecommended() {
-            return StringUtils.equals(value(), "Not Recommended");
-        }
-
-        @Override
-        public int compareTo(VotesPercentage other) {
-            return COMPARATOR.compare(this, other);
-        }
-    }
 }
