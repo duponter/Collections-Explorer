@@ -13,6 +13,8 @@ import javax.ws.rs.core.MediaType;
 import org.apache.commons.lang3.StringUtils;
 
 import edu.boardgames.collections.explorer.domain.BoardGame;
+import edu.boardgames.collections.explorer.domain.BoardGameAggregate;
+import edu.boardgames.collections.explorer.domain.BoardGameAggregates;
 import edu.boardgames.collections.explorer.domain.poll.VotesPercentage;
 import edu.boardgames.collections.explorer.ui.input.CollectionsInput;
 import edu.boardgames.collections.explorer.ui.text.Column;
@@ -36,25 +38,26 @@ public class RankingResource {
         CollectionsInput collectionsInput = new CollectionsInput(collections);
         LOGGER.log(Logger.Level.INFO, "Search currently playable collections {0} to rank games for {1} players", collectionsInput.asText(), playerCount);
         return new Document(
-                new DocumentTitle("Search currently playable collections %s to rank games for %s players".formatted(collections, playerCount)),
-                new Table<>(
-                        collectionsInput.resolve().copiesPerBoardGame()
-                                .entrySet().stream()
-                                .map(entry -> new Ranking(entry.getKey(), String.join(", ", entry.getValue()), playerCount))
-                                .sorted(Comparator.comparing(r1 -> r1.boardGame().name())).toList(), List.of(
-                                new Column<>("Boardgame", 70, r -> "%-70s".formatted(StringUtils.abbreviate(r.boardGame().name(), 70))),
-                                new Column<>("Year", 4, r -> r.boardGame().year()),
-                                new Column<>("Players", 7, r -> String.format("%5sp", r.boardGame().playerCount().formatted())),
-                                new Column<>("Playtime", 11, r -> String.format("%7s min", r.boardGame().playtime().formatted())),
-                                new Column<>("Weight", 6, r -> Score.score5().apply(r.boardGame().averageWeight())),
-                                new Column<>("BGG Score", 10, r -> Score.score10().apply(r.boardGame().bggScore())),
-                                new Column<>("# Votes", 7, r -> String.format("%d", r.boardGame().playerCountTotalVoteCount())),
-                                new Column<>("Best With", 9, r -> r.votingPercentage().bestVotes()),
-                                new Column<>("Recommend", 9, r -> r.votingPercentage().recommendedVotes()),
-                                new Column<>("Not Rec.", 9, r -> r.votingPercentage().notRecommendedVotes()),
-                                new Column<>("Owners", 40, r -> "%-40s".formatted(r.owners()))
-                        )
+            new DocumentTitle("Search currently playable collections %s to rank games for %s players".formatted(collections, playerCount)),
+            new Table<>(
+                new BoardGameAggregate(collectionsInput.resolve())
+                    .flatten(BoardGameAggregates::joinCollectionNames)
+                    .map((cbg, entry) -> new Ranking(entry, cbg.collection(), playerCount))
+                    .toSortedList(Comparator.comparing(r1 -> r1.boardGame().name())),
+                List.of(
+                    new Column<>("Boardgame", 70, r -> "%-70s".formatted(StringUtils.abbreviate(r.boardGame().name(), 70))),
+                    new Column<>("Year", 4, r -> r.boardGame().year()),
+                    new Column<>("Players", 7, r -> String.format("%5sp", r.boardGame().playerCount().formatted())),
+                    new Column<>("Playtime", 11, r -> String.format("%7s min", r.boardGame().playtime().formatted())),
+                    new Column<>("Weight", 6, r -> Score.score5().apply(r.boardGame().averageWeight())),
+                    new Column<>("BGG Score", 10, r -> Score.score10().apply(r.boardGame().bggScore())),
+                    new Column<>("# Votes", 7, r -> String.format("%d", r.boardGame().playerCountTotalVoteCount())),
+                    new Column<>("Best With", 9, r -> r.votingPercentage().bestVotes()),
+                    new Column<>("Recommend", 9, r -> r.votingPercentage().recommendedVotes()),
+                    new Column<>("Not Rec.", 9, r -> r.votingPercentage().notRecommendedVotes()),
+                    new Column<>("Owners", 40, r -> "%-40s".formatted(r.owners()))
                 )
+            )
         ).toText();
     }
 
