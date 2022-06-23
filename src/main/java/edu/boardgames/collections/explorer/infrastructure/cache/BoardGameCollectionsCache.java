@@ -2,6 +2,7 @@ package edu.boardgames.collections.explorer.infrastructure.cache;
 
 import java.util.Arrays;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.github.benmanes.caffeine.cache.Cache;
@@ -23,7 +24,7 @@ public class BoardGameCollectionsCache implements BoardGameCollections {
         geekBuddies.all().forEach(geekBuddy -> collections.put(StringUtils.lowerCase(geekBuddy.username()), Lazy.of(() -> geekBuddy.ownedCollection().withName(geekBuddy.name()))));
         geekLists.all().forEach(geekList -> collections.put(geekList.id(), Lazy.of(geekList::asCollection)));
 
-        collections.put("all", Lazy.of(() -> this.asGroup("all", collections.asMap().keySet().toArray(String[]::new))));
+        collections.put("all", Lazy.of(() -> this.asGroup("all", ArrayUtils.removeElement(collections.asMap().keySet().toArray(String[]::new), "all"))));
         collections.put("mine", Lazy.of(() -> this.asGroup("mine", "duponter", "274761")));
         collections.put("bareelstraat", Lazy.of(() -> this.asGroup("bareelstraat", "mine", "wouteraerts", "jarrebesetoert")));
         collections.put("fmlimited", Lazy.of(() -> this.asGroup("fmlimited", "mine", "bartie", "de rode baron", "edou", "evildee", "svennos", "turtler6")));
