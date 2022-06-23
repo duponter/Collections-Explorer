@@ -2,7 +2,6 @@ package edu.boardgames.collections.explorer.ui.text.format;
 
 import java.util.List;
 import java.util.Set;
-import java.util.function.BiFunction;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -10,7 +9,7 @@ import edu.boardgames.collections.explorer.domain.BoardGame;
 import edu.boardgames.collections.explorer.domain.Range;
 import edu.boardgames.collections.explorer.ui.text.Column;
 
-public enum OwnedBoardGameFormat implements BiFunction<BoardGame, Set<String>, String> {
+public enum OwnedBoardGameFormat {
     BARE {
         @Override
         public String apply(BoardGame boardGame, Set<String> owners) {
@@ -77,7 +76,6 @@ public enum OwnedBoardGameFormat implements BiFunction<BoardGame, Set<String>, S
 
     public abstract List<Column<PerspectivedBoardGame>> toColumnLayout();
 
-    @Override
     @Deprecated(since = "toColumnLayout", forRemoval = true)
     public abstract String apply(BoardGame boardGame, Set<String> owners);
 }
