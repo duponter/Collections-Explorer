@@ -1,11 +1,11 @@
 package edu.boardgames.collections.explorer.ui.text;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public record TabbedRecordList<T>(List<? extends T> rows, List<Column<T>> columns) implements Paragraph {
+public record TabbedRecordList<T>(Collection<? extends T> rows, Collection<Column<T>> columns) implements Paragraph {
 	private static final String VALUE_PREFIX = "";
 	private static final String VALUE_SUFFIX = "";
 
