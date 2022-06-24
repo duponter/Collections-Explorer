@@ -1,6 +1,7 @@
 package edu.boardgames.collections.explorer;
 
 import java.lang.System.Logger.Level;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -17,12 +18,12 @@ import javax.ws.rs.core.MediaType;
 import org.apache.commons.lang3.StringUtils;
 
 import edu.boardgames.collections.explorer.domain.BoardGame;
+import edu.boardgames.collections.explorer.domain.BoardGameAggregate;
 import edu.boardgames.collections.explorer.domain.BoardGameCollection;
 import edu.boardgames.collections.explorer.domain.CollectedBoardGame;
 import edu.boardgames.collections.explorer.domain.GeekBuddy;
 import edu.boardgames.collections.explorer.domain.GeekList;
 import edu.boardgames.collections.explorer.domain.MutableCollectedBoardGame;
-import edu.boardgames.collections.explorer.domain.poll.PlayerCountPollResult;
 import edu.boardgames.collections.explorer.infrastructure.bgg.BggInit;
 import edu.boardgames.collections.explorer.ui.input.BestWithInput;
 import edu.boardgames.collections.explorer.ui.input.BoardGameIdInput;
@@ -37,6 +38,7 @@ import edu.boardgames.collections.explorer.ui.text.LinesParagraph;
 import edu.boardgames.collections.explorer.ui.text.TabbedRecordList;
 import edu.boardgames.collections.explorer.ui.text.format.OwnedBoardGameFormat;
 import edu.boardgames.collections.explorer.ui.text.format.PerspectivedBoardGame;
+import org.eclipse.collections.api.list.MutableList;
 
 @Path("/collections")
 public class CollectionsResource {
@@ -76,17 +78,24 @@ public class CollectionsResource {
     }
 
     private String matchAgainstAllCollections(Stream<BoardGame> all, String title) {
-        Map<BoardGame, Set<String>> available = BggInit.get().collections().all().copiesPerBoardGame();
-        List<Line> copies = all
+        BoardGameCollection all1 = BggInit.get().collections().one("mine");
+        List<BoardGame> start = all.toList();
+        Map<BoardGame, Set<String>> available = all1.copiesPerBoardGame();
+        List<Line> copies = start.stream()
             .map(bg -> OwnedBoardGameFormat.FULL.apply(bg, available.getOrDefault(bg, Set.of())))
             .sorted()
             .map(Line::of)
             .toList();
         LOGGER.log(Level.INFO, "All owned collections matched against list of board games");
 
+        MutableList<PerspectivedBoardGame> games = new BoardGameAggregate(start)
+            .merge(all1, (mcbg, bg) -> new MutableCollectedBoardGame(mcbg).collection(bg.collection()))
+            .map((cbg, bg) -> (PerspectivedBoardGame) new BoardGameWrapper(bg, cbg))
+            .toSortedList(Comparator.comparing(bg -> bg.boardGame().name()));
         return new Document(
             new DocumentTitle(title),
-            new LinesParagraph(copies)
+            new LinesParagraph(copies),
+            new TabbedRecordList<>(games, OwnedBoardGameFormat.FULL.toColumnLayout())
         ).toText();
     }
 
@@ -135,13 +144,6 @@ public class CollectionsResource {
                     .map(geekList -> toChapter(geekList.asCollection()))
             ).toList()
         ).toText();
-    }
-
-    private record PlayerCountPollResultLine(PlayerCountPollResult result) implements Line {
-        @Override
-        public String line() {
-            return "%s %s: %d".formatted(result.value(), result.numberOfPlayers(), result.votes());
-        }
     }
 
     private record BoardGameWrapper(BoardGame boardGame, CollectedBoardGame collectedBoardGame) implements PerspectivedBoardGame {

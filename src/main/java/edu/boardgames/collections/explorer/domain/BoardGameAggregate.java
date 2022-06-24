@@ -1,6 +1,6 @@
 package edu.boardgames.collections.explorer.domain;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Objects;
 
 import edu.boardgames.collections.explorer.infrastructure.bgg.BggInit;
@@ -20,6 +20,10 @@ public final class BoardGameAggregate {
 
     public BoardGameAggregate(BoardGameCollection collection) {
         this(collection.boardGames().collect(MutableCollectedBoardGame::new));
+    }
+
+    public BoardGameAggregate(Collection<BoardGame> boardGames) {
+        this(Lists.immutable.withAll(boardGames).collect(MutableCollectedBoardGame::new), mapById(boardGames));
     }
 
     public BoardGameAggregate(ImmutableList<MutableCollectedBoardGame> collection) {
@@ -66,7 +70,7 @@ public final class BoardGameAggregate {
         );
     }
 
-    public static Lazy<ImmutableMap<String, BoardGame>> mapById(List<BoardGame> boardGames) {
+    private static Lazy<ImmutableMap<String, BoardGame>> mapById(Collection<BoardGame> boardGames) {
         return Lazy.of(() -> Lists.immutable.withAll(boardGames).toImmutableMap(BoardGame::id, bg -> bg));
     }
 }
