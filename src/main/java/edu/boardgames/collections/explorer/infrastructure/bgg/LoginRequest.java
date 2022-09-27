@@ -19,6 +19,7 @@ import dev.failsafe.function.CheckedConsumer;
  http://tutorials.jenkov.com/java-cryptography/cipher.html
  https://stackoverflow.com/a/43779197/1571325
  https://stackoverflow.com/a/18228702/1571325
+ http://www.passay.org/reference/
  */
 class LoginRequest {
 	private final String username;

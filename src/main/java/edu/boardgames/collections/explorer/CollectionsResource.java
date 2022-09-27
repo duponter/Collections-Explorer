@@ -78,9 +78,9 @@ public class CollectionsResource {
     }
 
     private String matchAgainstAllCollections(Stream<BoardGame> all, String title) {
-        BoardGameCollection all1 = BggInit.get().collections().one("mine");
+        BoardGameCollection all1 = BggInit.get().collections().one("mine"); // pass collections as parameter
         List<BoardGame> start = all.toList();
-        Map<BoardGame, Set<String>> available = all1.copiesPerBoardGame();
+        Map<BoardGame, Set<String>> available = all1.copiesPerBoardGame(); // cleanup
         List<Line> copies = start.stream()
             .map(bg -> OwnedBoardGameFormat.FULL.apply(bg, available.getOrDefault(bg, Set.of())))
             .sorted()
@@ -90,6 +90,7 @@ public class CollectionsResource {
 
         MutableList<PerspectivedBoardGame> games = new BoardGameAggregate(start)
             .merge(all1, (mcbg, bg) -> new MutableCollectedBoardGame(mcbg).collection(bg.collection()))
+//            .map(mcbg -> mcbg.collection(StringUtils.defaultString(mcbg.collection())))
             .map((cbg, bg) -> (PerspectivedBoardGame) new BoardGameWrapper(bg, cbg))
             .toSortedList(Comparator.comparing(bg -> bg.boardGame().name()));
         return new Document(

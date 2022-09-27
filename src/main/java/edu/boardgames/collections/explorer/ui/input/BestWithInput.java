@@ -23,6 +23,7 @@ public class BestWithInput implements Input<Predicate<BoardGame>> {
 	private final int bestWith;
 
 	public static Input<Predicate<BoardGame>> of(Integer bestWith) {
+        // allow multiple best with input
 		return bestWith != null ? new BestWithInput(bestWith) : DUMMY;
 	}
 
