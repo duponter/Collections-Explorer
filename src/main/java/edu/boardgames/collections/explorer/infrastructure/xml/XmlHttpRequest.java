@@ -12,11 +12,8 @@ import java.nio.charset.Charset;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.BooleanUtils;
 
 import dev.failsafe.Failsafe;
 import dev.failsafe.RetryPolicy;
@@ -50,7 +47,7 @@ public final class XmlHttpRequest {
 	}
 
     public XmlHttpRequest enableOption(String name) {
-        return this.addOption(name, Objects.toString(BooleanUtils.toInteger(true)));
+        return this.addOption(name, "1");
     }
 
     public Node asNode() {
