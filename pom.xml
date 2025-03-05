@@ -16,6 +16,8 @@
         <versions-maven-plugin.version>2.11.0</versions-maven-plugin.version>
 
         <quarkus.version>2.11.0.Final</quarkus.version>
+        <netty-resolver.version>4.1.119.Final</netty-resolver.version>
+
         <failsafe.version>3.2.4</failsafe.version>
         <caffeine.version>3.1.1</caffeine.version>
         <eclipse-collections.version>11.1.0</eclipse-collections.version>
@@ -78,6 +80,13 @@
             <groupId>com.github.ben-manes.caffeine</groupId>
             <artifactId>caffeine</artifactId>
             <version>${caffeine.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-resolver-dns-native-macos</artifactId>
+            <scope>runtime</scope>
+            <classifier>osx-aarch_64</classifier>
+            <version>${netty-resolver.version}</version>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
