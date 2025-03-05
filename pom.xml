@@ -15,7 +15,7 @@
         <surefire-plugin.version>3.5.2</surefire-plugin.version>
         <versions-maven-plugin.version>2.18.0</versions-maven-plugin.version>
 
-        <quarkus.version>2.11.0.Final</quarkus.version>
+        <quarkus.version>3.19.2</quarkus.version>
         <netty-resolver.version>4.1.119.Final</netty-resolver.version>
 
         <failsafe.version>3.2.4</failsafe.version>
@@ -130,6 +130,7 @@
                         </goals>
                     </execution>
                 </executions>
+
             </plugin>
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
