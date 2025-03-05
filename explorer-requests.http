@@ -6,3 +6,6 @@ GET {{base-url}}/session/play?collections=mine,wouteraerts,jarrebesetoert&bestWi
 
 ### Shelves Forum Mortsel
 GET {{base-url}}/session/play?collections=mine,bartie,svennos&bestWith=3
+
+### Plays duponter
+GET {{base-url}}/plays/duponter
