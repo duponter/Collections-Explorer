@@ -2,6 +2,8 @@ package edu.boardgames.collections.explorer.infrastructure.xml;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -17,6 +19,12 @@ public final class XmlInput {
         } catch (SAXException | IOException e) {
             throw new IllegalArgumentException("Unable to parse XML from InputStream", e);
         }
+    }
+
+    private InputStream dump(InputStream inputStream) throws IOException {
+        Path path = Path.of(System.nanoTime() + ".xml");
+        Files.copy(inputStream, path);
+        return Files.newInputStream(path);
     }
 
 	private DocumentBuilder newDocumentBuilder() {

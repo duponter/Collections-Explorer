@@ -1,15 +1,15 @@
 package edu.boardgames.collections.explorer.infrastructure.bgg;
 
+import edu.boardgames.collections.explorer.domain.BoardGame;
+import edu.boardgames.collections.explorer.infrastructure.xml.XmlHttpRequest;
+import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
+import org.eclipse.collections.api.factory.Lists;
+import org.w3c.dom.Node;
+
 import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
 import java.util.List;
 import java.util.stream.Stream;
-
-import edu.boardgames.collections.explorer.domain.BoardGame;
-import edu.boardgames.collections.explorer.infrastructure.Async;
-import edu.boardgames.collections.explorer.infrastructure.xml.XmlHttpRequest;
-import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
-import org.eclipse.collections.api.factory.Lists;
 
 public class ThingEndpoint implements BggEndpoint {
     private static final Logger LOGGER = System.getLogger(ThingEndpoint.class.getName());
@@ -27,13 +27,13 @@ public class ThingEndpoint implements BggEndpoint {
 
      */
     private final XmlHttpRequest bggRequest;
-    private static final Page PAGING = new Page(900);
+    private static final Page PAGING = new Page(20);
     private List<String> ids;
 
     public ThingEndpoint() {
         this.bggRequest = new XmlHttpRequest(BggApi.V2.create("thing"))
-                .addOption("type", "boardgame")
-                .enableOption("stats");
+            .addOption("type", "boardgame")
+            .enableOption("stats");
     }
 
     public ThingEndpoint forIds(List<String> ids) {
@@ -42,21 +42,36 @@ public class ThingEndpoint implements BggEndpoint {
     }
 
     public Stream<BoardGame> execute() {
-        return Async.map(this.splitLargeRequests(), XmlHttpRequest::asNode)
-                .flatMap(node -> XmlNode.nodes(node, "//item"))
-                .map(BoardGameBggXml::new);
+        return execute(this.splitLargeRequests());
     }
 
-    private Stream<XmlHttpRequest> splitLargeRequests() {
-        if (ids.isEmpty()) {
+    private Stream<BoardGame> execute(List<XmlHttpRequest> requests) {
+        if (requests.isEmpty()) {
             return Stream.empty();
         }
-        int idCountPerRequest = PAGING.averageSize(ids.size());
-        LOGGER.log(Level.INFO, "Performing %d requests for %d ids each".formatted(PAGING.count(ids.size()), idCountPerRequest));
+        List<XmlHttpRequest> failedRequests = Lists.mutable.of();
+        return Stream.concat(
+            requests.parallelStream().flatMap(req -> {
+                    List<Node> nodes = XmlNode.nodes(req.asNode(), "//item").toList();
+                    if (nodes.isEmpty()) {
+                        failedRequests.add(req);
+                    }
+                    return nodes.stream();
+                })
+                .map(BoardGameBggXml::new),
+            execute(failedRequests)
+        );
+    }
+
+    private List<XmlHttpRequest> splitLargeRequests() {
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+        LOGGER.log(Level.INFO, "Performing %d requests for %d ids each".formatted(PAGING.count(ids.size()), PAGING.size()));
         return Lists.immutable.withAll(ids)
-                .chunk(idCountPerRequest)
-                .collect(idsPerRequest -> this.bggRequest.copy().addOption("id", idsPerRequest.makeString(",")))
-                .toList().stream();
+            .chunk(PAGING.size())
+            .collect(idsPerRequest -> this.bggRequest.copy().addOption("id", idsPerRequest.makeString(",")))
+            .toList();
     }
 
     public String asXml() {
