@@ -1,6 +1,7 @@
 package edu.boardgames.collections.explorer.infrastructure.bgg;
 
 import edu.boardgames.collections.explorer.domain.BoardGame;
+import edu.boardgames.collections.explorer.infrastructure.Async;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlHttpRequest;
 import edu.boardgames.collections.explorer.infrastructure.xml.XmlNode;
 import org.eclipse.collections.api.factory.Lists;
@@ -9,6 +10,7 @@ import org.w3c.dom.Node;
 import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 public class ThingEndpoint implements BggEndpoint {
@@ -51,7 +53,8 @@ public class ThingEndpoint implements BggEndpoint {
         }
         List<XmlHttpRequest> failedRequests = Lists.mutable.of();
         return Stream.concat(
-            requests.parallelStream().flatMap(req -> {
+            Async.map(requests.stream(), Function.identity(), 5)
+                .flatMap(req -> {
                     List<Node> nodes = XmlNode.nodes(req.asNode(), "//item").toList();
                     if (nodes.isEmpty()) {
                         failedRequests.add(req);
@@ -67,7 +70,7 @@ public class ThingEndpoint implements BggEndpoint {
         if (ids.isEmpty()) {
             return List.of();
         }
-        LOGGER.log(Level.INFO, "Performing %d requests for %d ids each".formatted(PAGING.count(ids.size()), PAGING.size()));
+        LOGGER.log(Level.INFO, "Performing %d requests for %d ids each to fetch %d boardgames".formatted(PAGING.count(ids.size()), PAGING.size(), ids.size()));
         return Lists.immutable.withAll(ids)
             .chunk(PAGING.size())
             .collect(idsPerRequest -> this.bggRequest.copy().addOption("id", idsPerRequest.makeString(",")))
