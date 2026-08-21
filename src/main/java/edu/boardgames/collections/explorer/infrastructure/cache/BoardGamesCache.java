@@ -1,5 +1,11 @@
 package edu.boardgames.collections.explorer.infrastructure.cache;
 
+import com.github.benmanes.caffeine.cache.CacheLoader;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
+import edu.boardgames.collections.explorer.domain.BoardGame;
+import edu.boardgames.collections.explorer.domain.BoardGames;
+
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -8,40 +14,42 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.github.benmanes.caffeine.cache.CacheLoader;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.LoadingCache;
-import edu.boardgames.collections.explorer.domain.BoardGame;
-import edu.boardgames.collections.explorer.domain.BoardGames;
+import static java.lang.System.Logger.Level.INFO;
 
 //TODO_EDU CacheWriter? https://github.com/ben-manes/caffeine/issues/274
 public class BoardGamesCache implements BoardGames {
-	private final LoadingCache<String, BoardGame> cache;
+    private static final System.Logger LOGGER = System.getLogger(BoardGamesCache.class.getName());
 
-	public BoardGamesCache(BoardGames delegate) {
-		Objects.requireNonNull(delegate);
-		this.cache = Caffeine.newBuilder()
-				.refreshAfterWrite(Duration.ofMinutes(5))
-				.build(new CacheLoader<>() {
-					@Override
-					public BoardGame load(String s) {
-						return delegate.withIds(Stream.of(s)).stream()
-								.findFirst()
-								.map(LazyBoardGame::new)
-								.orElse(null);
-					}
+    private final LoadingCache<String, BoardGame> cache;
 
-					@Override
-					public Map<? extends String, ? extends BoardGame> loadAll(Set<? extends String> keys) throws Exception {
-						Stream<String> ids = keys.stream().map(String.class::cast);
-						return delegate.withIds(ids).stream()
-								.collect(Collectors.toMap(BoardGame::id, LazyBoardGame::new));
-					}
-				});
-	}
+    public BoardGamesCache(BoardGames delegate) {
+        Objects.requireNonNull(delegate);
+        this.cache = Caffeine.newBuilder()
+            .refreshAfterWrite(Duration.ofMinutes(5))
+            .build(new CacheLoader<>() {
+                @Override
+                public BoardGame load(String s) {
+                    return delegate.withIds(Stream.of(s)).stream()
+                        .findFirst()
+                        .map(LazyBoardGame::new)
+                        .orElse(null);
+                }
 
-	@Override
-	public List<BoardGame> withIds(Stream<String> ids) {
-		return List.copyOf(cache.getAll(ids.toList()).values());
-	}
+                @Override
+                public Map<? extends String, ? extends BoardGame> loadAll(Set<? extends String> keys) {
+                    Stream<String> ids = keys.stream().map(String.class::cast);
+                    return delegate.withIds(ids).stream()
+                        .collect(Collectors.toMap(BoardGame::id, LazyBoardGame::new));
+                }
+            });
+    }
+
+    @Override
+    public List<BoardGame> withIds(Stream<String> ids) {
+        List<String> idsList = ids.toList();
+        LOGGER.log(INFO, "Getting {0,number,integer} boardgames from cache which contains {1,number,integer} boardgames", idsList.size(), this.cache.estimatedSize());
+        List<BoardGame> boardGames = List.copyOf(cache.getAll(idsList).values());
+        LOGGER.log(INFO, "Got {0,number,integer} boardgames from cache which now contains {1,number,integer} boardgames", boardGames.size(), this.cache.estimatedSize());
+        return boardGames;
+    }
 }

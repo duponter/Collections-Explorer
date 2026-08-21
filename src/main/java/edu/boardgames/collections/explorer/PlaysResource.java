@@ -97,7 +97,9 @@ public class PlaysResource {
                 plays.entrySet().stream().map(entry -> {
                     BoardGame boardGame = boardGames.get(entry.getKey());
                     return new BareelstraatPlays(boardGame != null ? boardGame.name() : "Onbekend", entry.getValue());
-                }).toList(),
+                })
+                    .sorted(BareelstraatPlays.COMPARATOR)
+                    .toList(),
                 List.of(
                     new Column<>("Game", 70, r -> "%-70s".formatted(StringUtils.abbreviate(r.boardGame(), 70))),
                     new Column<>("Erwin", 18, r -> r.forErwin().formatted()),
@@ -113,6 +115,8 @@ public class PlaysResource {
     }
 
     private record BareelstraatPlays(String boardGame, ImmutableList<Play> plays) {
+        private static final Comparator<BareelstraatPlays> COMPARATOR = Comparator.comparing(BareelstraatPlays::boardGame);
+
         public BareelstraatPlays(String boardGame, List<Play> plays) {
             this(boardGame, Lists.immutable.withAll(plays));
         }
